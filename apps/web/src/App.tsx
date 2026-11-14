@@ -207,6 +207,9 @@ export default function App() {
           {st.status === 'error' && `Error: ${st.error}`}
           {st.status !== 'starting' && st.status !== 'error' && `Engine worker ready · ${st.workerPingMs?.toFixed(1) ?? '–'} ms`}
         </span>
+        <span className="hidden shrink-0 font-mono sm:inline" title="Deployed commit">
+          build <span data-testid="build-commit">{__WEAVE_COMMIT__}</span>
+        </span>
         {st.stateHash && (
           <span className="ml-auto truncate font-mono" title="Deterministic state hash: identical seeds give identical hashes in every browser">
             state <span data-testid="state-hash">{st.stateHash}</span>
