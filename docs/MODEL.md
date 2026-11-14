@@ -14,6 +14,11 @@ milestone n.
   from its start. A vehicle's `s` is the position of its **front**.
 - **Lateral coordinate:** `y` is the position of the vehicle's **centre**, measured from the
   **left** edge of the carriageway in the direction of travel. This matches the Chennai data.
+- **Link polylines** are carriageway **centrelines**. The world position of `(s, y)` is
+  `P(s) + nL(s)·(widthM/2 − y)`, where `nL` is the unit left normal (the tangent rotated
+  +90°). Movement paths are centrelines too.
+- **Frames** carry the vehicle body's **centre** (x, y) in world metres and its heading in
+  radians, counter-clockwise from +x.
 - **Determinism:**
   - The simulation hot path uses only `+ − × ÷`, `Math.sqrt`, `Math.floor`, `Math.ceil`,
     `Math.min`, `Math.max` and `Math.abs`. These are exact under IEEE 754 or are pure
@@ -54,7 +59,17 @@ export function substream(seed: number, purpose: number, entity: number): Rng
 ```
 
 - **Generator:** xoshiro128** with 32-bit state words updated through `Math.imul` and `>>>`.
-  Its 128-bit state is seeded by running splitmix32 from the seed.
+  Its 128-bit state is seeded by running splitmix32 from the seed. Exact definitions (all
+  arithmetic is uint32):
+  - **`fmix32(h)`:** `h ^= h>>>16; h = imul(h, 0x85ebca6b); h ^= h>>>13; h = imul(h, 0xc2b2ae35); h ^= h>>>16`.
+  - **`splitmix32` step:** `state = (state + 0x9e3779b9)>>>0`, returning `fmix32(state)`.
+  - **Seeding:** `Rng(seed)` sets s0..s3 to four successive splitmix32 outputs from
+    `state = seed>>>0`. If all four are 0, s0 = 1.
+  - **`nextU32` (xoshiro128\*\*):** `r = imul(rotl(imul(s1,5),7),9); t = s1<<9;
+    s2 ^= s0; s3 ^= s1; s1 ^= s2; s0 ^= s3; s2 ^= t; s3 = rotl(s3,11)`; return `r>>>0`.
+  - **`mix32(...v)`:** `h = 0x811c9dc5`; for each value: `h = fmix32((h ^ (v>>>0)) + 0x9e3779b9)`.
+  - **Rounding:** "round" in this spec always means half-up, `floor(x + 0.5)` (JS `Math.round`
+    for positive x). The Python pipeline must use the same rule, not banker's rounding.
 - **Substreams:** `substream(seed, purpose, entity)` = `new Rng(mix32(seed, purpose, entity))`.
 - **Common random numbers:** every random quantity belongs to exactly one *(purpose, entity)*
   substream:
@@ -83,6 +98,9 @@ export function idmAccel(p: IdmParams, v: number, gap: number, dv: number): numb
 - **Acceleration:** `acc = a · (free − (s*/gap)²)`, and `acc = a · free` when the gap is
   infinite.
 - **Clamp:** the result is clamped to `[−B_MAX, a]`. If `gap ≤ 0` the result is `−B_MAX`.
+- **Speed limit:** in the simulation, the effective desired speed is
+  `min(v0_driver, speedLimitMps)` of the link the vehicle's front is on. `idmAccel` itself
+  takes whatever v0 it is given.
 - **Equilibrium (for tests):** with dv = 0 and acc = 0, the equilibrium gap is
   `s_e(v) = (s0 + vT) / √(1 − (v/v0)⁴)`.
 
@@ -138,8 +156,12 @@ export function findLeaders(vs: readonly LeaderInput[]): Int32Array   // leader 
   both reproduce them.
 - **Fixture format:**
   `{ cases: [{ name, roadWidthM, stripWidthM, mode: 'strip'|'lane', lanes?, vehicles: [{ id, frontM, lengthM, centreM, widthM, clearanceM }], expected: { [id]: leaderId | null } }] }`
+- **Look-ahead:** the **whole** search (own link plus continuation) is capped at
+  `D = max(150 m, v²/(2b) + 50 m)` from the vehicle's front. A leader whose rear end is
+  farther than D counts as no leader (free road). With IDM, the interaction term at that
+  distance is negligible.
 - **Across link ends:** in the running simulation, when no candidate exists on the vehicle's
-  own link within the look-ahead distance `max(150 m, v²/(2b) + 50 m)`, the search continues
+  own link within the look-ahead distance, the search continues
   along the vehicle's route onto the next movement path and link. Positions there are offset
   by the remaining length of the current link, and strips map through the movement's lateral
   bands. A vehicle whose front has crossed onto the next link while its rear is still upstream
@@ -155,7 +177,7 @@ export interface VehicleView {
   length: number; width: number; lo: number; hi: number
 }
 export interface Sim {
-  readonly t: number; readonly step: number; readonly network: Network
+  readonly t: number; readonly step: number; readonly dt: number; readonly network: Network
   advance(steps?: number): void
   vehicles(): VehicleView[]            // sorted by id
   vehicleCount(): number
@@ -166,6 +188,17 @@ export interface Sim {
 export function generateNetwork(params: GeneratorParams): Network   // scenarios/generators
 export function defaultClasses(): ClassSet                          // provisional until the pipeline lands
 ```
+
+**Behaviour details:**
+- **`stateHash`:** 32-bit FNV-1a (offset 0x811c9dc5, prime 0x01000193 via `imul`) over, for
+  each vehicle in id order: id as uint32 LE (4 bytes), link index uint32 LE, then s, y and v as
+  float64 LE (8 bytes each). The result is 8 lowercase hex digits.
+- **`VehicleView.a`:** the acceleration used in the last step, computed from the pre-step
+  snapshot.
+- **`advance(n)`:** continues from the current state, so `advance(a)` then `advance(b)`
+  equals `advance(a + b)`.
+- **Ring:** the ring's own link is the next route element after itself. `s` stays in
+  `[0, L)` by wrapping modulo L, and a gap across the wrap is `(L − s_i) + s_lead − ℓ_lead`.
 
 **Update order for one step (synchronous):**
 1. From the current state (a snapshot), compute every vehicle's leader and gap, then its IDM

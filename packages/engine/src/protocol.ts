@@ -8,7 +8,10 @@ import { Scenario } from './schema/scenario.ts';
  * carry a transferable Float32Array; their envelope is validated on the main thread.
  */
 
-/** Per-vehicle record layout in a frame buffer. */
+/**
+ * Per-vehicle record layout in a frame buffer. (x, y) is the body CENTRE in world metres;
+ * heading is radians counter-clockwise from +x; class is the index into the ClassSet.
+ */
 export const FRAME_STRIDE = 7;
 export const F_X = 0;
 export const F_Y = 1;

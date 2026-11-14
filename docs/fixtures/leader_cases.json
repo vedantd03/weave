@@ -1,0 +1,539 @@
+{
+  "description": "Shared leader-rule cases (docs/MODEL.md §1.6). Used by the engine (packages/engine/test/unit/t8-leader.test.ts, T8) and the data pipeline (D7). Expected leaders are derived by hand from the rule; each case explains why. Vehicle index = position in the vehicles array (ties use the index). Strip mode: layout from stripWidthM; lane mode: layout target roadWidthM / lanes.",
+  "cases": [
+    {
+      "name": "bus_rear_beats_car_front",
+      "roadWidthM": 7,
+      "stripWidthM": 0.5,
+      "mode": "strip",
+      "why": "Layout n = 14, w = 0.5. Follower 1 covers y in [1.5, 3.5) -> strips 3..6. Bus 2 covers [3.25, 5.75) -> 6..11 (shares strip 6). Car 3 covers [0.2, 1.8) -> 0..3 (shares strip 3). Car 3 has the nearer FRONT (13 m vs 20 m) but the bus has the nearer REAR (20 - 12 = 8 m vs 13 - 4 = 9 m), so the leader of 1 is the bus. Bus and car 3 do not overlap each other (6..11 vs 0..3): both null.",
+      "vehicles": [
+        {
+          "id": 1,
+          "frontM": 0,
+          "lengthM": 4,
+          "centreM": 2.5,
+          "widthM": 2,
+          "clearanceM": 0
+        },
+        {
+          "id": 2,
+          "frontM": 20,
+          "lengthM": 12,
+          "centreM": 4.5,
+          "widthM": 2.5,
+          "clearanceM": 0
+        },
+        {
+          "id": 3,
+          "frontM": 13,
+          "lengthM": 4,
+          "centreM": 1,
+          "widthM": 1.6,
+          "clearanceM": 0
+        }
+      ],
+      "expected": {
+        "1": 2,
+        "2": null,
+        "3": null
+      }
+    },
+    {
+      "name": "partial_overlap_and_touching_edges",
+      "roadWidthM": 3.5,
+      "stripWidthM": 0.5,
+      "mode": "strip",
+      "why": "Layout n = 7, w = 0.5. Vehicle 10 covers [0.5, 1.5) -> strips 1..2. Vehicle 11 covers [1.5, 2.5) -> 3..4: the edges touch at y = 1.5 but intervals are half-open, so 10 and 11 do NOT overlap. Vehicle 12 covers [1.45, 2.45) -> 2..4: one shared strip (2) with 10 is enough, and it shares 3..4 with 11. So 10 -> 12 (11 is nearer but disjoint) and 11 -> 12.",
+      "vehicles": [
+        {
+          "id": 10,
+          "frontM": 0,
+          "lengthM": 4,
+          "centreM": 1,
+          "widthM": 1,
+          "clearanceM": 0
+        },
+        {
+          "id": 11,
+          "frontM": 10,
+          "lengthM": 4,
+          "centreM": 2,
+          "widthM": 1,
+          "clearanceM": 0
+        },
+        {
+          "id": 12,
+          "frontM": 20,
+          "lengthM": 4,
+          "centreM": 1.95,
+          "widthM": 1,
+          "clearanceM": 0
+        }
+      ],
+      "expected": {
+        "10": 12,
+        "11": 12,
+        "12": null
+      }
+    },
+    {
+      "name": "no_overlap_side_by_side",
+      "roadWidthM": 7,
+      "stripWidthM": 0.3,
+      "mode": "strip",
+      "why": "Layout n = round(7/0.3) = 23, w = 7/23. Vehicle 20 with clearance covers [0.15, 2.25) -> strips 0..7; vehicle 21 covers [4.75, 6.85) -> 15..22. Disjoint, so 21 has no leader although 20 is ahead of it, and 20 has nothing ahead.",
+      "vehicles": [
+        {
+          "id": 20,
+          "frontM": 30,
+          "lengthM": 4.5,
+          "centreM": 1.2,
+          "widthM": 1.7,
+          "clearanceM": 0.2
+        },
+        {
+          "id": 21,
+          "frontM": 5,
+          "lengthM": 4.5,
+          "centreM": 5.8,
+          "widthM": 1.7,
+          "clearanceM": 0.2
+        }
+      ],
+      "expected": {
+        "20": null,
+        "21": null
+      }
+    },
+    {
+      "name": "equal_fronts_and_equal_rears_tie_break",
+      "roadWidthM": 3.5,
+      "stripWidthM": 0.5,
+      "mode": "strip",
+      "why": "All three cover [0.95, 2.55) -> strips 1..5. Index order: 5 (idx 0), 4 (idx 1), 1 (idx 2). Vehicles 5 and 4 have equal fronts (10 m): the \"ahead\" rule counts j as ahead of i only when j > i, so 4 (idx 1) is a candidate for 5 (idx 0) but not vice versa: 5 -> 4, 4 -> null. For vehicle 1 both 5 and 4 are candidates with equal rears (6 m): the tie goes to the smaller INDEX, which is vehicle 5 (idx 0) even though its id is larger.",
+      "vehicles": [
+        {
+          "id": 5,
+          "frontM": 10,
+          "lengthM": 4,
+          "centreM": 1.75,
+          "widthM": 1.6,
+          "clearanceM": 0
+        },
+        {
+          "id": 4,
+          "frontM": 10,
+          "lengthM": 4,
+          "centreM": 1.75,
+          "widthM": 1.6,
+          "clearanceM": 0
+        },
+        {
+          "id": 1,
+          "frontM": 0,
+          "lengthM": 4,
+          "centreM": 1.75,
+          "widthM": 1.6,
+          "clearanceM": 0
+        }
+      ],
+      "expected": {
+        "1": 5,
+        "4": null,
+        "5": 4
+      }
+    },
+    {
+      "name": "equal_rears_different_lengths",
+      "roadWidthM": 7,
+      "stripWidthM": 0.5,
+      "mode": "strip",
+      "why": "Follower 30 covers [2.5, 4.5) -> strips 5..8. Car 32 covers [0.8, 2.6) -> 1..5 (shares 5), front 14, rear 10. Bus 33 covers [4.25, 6.75) -> 8..13 (shares 8), front 22, rear 10. Equal rears: the tie goes to the smaller INDEX, so bus 33 (idx 1) beats car 32 (idx 2) although car 32 has the smaller id and the nearer front. 33 and 32 are disjoint.",
+      "vehicles": [
+        {
+          "id": 30,
+          "frontM": 0,
+          "lengthM": 4,
+          "centreM": 3.5,
+          "widthM": 2,
+          "clearanceM": 0
+        },
+        {
+          "id": 33,
+          "frontM": 22,
+          "lengthM": 12,
+          "centreM": 5.5,
+          "widthM": 2.5,
+          "clearanceM": 0
+        },
+        {
+          "id": 32,
+          "frontM": 14,
+          "lengthM": 4,
+          "centreM": 1.7,
+          "widthM": 1.8,
+          "clearanceM": 0
+        }
+      ],
+      "expected": {
+        "30": 33,
+        "32": null,
+        "33": null
+      }
+    },
+    {
+      "name": "motorcycle_filtering_between_cars",
+      "roadWidthM": 7,
+      "stripWidthM": 0.3,
+      "mode": "strip",
+      "why": "n = 23, w = 7/23 = 0.3043. Cars 40 and 41 side by side at front 10 m cover strips 0..7 ([0.15, 2.25)) and 15..22 ([4.75, 6.85)). Motorcycle 42 (front 5 m, centre 3.5, width 0.8, clearance 0.15) covers [2.95, 4.05) -> 9..13: it fits in the gap between them and overlaps neither, so it filters past them; its leader is car 43 far ahead at 60 m covering [2.45, 4.55) -> 8..14. 43 overlaps neither 40 nor 41, so they have no leader. Car 44 behind car 40 in the same strips follows 40.",
+      "vehicles": [
+        {
+          "id": 40,
+          "frontM": 10,
+          "lengthM": 4.5,
+          "centreM": 1.2,
+          "widthM": 1.7,
+          "clearanceM": 0.2
+        },
+        {
+          "id": 41,
+          "frontM": 10,
+          "lengthM": 4.5,
+          "centreM": 5.8,
+          "widthM": 1.7,
+          "clearanceM": 0.2
+        },
+        {
+          "id": 42,
+          "frontM": 5,
+          "lengthM": 2,
+          "centreM": 3.5,
+          "widthM": 0.8,
+          "clearanceM": 0.15
+        },
+        {
+          "id": 43,
+          "frontM": 60,
+          "lengthM": 4.5,
+          "centreM": 3.5,
+          "widthM": 1.7,
+          "clearanceM": 0.2
+        },
+        {
+          "id": 44,
+          "frontM": 0,
+          "lengthM": 4.5,
+          "centreM": 1.2,
+          "widthM": 1.7,
+          "clearanceM": 0.2
+        }
+      ],
+      "expected": {
+        "40": null,
+        "41": null,
+        "42": 43,
+        "43": null,
+        "44": 40
+      }
+    },
+    {
+      "name": "lane_mode_two_lanes",
+      "roadWidthM": 7,
+      "stripWidthM": 0.3,
+      "mode": "lane",
+      "lanes": 2,
+      "why": "Lane mode: layout target = 7/2, n = 2 lanes of 3.5 m, strip = lane = floor(centre / 3.5); width and clearance are ignored. 50 (centre 1.75) and motorcycle 51 (centre 3.4) are in lane 0; 52 (5.25) and motorcycle 53 (centre exactly 3.5, on the lane line) are in lane 1 (floor(1.0) = 1). 50 -> 51 and 52 -> 53, regardless of how narrow the motorcycles are.",
+      "vehicles": [
+        {
+          "id": 50,
+          "frontM": 0,
+          "lengthM": 4.5,
+          "centreM": 1.75,
+          "widthM": 1.7,
+          "clearanceM": 0.2
+        },
+        {
+          "id": 51,
+          "frontM": 12,
+          "lengthM": 2,
+          "centreM": 3.4,
+          "widthM": 0.8,
+          "clearanceM": 0.15
+        },
+        {
+          "id": 52,
+          "frontM": 8,
+          "lengthM": 4.5,
+          "centreM": 5.25,
+          "widthM": 1.7,
+          "clearanceM": 0.2
+        },
+        {
+          "id": 53,
+          "frontM": 30,
+          "lengthM": 2,
+          "centreM": 3.5,
+          "widthM": 0.8,
+          "clearanceM": 0.15
+        }
+      ],
+      "expected": {
+        "50": 51,
+        "51": null,
+        "52": 53,
+        "53": null
+      }
+    },
+    {
+      "name": "lane_mode_side_by_side_motorcycles",
+      "roadWidthM": 3.5,
+      "stripWidthM": 0.3,
+      "mode": "lane",
+      "lanes": 1,
+      "why": "One lane: both motorcycles occupy lane 0 whatever their lateral position, so 60 follows 61. Compare with the strip-mode case below with identical vehicles.",
+      "vehicles": [
+        {
+          "id": 60,
+          "frontM": 0,
+          "lengthM": 2,
+          "centreM": 0.8,
+          "widthM": 0.8,
+          "clearanceM": 0.15
+        },
+        {
+          "id": 61,
+          "frontM": 3,
+          "lengthM": 2,
+          "centreM": 2.6,
+          "widthM": 0.8,
+          "clearanceM": 0.15
+        }
+      ],
+      "expected": {
+        "60": 61,
+        "61": null
+      }
+    },
+    {
+      "name": "strip_mode_side_by_side_motorcycles",
+      "roadWidthM": 3.5,
+      "stripWidthM": 0.3,
+      "mode": "strip",
+      "why": "Same vehicles as the lane-mode case. n = 12, w = 3.5/12. 60 covers [0.25, 1.35) -> strips 0..4; 61 covers [2.05, 3.15) -> 7..10. Disjoint: in strip mode the two motorcycles ride side by side and neither follows the other.",
+      "vehicles": [
+        {
+          "id": 60,
+          "frontM": 0,
+          "lengthM": 2,
+          "centreM": 0.8,
+          "widthM": 0.8,
+          "clearanceM": 0.15
+        },
+        {
+          "id": 61,
+          "frontM": 3,
+          "lengthM": 2,
+          "centreM": 2.6,
+          "widthM": 0.8,
+          "clearanceM": 0.15
+        }
+      ],
+      "expected": {
+        "60": null,
+        "61": null
+      }
+    },
+    {
+      "name": "disjoint_without_clearance",
+      "roadWidthM": 3.5,
+      "stripWidthM": 0.5,
+      "mode": "strip",
+      "why": "n = 7, w = 0.5. 70 covers [0.25, 1.25) -> 0..2; 71 covers [1.75, 2.75) -> 3..5. Disjoint: no leaders. See the next case for the same pair with clearance.",
+      "vehicles": [
+        {
+          "id": 70,
+          "frontM": 0,
+          "lengthM": 4,
+          "centreM": 0.75,
+          "widthM": 1,
+          "clearanceM": 0
+        },
+        {
+          "id": 71,
+          "frontM": 15,
+          "lengthM": 4,
+          "centreM": 2.25,
+          "widthM": 1,
+          "clearanceM": 0
+        }
+      ],
+      "expected": {
+        "70": null,
+        "71": null
+      }
+    },
+    {
+      "name": "clearance_creates_overlap",
+      "roadWidthM": 3.5,
+      "stripWidthM": 0.5,
+      "mode": "strip",
+      "why": "As the previous case, but 71 has clearance 0.3 m on each side: [1.45, 3.05) -> floor(2.9) = 2 .. ceil(6.1) - 1 = 6. It now shares strip 2 with 70, so 70 -> 71.",
+      "vehicles": [
+        {
+          "id": 70,
+          "frontM": 0,
+          "lengthM": 4,
+          "centreM": 0.75,
+          "widthM": 1,
+          "clearanceM": 0
+        },
+        {
+          "id": 71,
+          "frontM": 15,
+          "lengthM": 4,
+          "centreM": 2.25,
+          "widthM": 1,
+          "clearanceM": 0.3
+        }
+      ],
+      "expected": {
+        "70": 71,
+        "71": null
+      }
+    },
+    {
+      "name": "single_file_shuffled_order",
+      "roadWidthM": 3.5,
+      "stripWidthM": 0.3,
+      "mode": "strip",
+      "why": "All four cover the same strips ([0.7, 2.8) -> 2..9); input order is not sorted by position. Each follows the next one ahead: 81 (10 m) -> 82 (30 m) -> 80 (50 m) -> 83 (70 m) -> null.",
+      "vehicles": [
+        {
+          "id": 80,
+          "frontM": 50,
+          "lengthM": 4.5,
+          "centreM": 1.75,
+          "widthM": 1.7,
+          "clearanceM": 0.2
+        },
+        {
+          "id": 81,
+          "frontM": 10,
+          "lengthM": 4.5,
+          "centreM": 1.75,
+          "widthM": 1.7,
+          "clearanceM": 0.2
+        },
+        {
+          "id": 82,
+          "frontM": 30,
+          "lengthM": 4.5,
+          "centreM": 1.75,
+          "widthM": 1.7,
+          "clearanceM": 0.2
+        },
+        {
+          "id": 83,
+          "frontM": 70,
+          "lengthM": 4.5,
+          "centreM": 1.75,
+          "widthM": 1.7,
+          "clearanceM": 0.2
+        }
+      ],
+      "expected": {
+        "80": 83,
+        "81": 82,
+        "82": 80,
+        "83": null
+      }
+    },
+    {
+      "name": "edge_clamping",
+      "roadWidthM": 3.5,
+      "stripWidthM": 0.5,
+      "mode": "strip",
+      "why": "n = 7, w = 0.5. 90 hangs over the left edge: [-0.3, 0.7) -> floor(-0.6) = -1 clamped to 0 .. 1. 91 covers [0.05, 0.45) -> 0..0, shares strip 0: 90 -> 91. 92 hangs over the right edge: [2.9, 3.9) -> 5 .. ceil(7.8) - 1 = 7 clamped to 6. 93 covers [3.05, 3.45) -> 6..6, behind 92: 93 -> 92. 91 and 92 overlap nothing ahead.",
+      "vehicles": [
+        {
+          "id": 90,
+          "frontM": 0,
+          "lengthM": 4,
+          "centreM": 0.2,
+          "widthM": 1,
+          "clearanceM": 0
+        },
+        {
+          "id": 91,
+          "frontM": 10,
+          "lengthM": 2,
+          "centreM": 0.25,
+          "widthM": 0.4,
+          "clearanceM": 0
+        },
+        {
+          "id": 92,
+          "frontM": 20,
+          "lengthM": 4,
+          "centreM": 3.4,
+          "widthM": 1,
+          "clearanceM": 0
+        },
+        {
+          "id": 93,
+          "frontM": 5,
+          "lengthM": 2,
+          "centreM": 3.25,
+          "widthM": 0.4,
+          "clearanceM": 0
+        }
+      ],
+      "expected": {
+        "90": 91,
+        "91": null,
+        "92": null,
+        "93": 92
+      }
+    },
+    {
+      "name": "rear_behind_follower_front",
+      "roadWidthM": 3.5,
+      "stripWidthM": 0.5,
+      "mode": "strip",
+      "why": "All cover [0.95, 2.55) -> 1..5. Bus 101 (front 15, length 12, rear 3) is ahead of 100 by front (15 > 10) although its rear is behind the front of 100, i.e. the gap (3 - 10 = -7 m) is negative (an overlap that can appear in noisy trajectory data). The rule still selects it: its rear (3) is the smallest among candidates (car 102 rear 26). 101 -> 102.",
+      "vehicles": [
+        {
+          "id": 100,
+          "frontM": 10,
+          "lengthM": 4,
+          "centreM": 1.75,
+          "widthM": 1.6,
+          "clearanceM": 0
+        },
+        {
+          "id": 101,
+          "frontM": 15,
+          "lengthM": 12,
+          "centreM": 1.75,
+          "widthM": 1.6,
+          "clearanceM": 0
+        },
+        {
+          "id": 102,
+          "frontM": 30,
+          "lengthM": 4,
+          "centreM": 1.75,
+          "widthM": 1.6,
+          "clearanceM": 0
+        }
+      ],
+      "expected": {
+        "100": 101,
+        "101": 102,
+        "102": null
+      }
+    }
+  ]
+}
