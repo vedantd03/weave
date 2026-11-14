@@ -1,2 +1,12 @@
 export * from './schema/index.ts';
 export * from './protocol.ts';
+export { dln, dsin, dcos } from './core/dmath.ts';
+export { Rng, Purpose, substream, mix32 } from './core/rng.ts';
+export { idmAccel, B_MAX, type IdmParams } from './models/idm.ts';
+export { ballistic } from './models/integrate.ts';
+export { stripLayout, occupiedStrips, sweptStrips, laneStrip, type StripLayout } from './network/strips.ts';
+export { findLeaders, type LeaderInput } from './sim/leader.ts';
+export { createSim, sampleDist, type Sim, type SimInput, type VehicleView, type SimCounters } from './sim/sim.ts';
+export { generateNetwork } from './scenarios/generators/index.ts';
+export { defaultClasses } from './scenarios/defaultClasses.ts';
+export { PRESETS } from './scenarios/presets.ts';
