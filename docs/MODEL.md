@@ -136,7 +136,12 @@ export function laneStrip(yCentre: number, layout: { n: number; w: number }): [n
   `sweptStrips = [min(lo_A, lo_B), max(hi_A, hi_B)]`.
 - **Occupancy (lane mode):** `laneStrip = [k, k]` with `k = clamp(floor(y / w), 0, n − 1)`.
   The vehicle occupies its whole lane regardless of its width.
-- **Clearance:** `c(v) = c0 + c1·v` (class parameters, §4), evaluated at the current speed.
+- **Clearance:** `c(v) = c0 + c1·v` (class parameters, §4). For **occupancy**, every vehicle
+  uses a *frozen* clearance `c_occ`, which is c(v) evaluated at its last lateral commit or at
+  insertion (initial and added vehicles: `c(v_initial)`). Decisions (candidate fit,
+  insertion) use c(v) at the current speed. This keeps a vehicle's span from growing on its
+  own as it accelerates, which with c1 > 0 could otherwise create overlaps with no lateral
+  move.
 
 ### 1.6 Leader rule: `sim/leader.ts`
 
@@ -277,8 +282,10 @@ origin link, repeating until an attempt fails.
   - **Strip mode:** `y_m = h + m·w` for m = 0, 1, … while `y_m + h ≤ W`, where
     `h = width/2 + c(v_ins)`, w is the strip width and W the link width.
   - **Lane mode:** the lane centres.
-- **Gap per candidate:** the leader rule over vehicles on the origin link overlapping the
-  candidate span gives `gap = rear_L − length` and `v_ins = min(v0_eff, v_L)`. With no leader,
+- **Gap per candidate:** the full §1.6 leader rule from the inserted position gives
+  `gap = rear_L − length` and `v_ins = min(v0_eff, v_L)`. The rule includes route
+  continuation, the lane-band rule and the look-ahead cap D evaluated with v = v0_eff. Using
+  the full rule keeps insertion independent of how the road is split into segments. With no leader,
   `gap = ∞` and `v_ins = v0_eff`.
 - **Feasible:** a candidate is feasible when `gap ≥ s0 + v_ins·T`, using the driver's
   parameters.
@@ -409,7 +416,29 @@ are single lanes, and Δ is the standard MOBIL incentive with politeness p and t
     class's base parameters (no driver draws) and `targetY = y`.
   - **Ids and routes:** ids are `0x50000000 + k`. The route comes from the default route rule
     of §1.7.
-- **`VehicleView`** gains `targetY`.
+- **`VehicleView`** gains `targetY`. On a movement path, `link` is the movement id.
+
+### 2.8 Clarifications (binding)
+- **Default route (initial and added vehicles):** follow the first outgoing movement of each
+  segment until a dead end (the vehicle exits there) or a cycle back to the start (a looping
+  route, as on the ring).
+- **Movement speed limit:** `min(speedLimit(fromLink), speedLimit(toLink))`. It is used in
+  `v0_eff` and in route cost.
+- **Zone ids:** `origin` and `destination` in `trips()` and `generatedLog()` are zone-id
+  strings. `generatedLog()` lists only demand-generated vehicles, not initial or added ones;
+  `counters().generated` counts all of them.
+- **`linkStats()`:** returns `Record<segmentId, { entered, exited, vehicleSeconds, travelTimeSum, travelTimeCount }>`
+  for every segment, including movements.
+- **Lateral speed:** `v_lat` uses the snapshot speed, before integration.
+- **`series()`:** has rows only for completed windows. Samples are taken after every step whose
+  end time is in `(t0, t1]`. `meanSpeedMps` is 0 on an empty network.
+- **Ordering:** within a segment, vehicles are ordered by `(s, id)`. "Intersects" in the
+  longitudinal-clash rule means open-interval overlap. In lane mode, "inside the road" means
+  `0 < y′ < W`.
+- **Known limitation (strip MOBIL):** a vehicle behind a wide, slow leader that needs more than
+  J strips to escape sees no candidate with a different leader, so it stays until the
+  leader's speed changes or route bias applies. Candidates are not searched beyond J strips
+  per decision.
 
 ## 3. Junctions (M3)
 
