@@ -18,48 +18,7 @@ import { describe, expect, it } from 'vitest';
 import { generateNetwork } from '../../src/index.ts';
 import { GeneratorParams, Network } from '../../src/schema/index.ts';
 import { classSet, linkStat, makeSim } from '../helpers/m2.ts';
-import { junctionScenario, type Arm } from '../helpers/m3.ts';
-
-const plen = (pl: readonly (readonly number[])[]) => {
-  let s = 0;
-  for (let i = 1; i < pl.length; i++) s += Math.hypot(pl[i]![0]! - pl[i - 1]![0]!, pl[i]![1]! - pl[i - 1]![1]!);
-  return s;
-};
-
-/** Test-local Dijkstra over segments (links → movements → links), cost per §2.1. */
-function cheapest(net: Network, from: string, to: string): { cost: number; path: string[] } {
-  const link = new Map(net.links.map((l) => [l.id, l]));
-  const segCost = (id: string): number => {
-    const l = link.get(id);
-    if (l) return plen(l.polyline) / l.speedLimitMps;
-    const m = net.movements.find((x) => x.id === id)!;
-    const v = Math.min(link.get(m.fromLink)!.speedLimitMps, link.get(m.toLink)!.speedLimitMps);
-    const pen = m.control === 'signal' ? 15 : m.control === 'minor' ? 5 : 0;
-    return plen(m.path) / v + pen;
-  };
-  const next = (id: string): string[] =>
-    link.has(id) ? net.movements.filter((m) => m.fromLink === id).map((m) => m.id) : [net.movements.find((m) => m.id === id)!.toLink];
-  const dist = new Map<string, number>([[from, segCost(from)]]);
-  const prev = new Map<string, string>();
-  const done = new Set<string>();
-  for (;;) {
-    let u: string | null = null;
-    for (const [k, d] of dist) if (!done.has(k) && (u === null || d < dist.get(u)!)) u = k;
-    if (u === null) throw new Error(`${to} unreachable from ${from}`);
-    if (u === to) break;
-    done.add(u);
-    for (const w of next(u)) {
-      const d = dist.get(u)! + segCost(w);
-      if (d < (dist.get(w) ?? Infinity)) {
-        dist.set(w, d);
-        prev.set(w, u);
-      }
-    }
-  }
-  const path = [to];
-  while (path[0] !== from) path.unshift(prev.get(path[0]!)!);
-  return { cost: dist.get(to)!, path };
-}
+import { cheapest, junctionScenario, type Arm } from '../helpers/m3.ts';
 
 /** Cost of the best route that avoids every segment in `banned`. */
 function cheapestAvoiding(net: Network, from: string, to: string, banned: Set<string>) {

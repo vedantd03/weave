@@ -755,6 +755,82 @@ one is a standing obstacle with rear at the stop line, or at the conflict entry,
   therefore emerges from the lateral model.
 - **Zones:** `main_in` on main_up, `ramp_in` on ramp, `main_out` on main_down.
 
+## 5. Experiments (M4)
+
+### 5.1 Statistics: `stats/tdist.ts`, `stats/ci.ts`
+```ts
+export function tQuantile(p: number, df: number): number            // Student-t inverse CDF
+export function meanCI(xs: readonly number[], level?: number): { mean: number; half: number; lo: number; hi: number; n: number; sd: number }
+export function pairedCI(a: readonly number[], b: readonly number[], level?: number): { mean: number; half: number; lo: number; hi: number; n: number; sd: number }   // CI of b − a
+```
+- **`tQuantile`:** accurate to 1e-6 for df ≥ 1 and p in (0.5, 0.9999). It is computed by
+  bisection on the regularized incomplete beta function (continued fraction), so no lookup
+  table is needed. The level defaults to 0.95.
+- **`meanCI`:** `half = t_{(1+level)/2, n−1} · sd/√n`, with sd the sample standard deviation
+  (n − 1). For n < 2 the half-width is Infinity.
+- **`pairedCI`:** `meanCI` of the per-seed differences `b_i − a_i`. Seeds are paired: replicate
+  i of both variants uses the same seed, so arrivals and vehicles are identical (common random
+  numbers, §1.2, T21).
+
+### 5.2 Replicate metrics: `stats/experiment.ts`
+```ts
+export interface ReplicateResult { seed: number; metrics: Record<MetricId, number> }
+export type MetricId = 'meanDelayS' | 'meanTravelTimeS' | 'throughputVph' | 'meanSpeedKmh' | 'maxEntryQueue' | 'completedTrips' | 'incompleteTrips' | 'lockedJunctions' | 'guardPer10k'
+export function runReplicate(input: SimInput, seed: number): ReplicateResult
+export function summarize(results: ReplicateResult[]): Record<MetricId, ReturnType<typeof meanCI>>
+export function compare(base: ReplicateResult[], variant: ReplicateResult[]): Record<MetricId, ReturnType<typeof pairedCI>>
+```
+- **Run:** `runReplicate` runs `scenario.durationS` with the given seed.
+- **Measurement window:** `[warmupS, durationS]`. Trips count when their **generation time** is
+  in the window.
+- **Per-trip metrics** (completed trips generated in the window): delay `tExit − tGen − freeFlowS`,
+  which includes entry-queue time, and travel time `tExit − tGen`.
+- **Window metrics:**
+  - `throughputVph`: exits in the window × 3600 / window length.
+  - `meanSpeedKmh`: the time-average over the window's series rows.
+  - `maxEntryQueue`: the maximum `entryQueue` over those rows.
+- **Incomplete trips:** generated in the window but not exited by `durationS`. They are
+  reported as a count, never dropped silently.
+- **Gridlock and guard:** `lockedJunctions` comes from `gridlock()` at the end;
+  `guardPer10k` is guard activations per 10k vehicle-steps over the **whole run**.
+- **Windows:** "in the window" is inclusive. Series rows count when `t0 ≥ warmupS` and
+  `t1 ≤ durationS`. `SimInput` is `{ scenario, classes, network? }`, the same as for
+  `createSim`.
+- **Empty means:** a mean over zero trips is NaN, and the UI shows "—".
+
+### 5.3 Retimed flyover variant (Webster): `junction/retime.ts`
+```ts
+export function retimeWebster(plan: SignalPlan, criticalFlowRatio: Record<string /*movement*/, number>): SignalPlan
+export function criticalFlowRatios(input: SimInput): Record<string /*movement id*/, number>   // q_m / s_m for every movement
+export function retimedFlyoverScenario(input: SimInput): ScenarioInput  // flyover scenario with its junction plan(s) retimed
+```
+- **Inputs:** the cycle length C and the lost time per phase (`amberS + allRedS`) are kept.
+- **Phase flow ratio:** `y_p = max` over the phase's movements (protected and permissive) of
+  `criticalFlowRatio[m]`. A movement missing from the map counts as 0.
+- **Available green:** `G = C − Σ_p (amberS + allRedS)`.
+- **Allocation:** each phase gets `g_p = max(5 s, G · y_p / Σ y)`, then scaled so that
+  `Σ g_p = G` while keeping the 5 s minima. If `Σ y = 0`, green is split equally.
+- **Critical flow ratio of a movement:** `q_m / s_m`. Here `q_m` is the OD demand routed
+  through m, from the routes (§2.1), and `s_m = 1800 veh/h per 3.5 m of movement width` (HCM
+  base, an assumption).
+- **`criticalFlowRatios(input)`:** routes every OD row with the §2.1 rule on the input's network
+  (generated or supplied) and sums the rates of the rows whose route uses movement m. It returns
+  `q_m / s_m` for every movement, 0 when unused.
+- **`retimedFlyoverScenario(input)`:** returns the input scenario with `signalOverrides` holding
+  `retimeWebster(plan, criticalFlowRatios(input))` for every signal plan of its network.
+- **Use:** "Flyover, retimed" = the flyover network with its junction plan retimed using the
+  demand that still uses the at-grade box. Through traffic on the deck no longer counts, so the
+  flyover arms lose the green they no longer need.
+
+### 5.4 Execution
+- **Workers:** experiments run in a pool of `hardwareConcurrency − 1` workers, at least 1. Each
+  replicate is independent and deterministic, so results don't depend on the pool size or the
+  order replicates finish in.
+- **Seeds:** replicate i uses seed `scenario.seed + i`.
+- **Test hook:** `weaveTest.runExperiment({ replications, compare })` resolves to
+  `{ base: ReplicateResult[]; variant?: ReplicateResult[] }`. The value `compare: 'none'` means no
+  variant. Experiments use the loaded scenario's seed and the default classes.
+
 ## 4. Vehicle classes
 
 `classes.json` (schema `docs/schema/classes.schema.json`) gives each class:
