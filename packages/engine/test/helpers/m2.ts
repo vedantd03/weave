@@ -59,6 +59,8 @@ export interface GenRecord {
   s0: number;
   a: number;
   b: number;
+  /** route free-flow time, computed as in trips() (§2.7) */
+  freeFlowS: number;
 }
 export interface SeriesRow {
   t0: number;

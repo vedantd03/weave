@@ -16,10 +16,13 @@
  * the flyover disabled and variant = retimedFlyoverScenario(preset).
  */
 import { expect, test, type Page } from '@playwright/test';
-import { PRESETS, defaultClasses, retimedFlyoverScenario, runReplicate } from '@weave/engine';
+import { PRESETS, createSim, defaultClasses, retimedFlyoverScenario, runReplicate } from '@weave/engine';
 
 type Rep = { seed: number; metrics: Record<string, number> };
-type Hook = { runExperiment(o: { replications: number; compare: string }): Promise<unknown> };
+type Hook = {
+  runExperiment(o: { replications: number; compare: string }): Promise<unknown>;
+  loadScenario(s: unknown): Promise<void>;
+};
 const JUNCTION = PRESETS['junction4-signal']!;
 
 function watchErrors(page: Page): string[] {
@@ -137,5 +140,51 @@ test('no horizontal overflow with the experiment panel open', async ({ page }) =
   await open(page, 'junction4-signal');
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
+  expect(errors).toEqual([]);
+});
+
+/*
+ * Gridlocked runs (§5.2 `gridlocked`; UI: a "Gridlocked runs" row, data-testid "gridlocked-runs",
+ * showing k / n per variant, and a role="status" warning when any run gridlocked).
+ * Forced gridlock: the junction preset with a plan whose only phase protects nothing, so every
+ * approach is red forever and the junction locks after 300 s (§3.4 item 6) within a 600 s run.
+ * Assumption (flagged): an experiment runs on the scenario loaded through weaveTest.loadScenario.
+ */
+function shortJunction(allRed: boolean) {
+  const node = createSim({ scenario: JUNCTION, classes: defaultClasses() }).network.signals[0]!.node;
+  return {
+    ...JUNCTION,
+    durationS: 600,
+    warmupS: 120,
+    ...(allRed ? { signalOverrides: [{ node, amberS: 3, allRedS: 2, offsetS: 0, phases: [{ greenS: 60, protected: [] as string[] }] }] } : {}),
+  } as typeof JUNCTION;
+}
+async function runLoaded(page: Page, scenario: unknown, replications: number) {
+  await open(page, 'junction4-signal', '/?test=1');
+  await page.waitForFunction(() => Boolean((window as unknown as { weaveTest?: unknown }).weaveTest), undefined, { timeout: 15_000 });
+  await page.evaluate(async (sc) => (window as unknown as { weaveTest: Hook }).weaveTest.loadScenario(sc), scenario);
+  await page.getByLabel('Replications', { exact: true }).fill(String(replications));
+  await page.getByRole('button', { name: 'Run experiment' }).click();
+  await expect(page.getByTestId('experiment-progress')).toContainText(`${replications} / ${replications}`, { timeout: 240_000 });
+}
+
+test('gridlocked runs are counted per variant and flagged with a warning', async ({ page }) => {
+  test.setTimeout(300_000);
+  const errors = watchErrors(page);
+  const sc = shortJunction(true);
+  // premise (Node): this scenario really gridlocks
+  expect((runReplicate({ scenario: sc, classes: defaultClasses() }, sc.seed) as Rep).metrics.gridlocked).toBe(1);
+  await runLoaded(page, sc, 2);
+  await expect(page.getByTestId('gridlocked-runs')).toContainText('2 / 2');
+  await expect(page.getByRole('status').filter({ hasText: /gridlock/i })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('no gridlock: the row reads 0 / n and no warning is shown', async ({ page }) => {
+  test.setTimeout(300_000);
+  const errors = watchErrors(page);
+  await runLoaded(page, shortJunction(false), 2);
+  await expect(page.getByTestId('gridlocked-runs')).toContainText('0 / 2');
+  await expect(page.getByRole('status').filter({ hasText: /gridlock/i })).toHaveCount(0);
   expect(errors).toEqual([]);
 });

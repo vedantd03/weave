@@ -4,8 +4,11 @@
  * Every metric is recomputed in the test from an equivalent manual createSim run (same scenario
  * and seed) using sim.trips(), sim.generatedLog(), sim.series(), counters() and gridlock():
  *   window W = [warmupS, durationS]; trips count when tGen ∈ W;
- *   meanDelayS = mean(tExit − tGen − freeFlowS), meanTravelTimeS = mean(tExit − tGen) over the
- *   completed trips generated in W (NaN if none); completedTrips / incompleteTrips = generated in
+ *   meanDelayS = mean over ALL trips generated in W of tExit − tGen − freeFlowS (completed) or
+ *   durationS − tGen − freeFlowS (unfinished: in an entry queue or on the network at durationS,
+ *   freeFlowS from generatedLog); meanDelayCompletedS = the same over completed trips only;
+ *   meanTravelTimeS = mean(tExit − tGen) over completed trips (NaN if none);
+ *   gridlocked = 1 if lockedJunctions > 0 else 0; completedTrips / incompleteTrips = generated in
  *   W and exited / not exited by durationS; throughputVph = exits in W·3600/|W|;
  *   meanSpeedKmh = 3.6·mean of meanSpeedMps over the series rows inside W; maxEntryQueue = max
  *   entryQueue over those rows; lockedJunctions = gridlock()?.junctions.length ?? 0;
@@ -20,6 +23,7 @@ import { pairedCI } from '../../src/stats/ci.ts';
 import type { ScenarioInput } from '../../src/schema/index.ts';
 import { classSet, corridorScenario, makeSim } from '../helpers/m2.ts';
 import { ARM, junctionScenario, type M3Sim } from '../helpers/m3.ts';
+import { Network } from '../../src/schema/index.ts';
 import { meanCIRef } from '../helpers/stats-ref.ts';
 
 const DT = 0.2;
@@ -29,10 +33,10 @@ const CLASSES = classSet([
 ]);
 /** §5.2 MetricId, spelled out locally so the test's types do not depend on the module. */
 type MetricId =
-  | 'meanDelayS' | 'meanTravelTimeS' | 'throughputVph' | 'meanSpeedKmh' | 'maxEntryQueue'
+  | 'meanDelayS' | 'meanDelayCompletedS' | 'gridlocked' | 'meanTravelTimeS' | 'throughputVph' | 'meanSpeedKmh' | 'maxEntryQueue'
   | 'completedTrips' | 'incompleteTrips' | 'lockedJunctions' | 'guardPer10k';
 const METRICS: MetricId[] = [
-  'meanDelayS', 'meanTravelTimeS', 'throughputVph', 'meanSpeedKmh', 'maxEntryQueue',
+  'meanDelayS', 'meanDelayCompletedS', 'gridlocked', 'meanTravelTimeS', 'throughputVph', 'meanSpeedKmh', 'maxEntryQueue',
   'completedTrips', 'incompleteTrips', 'lockedJunctions', 'guardPer10k',
 ];
 const timed = (sc: ScenarioInput, warmupS: number, durationS: number): ScenarioInput => ({ ...sc, warmupS, durationS });
@@ -66,8 +70,8 @@ interface Manual {
   meanQueueTime: number;
 }
 
-function manual(scenario: ScenarioInput, seed: number): Manual {
-  const sim = makeSim({ ...scenario, seed }, CLASSES) as unknown as M3Sim;
+function manual(scenario: ScenarioInput, seed: number, network?: Network, classes = CLASSES): Manual {
+  const sim = makeSim({ ...scenario, seed }, classes, network) as unknown as M3Sim;
   const w = scenario.warmupS!;
   const D = scenario.durationS;
   let vsAll = 0;
@@ -88,16 +92,26 @@ function manual(scenario: ScenarioInput, seed: number): Manual {
   const rows = sim.series().filter((r) => r.t0 >= w - 1e-9 && r.t1 <= D + 1e-9);
   const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : NaN);
   const guard = sim.diagnostics().guardActivations;
+  const done = new Map(trips.map((t) => [t.id, t]));
+  // generatedLog's freeFlowS is "computed as in trips()" (§2.7)
+  for (const r of gen) if (done.has(r.id)) expect(Math.abs(r.freeFlowS - done.get(r.id)!.freeFlowS)).toBeLessThanOrEqual(1e-9);
+  const allDelays = gen.map((r) => {
+    const t = done.get(r.id);
+    return t ? t.tExit - t.tGen - t.freeFlowS : D - r.tGen - r.freeFlowS;
+  });
+  const locked = sim.gridlock()?.junctions.length ?? 0;
   return {
     metrics: {
-      meanDelayS: mean(trips.map((t) => t.tExit - t.tGen - t.freeFlowS)),
+      meanDelayS: mean(allDelays),
+      meanDelayCompletedS: mean(trips.map((t) => t.tExit - t.tGen - t.freeFlowS)),
+      gridlocked: locked > 0 ? 1 : 0,
       meanTravelTimeS: mean(trips.map((t) => t.tExit - t.tGen)),
       throughputVph: ((sim.counters().exited - exitedAtW) * 3600) / (D - w),
       meanSpeedKmh: 3.6 * mean(rows.map((r) => r.meanSpeedMps)),
       maxEntryQueue: Math.max(...rows.map((r) => r.entryQueue)),
       completedTrips: trips.length,
       incompleteTrips: gen.length - trips.length,
-      lockedJunctions: sim.gridlock()?.junctions.length ?? 0,
+      lockedJunctions: locked,
       guardPer10k: NaN, // definition of the vehicle-step base checked separately
     },
     guardWholeRun: (guard * 1e4) / vsAll,
@@ -161,8 +175,78 @@ describe('runReplicate', () => {
     expect(m.meanQueueTime).toBeGreaterThan(5); // premise: a real entry queue
     expectSame(r.metrics, m);
     // delay = queue time + time on the network beyond free flow; the latter is ≥ −length/v0
-    // (the front starts at s = length), so delay ≥ queue time − 1 s
-    expect(r.metrics.meanDelayS).toBeGreaterThanOrEqual(m.meanQueueTime - 1);
+    // (the front starts at s = length), so delay ≥ queue time − 1 s (completed trips)
+    expect(r.metrics.meanDelayCompletedS).toBeGreaterThanOrEqual(m.meanQueueTime - 1);
+    // the queue keeps growing, so the vehicles still queued at the end add even larger delays
+    expect(r.metrics.incompleteTrips).toBeGreaterThan(0);
+    expect(r.metrics.meanDelayS).toBeGreaterThan(r.metrics.meanDelayCompletedS);
+  });
+});
+
+describe('gridlocked runs', () => {
+  // Two parts (custom network). Part 1: link a into junction J with two movements whose bands
+  // are [0, 3.0]; every vehicle from 'in' is a 3.2 m truck (compositionByOrigin), so none can
+  // ever enter J (§2.2): the queue on a stalls and J locks 300 s later (§3.4 item 6). Part 2:
+  // an unrelated corridor c with ordinary cars keeps completing trips with small delays.
+  // meanDelayS counts the stuck trips with durationS − tGen − freeFlowS (≈ hundreds of s),
+  // meanDelayCompletedS only the corridor's (≈ seconds).
+  type P = [number, number];
+  const link = (id: string, from: string, to: string, pl: P[], w: number) => ({ id, from, to, polyline: pl, widthM: w, lanes: 1, speedLimitMps: 13 });
+  const mv = (id: string, toLink: string, path: P[]) => ({
+    id, node: 'J', fromLink: 'a', toLink, path, widthM: 3.0, fromLateral: [0, 3.0] as P, toLateral: [0, 3.0] as P, control: 'free' as const,
+  });
+  const net = Network.parse({
+    version: 1, id: 'lock', name: 'lock',
+    nodes: [
+      { id: 'J0', x: 0, y: 0, kind: 'boundary' }, { id: 'J', x: 300, y: 0, kind: 'diverge' },
+      { id: 'J1', x: 400, y: 20, kind: 'boundary' }, { id: 'J2', x: 400, y: -20, kind: 'boundary' },
+      { id: 'P0', x: 0, y: 200, kind: 'boundary' }, { id: 'P1', x: 400, y: 200, kind: 'boundary' },
+    ],
+    links: [
+      link('a', 'J0', 'J', [[0, 0], [300, 0]], 3.5),
+      link('b', 'J', 'J1', [[305, 1], [400, 20]], 3.0),
+      link('b2', 'J', 'J2', [[305, -1], [400, -20]], 3.0),
+      link('c', 'P0', 'P1', [[0, 200], [400, 200]], 3.5),
+    ],
+    movements: [mv('m', 'b', [[300, 0], [305, 1]]), mv('m2', 'b2', [[300, 0], [305, -1]])],
+    zones: [
+      { id: 'in', link: 'a', role: 'in' }, { id: 'out1', link: 'b', role: 'out' },
+      { id: 'in2', link: 'c', role: 'in' }, { id: 'out2', link: 'c', role: 'out' },
+    ],
+  });
+  const classes = classSet([
+    { id: 'car', length: 4.5, width: 1.8, idm: { v0: 12, T: 1.2, s0: 2, a: 1.5, b: 2 } },
+    { id: 'truck', length: 9, width: 3.2, idm: { v0: 10, T: 2, s0: 2, a: 1, b: 2 } },
+  ]);
+  const scenario: ScenarioInput = {
+    version: 1, id: 'lock', name: 'lock', network: { kind: 'custom', id: 'lock' },
+    od: [
+      { origin: 'in', destination: 'out1', rateVph: 600 },
+      { origin: 'in2', destination: 'out2', rateVph: 300 },
+    ],
+    composition: { car: 1 },
+    compositionByOrigin: { in: { truck: 1 }, in2: { car: 1 } },
+    mode: 'lane', durationS: 900, warmupS: 120, seed: 1,
+  };
+
+  it('a forced gridlock is flagged and meanDelayS ≫ meanDelayCompletedS', () => {
+    const r = runReplicate({ scenario, classes, network: net }, 9);
+    const m = manual(scenario, 9, net, classes);
+    expectSame(r.metrics, m);
+    expect(r.metrics.lockedJunctions).toBeGreaterThanOrEqual(1);
+    expect(r.metrics.gridlocked).toBe(1);
+    expect(r.metrics.completedTrips).toBeGreaterThan(10);
+    // ≈ 2/3 of the window's trips are stuck trucks with delay ≈ (900 − tGen) − freeFlow, i.e. a
+    // few hundred seconds; completed corridor trips have delays of seconds. "≫" as ≥ 10× and
+    // ≥ 100 s apart.
+    expect(r.metrics.meanDelayS).toBeGreaterThanOrEqual(10 * Math.max(1, r.metrics.meanDelayCompletedS));
+    expect(r.metrics.meanDelayS - r.metrics.meanDelayCompletedS).toBeGreaterThanOrEqual(100);
+  });
+
+  it('a free-flowing run has gridlocked = 0', () => {
+    const r = runReplicate({ scenario: corridor({}), classes: CLASSES }, 3);
+    expect(r.metrics.gridlocked).toBe(0);
+    expect(r.metrics.lockedJunctions).toBe(0);
   });
 });
 

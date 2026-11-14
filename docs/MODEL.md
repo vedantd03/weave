@@ -511,7 +511,8 @@ are single lanes, and Δ is the standard MOBIL incentive with politeness p and t
   freeFlowS is the route length divided by `min(v0_driver, speedLimit)`, summed per segment.
   Delay = `tExit − tGen − freeFlowS`.
 - **`generatedLog()`:** for every generated vehicle:
-  `{ id, origin, destination, classId, tGen, length, width, v0, T, s0, a, b }`.
+  `{ id, origin, destination, classId, tGen, length, width, v0, T, s0, a, b, freeFlowS }`.
+  freeFlowS is computed as in `trips()`.
 - **`series()`:** rows per 60 s window `{ t0, t1, generated, inserted, exited, exitFlowVph, meanSpeedMps, densityPerKm, entryQueue, onNetwork }`.
   - meanSpeedMps is the time-average over the window's steps of the space-mean speed.
   - densityPerKm is the time-average of onNetwork ÷ total link length in km.
@@ -775,7 +776,7 @@ export function pairedCI(a: readonly number[], b: readonly number[], level?: num
 ### 5.2 Replicate metrics: `stats/experiment.ts`
 ```ts
 export interface ReplicateResult { seed: number; metrics: Record<MetricId, number> }
-export type MetricId = 'meanDelayS' | 'meanTravelTimeS' | 'throughputVph' | 'meanSpeedKmh' | 'maxEntryQueue' | 'completedTrips' | 'incompleteTrips' | 'lockedJunctions' | 'guardPer10k'
+export type MetricId = 'meanDelayS' | 'meanDelayCompletedS' | 'gridlocked' | 'meanTravelTimeS' | 'throughputVph' | 'meanSpeedKmh' | 'maxEntryQueue' | 'completedTrips' | 'incompleteTrips' | 'lockedJunctions' | 'guardPer10k'
 export function runReplicate(input: SimInput, seed: number): ReplicateResult
 export function summarize(results: ReplicateResult[]): Record<MetricId, ReturnType<typeof meanCI>>
 export function compare(base: ReplicateResult[], variant: ReplicateResult[]): Record<MetricId, ReturnType<typeof pairedCI>>
@@ -783,15 +784,23 @@ export function compare(base: ReplicateResult[], variant: ReplicateResult[]): Re
 - **Run:** `runReplicate` runs `scenario.durationS` with the given seed.
 - **Measurement window:** `[warmupS, durationS]`. Trips count when their **generation time** is
   in the window.
-- **Per-trip metrics** (completed trips generated in the window): delay `tExit − tGen − freeFlowS`,
-  which includes entry-queue time, and travel time `tExit − tGen`.
+- **Per-trip metrics** (trips generated in the window):
+  - **`meanDelayS`:** the mean over **all** of them, so a gridlocked run cannot look fast.
+    - **Completed trips:** delay is `tExit − tGen − freeFlowS`.
+    - **Unfinished trips** (still in an entry queue or on the network at `durationS`): delay is
+      `durationS − tGen − freeFlowS`, a lower bound on their delay.
+    - **Both** include entry-queue time.
+  - **`meanDelayCompletedS`:** the same mean over completed trips only, the old definition, kept
+    for reference.
+  - **`meanTravelTimeS`:** `tExit − tGen` over completed trips.
 - **Window metrics:**
   - `throughputVph`: exits in the window × 3600 / window length.
   - `meanSpeedKmh`: the time-average over the window's series rows.
   - `maxEntryQueue`: the maximum `entryQueue` over those rows.
 - **Incomplete trips:** generated in the window but not exited by `durationS`. They are
   reported as a count, never dropped silently.
-- **Gridlock and guard:** `lockedJunctions` comes from `gridlock()` at the end;
+- **Gridlock and guard:** `lockedJunctions` comes from `gridlock()` at the end, and
+  `gridlocked` is 1 if `lockedJunctions > 0`, otherwise 0;
   `guardPer10k` is guard activations per 10k vehicle-steps over the **whole run**. Vehicle-steps
   are the sum over steps of the vehicles on the network **after** each step.
 - **Windows:** "in the window" is inclusive. Series rows count when `t0 ≥ warmupS` and
