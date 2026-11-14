@@ -54,6 +54,8 @@ export class Renderer {
   private cssH = 0;
   private dpr = 1;
   private userMoved = false;
+  /** Point of interest the default view centres on (e.g. a corridor's change point). */
+  private focus: [number, number] | null = null;
   private detach: Array<() => void> = [];
 
   private canvas: HTMLCanvasElement;
@@ -88,7 +90,8 @@ export class Renderer {
     for (const d of this.detach) d();
   }
 
-  setNetwork(net: Network, classIds: VehicleClassId[]): void {
+  setNetwork(net: Network, classIds: VehicleClassId[], focus: [number, number] | null = null): void {
+    this.focus = focus;
     this.classIds = classIds;
     const layerOfNode = new Map(net.nodes.map((n) => [n.id, n.layer]));
     this.roads = [];
@@ -139,7 +142,9 @@ export class Renderer {
       const narrow = Math.min(w, h);
       if (narrow * scale < 90) scale = Math.min(90 / narrow, 12);
     }
-    this.cam = { cx: (b.minX + b.maxX) / 2, cy: (b.minY + b.maxY) / 2, scale };
+    const zoomed = !whole && scale > Math.min((this.cssW - 2 * pad) / w, (this.cssH - 2 * pad) / h) + 1e-9;
+    const c = zoomed && this.focus ? this.focus : [(b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2];
+    this.cam = { cx: c[0]!, cy: c[1]!, scale };
     this.dirty = true;
   }
 

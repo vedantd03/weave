@@ -85,6 +85,17 @@ export class SimController {
     for (const l of this.listeners) l();
   }
 
+  /** Where the default view should centre: a corridor's change point, else the network centre. */
+  private focusOf(net: Network): [number, number] | null {
+    const s = this.state.scenario;
+    if (s?.network.kind === 'generator' && s.network.params.generator === 'corridor' && s.network.params.change.kind !== 'none') {
+      const c = s.network.params.change;
+      const node = net.nodes.find((n) => n.id === 'n1');
+      return node ? [c.atM + (c.taperM ?? 0) / 2, node.y] : null;
+    }
+    return null;
+  }
+
   attachCanvas(canvas: HTMLCanvasElement | null): void {
     this.renderer?.destroy();
     this.renderer = canvas ? new Renderer(canvas) : null;
@@ -194,7 +205,7 @@ export class SimController {
   private onMessage(m: FromWorker): void {
     switch (m.type) {
       case 'ready':
-        this.renderer?.setNetwork(m.network, this.state.classes.classes.map((c) => c.id));
+        this.renderer?.setNetwork(m.network, this.state.classes.classes.map((c) => c.id), this.focusOf(m.network));
         this.set({ network: m.network, stateHash: m.stateHash, status: 'ready' });
         break;
       case 'frame': {

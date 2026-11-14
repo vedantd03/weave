@@ -43,8 +43,12 @@ function Chart({ spec, rows }: { spec: ChartSpec; rows: SeriesRow[] }) {
           cursor: { drag: { x: false, y: false } },
           scales: { x: { time: false }, y: { range: (_u, min, max) => [Math.min(0, min), max > 0 ? max * 1.1 : 1] } },
           axes: [
-            { ...axis, size: 26, values: (_u, v) => v.map((x) => `${x}′`) },
-            { ...axis, size: 44 },
+            { ...axis, size: 28, values: (_u, v) => v.map((x) => `${x}′`) },
+            {
+              ...axis,
+              size: 52,
+              values: (_u, v) => v.map((x) => (Math.abs(x) >= 1000 ? `${(x / 1000).toFixed(x % 1000 === 0 ? 0 : 1)}k` : `${x}`)),
+            },
           ],
           series: [{}, { stroke: cssVar(spec.colorVar, '#38bdf8'), width: 2, points: { show: rows.length < 3 } }],
         },

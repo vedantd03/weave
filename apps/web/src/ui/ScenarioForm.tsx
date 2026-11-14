@@ -270,6 +270,46 @@ export function ScenarioForm({ ctrl, scenario, network }: { ctrl: SimController;
           </ul>
         </div>
       )}
+      <details className="rounded-md border border-border">
+        <summary className="cursor-pointer px-2 py-1.5 text-xs text-muted">Vehicle mix and run settings</summary>
+        <div className="space-y-2 px-2 pb-2">
+          <div className="grid grid-cols-3 gap-2">
+            {(['motorcycle', 'car', 'auto', 'bus', 'truck', 'lcv'] as const).map((c) => {
+              const comp = (draft.composition ?? {}) as Partial<Record<string, number>>;
+              const total = Object.values(comp).reduce((a: number, b) => a + (b ?? 0), 0) || 1;
+              const label = { motorcycle: 'Motorcycle', car: 'Car', auto: 'Auto', bus: 'Bus', truck: 'Truck', lcv: 'LCV' }[c];
+              return (
+                <Num
+                  key={c}
+                  id={`f-mix-${c}`}
+                  label={`${label} (%)`}
+                  value={Math.round((1000 * (comp[c] ?? 0)) / total) / 10}
+                  min={0}
+                  onChange={(v) => setDraft({ ...draft, composition: { ...comp, [c]: Math.max(0, v) / 100 } })}
+                />
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted">Shares are normalised. The Chennai default is from the calibration data.</p>
+          <div className="grid grid-cols-3 gap-2">
+            <Num id="f-dur" label="Duration (min)" value={Math.round((draft.durationS / 60) * 10) / 10} min={1} onChange={(v) => setDraft({ ...draft, durationS: Math.max(60, v * 60) })} />
+            <Num id="f-warm" label="Warm-up (min)" value={Math.round(((draft.warmupS ?? 300) / 60) * 10) / 10} min={0} onChange={(v) => setDraft({ ...draft, warmupS: Math.max(0, v * 60) })} />
+            <SelectField
+              id="f-dt"
+              label="Time step (s)"
+              value={String(draft.dtS ?? 0.2) as '0.1' | '0.2' | '0.25' | '0.5'}
+              options={[
+                { value: '0.1', label: '0.1' },
+                { value: '0.2', label: '0.2' },
+                { value: '0.25', label: '0.25' },
+                { value: '0.5', label: '0.5' },
+              ]}
+              onChange={(v) => setDraft({ ...draft, dtS: Number(v) })}
+            />
+          </div>
+        </div>
+      </details>
+
       {od.length > 1 && <OdEditor od={od} onChange={(next) => setDraft({ ...draft, od: next })} />}
 
       {plan && (
