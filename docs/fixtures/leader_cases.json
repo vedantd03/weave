@@ -1,5 +1,5 @@
 {
-  "description": "Shared leader-rule cases (docs/MODEL.md §1.6). Used by the engine (packages/engine/test/unit/t8-leader.test.ts, T8) and the data pipeline (D7). Expected leaders are derived by hand from the rule; each case explains why. Vehicle index = position in the vehicles array (ties use the index). Strip mode: layout from stripWidthM; lane mode: layout target roadWidthM / lanes.",
+  "description": "Shared leader-rule cases (docs/MODEL.md §1.6). Used by the engine (packages/engine/test/unit/t8-leader.test.ts, T8) and the data pipeline (D7). Expected leaders are derived by hand from the rule; each case explains why. Vehicle index = position in the vehicles array (ties use the index). Strip mode: §1.5 layout of a link, fixed strip width Δ = stripWidthM anchored at the left edge (o = 0), n = ceil(W/Δ − 1e-9), last strip possibly narrower; lo = floor(left/Δ + 1e-9), hi = ceil(right/Δ − 1e-9) − 1, clamped. Lane mode: one strip per lane (laneLayout).",
   "cases": [
     {
       "name": "bus_rear_beats_car_front",
@@ -82,7 +82,7 @@
       "roadWidthM": 7,
       "stripWidthM": 0.3,
       "mode": "strip",
-      "why": "Layout n = round(7/0.3) = 23, w = 7/23. Vehicle 20 with clearance covers [0.15, 2.25) -> strips 0..7; vehicle 21 covers [4.75, 6.85) -> 15..22. Disjoint, so 21 has no leader although 20 is ahead of it, and 20 has nothing ahead.",
+      "why": "Layout Δ = 0.3, n = ceil(7/0.3) = 24 (last strip [6.9, 7) is 0.1 m). Vehicle 20 with clearance covers [0.15, 2.25) -> strips 0..7; vehicle 21 covers [4.75, 6.85) -> 15..22. Disjoint, so 21 has no leader although 20 is ahead of it, and 20 has nothing ahead.",
       "vehicles": [
         {
           "id": 20,
@@ -187,7 +187,7 @@
       "roadWidthM": 7,
       "stripWidthM": 0.3,
       "mode": "strip",
-      "why": "n = 23, w = 7/23 = 0.3043. Cars 40 and 41 side by side at front 10 m cover strips 0..7 ([0.15, 2.25)) and 15..22 ([4.75, 6.85)). Motorcycle 42 (front 5 m, centre 3.5, width 0.8, clearance 0.15) covers [2.95, 4.05) -> 9..13: it fits in the gap between them and overlaps neither, so it filters past them; its leader is car 43 far ahead at 60 m covering [2.45, 4.55) -> 8..14. 43 overlaps neither 40 nor 41, so they have no leader. Car 44 behind car 40 in the same strips follows 40.",
+      "why": "Δ = 0.3, n = 24. Cars 40 and 41 side by side at front 10 m cover strips 0..7 ([0.15, 2.25)) and 15..22 ([4.75, 6.85)). Motorcycle 42 (front 5 m, centre 3.5, width 0.8, clearance 0.15) covers [2.95, 4.05) -> 9..13: it fits in the gap between them and overlaps neither, so it filters past them; its leader is car 43 far ahead at 60 m covering [2.45, 4.55) -> 8..15. 43 does not overlap car 40 (0..7) but shares strip 15 with car 41 (its right edge 4.55 m lies inside strip 15 = [4.5, 4.8), where 41's clearance starts at 4.75 m), so 41 -> 43 and 40 -> null. Car 44 behind car 40 in the same strips follows 40. (Under the pre-M2 tiling w = 7/23 the car covered 8..14 and 41 had no leader.)",
       "vehicles": [
         {
           "id": 40,
@@ -232,7 +232,7 @@
       ],
       "expected": {
         "40": null,
-        "41": null,
+        "41": 43,
         "42": 43,
         "43": null,
         "44": 40
@@ -244,7 +244,7 @@
       "stripWidthM": 0.3,
       "mode": "lane",
       "lanes": 2,
-      "why": "Lane mode: layout target = 7/2, n = 2 lanes of 3.5 m, strip = lane = floor(centre / 3.5); width and clearance are ignored. 50 (centre 1.75) and motorcycle 51 (centre 3.4) are in lane 0; 52 (5.25) and motorcycle 53 (centre exactly 3.5, on the lane line) are in lane 1 (floor(1.0) = 1). 50 -> 51 and 52 -> 53, regardless of how narrow the motorcycles are.",
+      "why": "Lane mode: laneLayout(7, 2) = 2 lanes of 3.5 m, strip = lane = floor(centre / 3.5); width and clearance are ignored. 50 (centre 1.75) and motorcycle 51 (centre 3.4) are in lane 0; 52 (5.25) and motorcycle 53 (centre exactly 3.5, on the lane line) are in lane 1 (floor(1.0) = 1). 50 -> 51 and 52 -> 53, regardless of how narrow the motorcycles are.",
       "vehicles": [
         {
           "id": 50,
@@ -321,7 +321,7 @@
       "roadWidthM": 3.5,
       "stripWidthM": 0.3,
       "mode": "strip",
-      "why": "Same vehicles as the lane-mode case. n = 12, w = 3.5/12. 60 covers [0.25, 1.35) -> strips 0..4; 61 covers [2.05, 3.15) -> 7..10. Disjoint: in strip mode the two motorcycles ride side by side and neither follows the other.",
+      "why": "Same vehicles as the lane-mode case. Δ = 0.3, n = ceil(3.5/0.3) = 12 (last strip [3.3, 3.5)). 60 covers [0.25, 1.35) -> strips 0..4; 61 covers [2.05, 3.15) -> 6..10. Disjoint: in strip mode the two motorcycles ride side by side and neither follows the other.",
       "vehicles": [
         {
           "id": 60,
@@ -408,7 +408,7 @@
       "roadWidthM": 3.5,
       "stripWidthM": 0.3,
       "mode": "strip",
-      "why": "All four cover the same strips ([0.7, 2.8) -> 2..9); input order is not sorted by position. Each follows the next one ahead: 81 (10 m) -> 82 (30 m) -> 80 (50 m) -> 83 (70 m) -> null.",
+      "why": "All four cover the same strips ([0.7, 2.8) -> 2..9 with Δ = 0.3); input order is not sorted by position. Each follows the next one ahead: 81 (10 m) -> 82 (30 m) -> 80 (50 m) -> 83 (70 m) -> null.",
       "vehicles": [
         {
           "id": 80,

@@ -4,11 +4,12 @@
  * is a movement with band [b0, b1] (`road.band`, with `road.linkLength` giving d = L − front):
  * then the lane-band obstacle (§2.2), band keeping, route bias β = min(1, 200/max(d, 1)) and the
  * 30 m threshold waiver apply. Without `band` all of those are inactive (bias = 0, dist = 0).
- * Includes mover self-safety (ã_c ≥ −B_SAFE) and the pairwise B_SAFE commit re-check.
+ * Includes mover self-safety (ã_c ≥ −B_SAFE), the kinematic gap floor and the pairwise
+ * B_SAFE commit re-check.
  * Written from the spec text; the engine's code is never consulted.
  */
 import { idmRef, type Idm } from './idm-theory.ts';
-import { laneRef, layoutRef, occupiedRef, type Layout } from './strips-ref.ts';
+import { laneLayoutRef, laneRef, layoutRef, occupiedRef, type Layout } from './strips-ref.ts';
 import type { ClassParams } from './m2.ts';
 
 export const B_SAFE = 4;
@@ -31,6 +32,8 @@ export interface RefRoad {
   band?: [number, number];
   /** link length (needed with `band`) */
   linkLength?: number;
+  /** step (s), for the kinematic gap floor; default 0.2 */
+  dt?: number;
 }
 
 export interface CandidateInfo {
@@ -58,7 +61,7 @@ export interface RefResult {
 }
 
 export function roadLayout(r: RefRoad): Layout {
-  return r.mode === 'strip' ? layoutRef(r.W, r.stripW) : layoutRef(r.W, r.W / r.lanes);
+  return r.mode === 'strip' ? layoutRef(r.W, r.stripW) : laneLayoutRef(r.W, r.lanes);
 }
 
 const eff = (r: RefRoad, c: ClassParams): Idm => ({ ...c.idm, v0: Math.min(c.idm.v0, r.speedLimit) });
@@ -129,6 +132,12 @@ export function referenceDecisions(vs: readonly RefVehicle[], r: RefRoad): RefRe
   }
 
   const acc = vs.map((_, i) => accWith(i, leader(i, span[i]!, -1)));
+  const dt = r.dt ?? 0.2;
+  /** §2.4 kinematic gap floor for the vehicle behind: max(v·dt + ½·max(a, 0)·dt² + 0.1, ½·s0). */
+  const floorOf = (k: number) => {
+    const b = vs[k]!;
+    return Math.max(b.v * dt + 0.5 * Math.max(acc[k]!, 0) * dt * dt + 0.1, 0.5 * b.cls.idm.s0);
+  };
   const result: RefResult = { acc: new Map(), decision: new Map(), target: new Map(), candidates: new Map() };
   vs.forEach((x, i) => result.acc.set(x.id, acc[i]!));
 
@@ -165,7 +174,7 @@ export function referenceDecisions(vs: readonly RefVehicle[], r: RefRoad): RefRe
       const nl = leader(i, spT, -1, c.y);
       const aTildeC = accWith(i, nl);
       const selfSafe = aTildeC >= -B_SAFE;
-      let safe = (nl.k === -1 || nl.gap > 0) && selfSafe;
+      let safe = (nl.k === -1 || (nl.gap > 0 && nl.gap >= floorOf(i))) && selfSafe;
       // new follower N
       const N = follower(i, spT);
       let aTildeN: number | null = null;
@@ -175,7 +184,7 @@ export function referenceDecisions(vs: readonly RefVehicle[], r: RefRoad): RefRe
         const n = vs[N]!;
         gN = me.front - me.cls.length - n.front;
         aTildeN = idmRef(eff(r, n.cls), n.v, gN, n.v - me.v);
-        if (!(gN > 0) || aTildeN < -B_SAFE) safe = false;
+        if (!(gN > 0) || gN < floorOf(N) || aTildeN < -B_SAFE) safe = false;
         termN = aTildeN - acc[N]!;
       }
       // longitudinal clash with anything overlapping the swept span
@@ -229,6 +238,7 @@ export function referenceDecisions(vs: readonly RefVehicle[], r: RefRoad): RefRe
       const [lead, foll] = oAhead ? [o, me] : [me, o];
       const gap = lead.front - lead.cls.length - foll.front;
       if (!(gap > 0)) return true;
+      if (gap < floorOf(vs.indexOf(foll))) return true; // kinematic floor, also in the re-check
       return idmRef(eff(r, foll.cls), foll.v, gap, foll.v - lead.v) < -B_SAFE;
     });
     if (!conflict) committed.push(d);

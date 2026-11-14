@@ -5,7 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
 import { findLeaders, type LeaderInput } from '../../src/sim/leader.ts';
-import { laneStrip, occupiedStrips, stripLayout } from '../../src/network/strips.ts';
+import { laneLayout, laneStrip, occupiedStrips, stripLayout } from '../../src/network/strips.ts';
 import { createSim } from '../../src/sim/sim.ts';
 import fixtureJson from '../../../../docs/fixtures/leader_cases.json';
 import { caseLayout, caseStrips, leadersRef, type FixtureCase } from '../helpers/strips-ref.ts';
@@ -58,7 +58,7 @@ describe('T8 leader rule: shared fixture docs/fixtures/leader_cases.json', () =>
 
     it(`${c.name} (strips from the engine's strips module)`, () => {
       const L =
-        c.mode === 'lane' ? stripLayout(c.roadWidthM, c.roadWidthM / c.lanes!) : stripLayout(c.roadWidthM, c.stripWidthM);
+        c.mode === 'lane' ? laneLayout(c.roadWidthM, c.lanes!) : stripLayout(c.roadWidthM, c.stripWidthM);
       expect(L).toEqual(caseLayout(c));
       const strips = c.vehicles.map((v) =>
         c.mode === 'lane' ? laneStrip(v.centreM, L) : occupiedStrips(v.centreM, v.widthM, v.clearanceM, L),

@@ -65,8 +65,11 @@ def test_synthetic_provenance_rules(synthetic_run):
     for c in classes["classes"]:
         assert c["idm"]["v0"]["provenance"] == "proxy"
         assert c["idm"]["s0"]["provenance"] == "assumption"
-        assert c["idm"]["a"]["provenance"] == "derived"
-        assert c["idm"]["b"]["provenance"] == "derived"
+        # user decision (M2): a and b are set by the smoothing window, so they are labelled
+        # 'assumption'; the note must say they are informed by the data and name the window
+        for k in ("a", "b"):
+            assert c["idm"][k]["provenance"] == "assumption"
+            assert "position-derived" in c["idm"][k]["note"] and "window" in c["idm"][k]["note"]
         assert c["share"]["provenance"] == "derived"
         if c["id"] in ("motorcycle", "auto"):
             assert c["lengthM"]["kind"] == "fixed" and c["lengthM"]["provenance"] == "assumption"

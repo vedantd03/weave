@@ -580,7 +580,7 @@
       ]
     },
     "stripWidthM": {
-      "default": 0.3,
+      "default": 0.25,
       "type": "number",
       "minimum": 0.1,
       "maximum": 1

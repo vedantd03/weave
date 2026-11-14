@@ -26,7 +26,7 @@ from .leader import find_leaders_np, occupied_np, strip_layout
 CLASSES = list(CLASS_BY_CODE.values())
 CLEARANCE_Q = 0.10
 CLEARANCE_Q_SENS = (0.05, 0.15)
-STRIP_WIDTH_M = 0.3   # scenario default (docs/MODEL.md §1.5)
+STRIP_WIDTH_M = 0.25  # scenario default (docs/MODEL.md §1.5, revised in M2)
 S0_ASSUMED = 2.0      # Treiber & Kesting (2013), Traffic Flow Dynamics, Table 11.2 (city)
 V0_QUANTILE = 0.85
 A_QUANTILE = 0.95     # a = 95th percentile of position-derived acceleration

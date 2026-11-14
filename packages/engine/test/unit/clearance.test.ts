@@ -1,7 +1,8 @@
 /**
  * Clearance after strip rounding (docs/MODEL.md §1.5).
  *
- * Theory. For vehicles A (left) and B (right) with right_A = y_A + width_A/2 + c_A and
+ * Theory (strip grid of §1.5: fixed Δ, kerb-anchored, o = 0 on links; boundaries kΔ and W).
+ * For vehicles A (left) and B (right) with right_A = y_A + width_A/2 + c_A and
  * left_B = y_B − width_B/2 − c_B, the spans [floor(left/w), ceil(right/w) − 1] are disjoint
  *   ⇔ ceil(right_A/w) − 1 < floor(left_B/w) ⇔ ∃ integer k: right_A ≤ k·w ≤ left_B.
  * Hence the body gap g = (y_B − width_B/2) − (y_A + width_A/2) = (left_B − right_A) + c_A + c_B
@@ -95,6 +96,8 @@ describe('clearance theorem (static, engine strips)', () => {
 /** console without DOM/node typings (the engine tsconfig has types: []) */
 const log = (line: string) => (globalThis as unknown as { console: { log(s: string): void } }).console.log(line);
 
+const STRIP_W = 0.25;
+
 describe('clearance measured in congested strip-mode traffic', () => {
   const IDM = { v0: 14, T: 1.2, s0: 1.5, a: 1.5, b: 2 };
   const SPECS: ClassSpec[] = [
@@ -113,6 +116,7 @@ describe('clearance measured in congested strip-mode traffic', () => {
         change: { kind: 'laneDrop', atM: 400, dropLanes: 1, taperM: 50 }, // bottleneck → queue upstream
         rateVph: 3000,
         mode: 'strip',
+        stripWidthM: STRIP_W, // the scenario default (§1.5)
         composition: { motorcycle: 0.5, auto: 0.2, car: 0.3 },
         seed: 2026,
       }),
@@ -146,7 +150,7 @@ describe('clearance measured in congested strip-mode traffic', () => {
       const [x, y] = key.split('|') as [string, string];
       const cSum = c.get(x as ClassSpec['id'])! + c.get(y as ClassSpec['id'])!;
       log(
-        `CLEARANCE_MEASURED class=${key} min_gap=${g.toFixed(4)} c_sum=${cSum.toFixed(4)} excess=${(g - cSum).toFixed(4)} strip_w=${(7 / 23).toFixed(4)} pair_steps=${pairs.get(key)}`,
+        `CLEARANCE_MEASURED class=${key} min_gap=${g.toFixed(4)} c_sum=${cSum.toFixed(4)} excess=${(g - cSum).toFixed(4)} strip_w=${STRIP_W.toFixed(4)} pair_steps=${pairs.get(key)}`,
       );
     }
     // the scenario must actually produce side-by-side traffic (filtering)

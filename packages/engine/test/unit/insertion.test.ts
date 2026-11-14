@@ -6,8 +6,12 @@
  * post-step view is exactly the state the insertion saw):
  *   - front at s = length;
  *   - v_ins = min(v0_eff, v_L) for the chosen candidate's leader L (v0_eff with no leader);
+ *     the leader search is the full §1.6 rule, so a leader whose rear is farther than the
+ *     look-ahead D = max(150 m, v0_eff²/(2b) + 50 m) counts as none (§2.3). In these scenes the
+ *     lane-band obstacle at the end of 'up' (200 m) is always beyond D, and 'main' has no
+ *     next movement.
  *   - feasibility gap = rear_L − length ≥ s0 + v_ins·T (the driver's parameters);
- *   - strip mode: y is a candidate centre h + m·w with y + h ≤ W, and its gap is the largest
+ *   - strip mode: y is a candidate centre h + m·Δ with y + h ≤ W, and its gap is the largest
  *     among the feasible candidates; lane mode: y is a lane centre;
  *   - FIFO: insertion order = generation order (head-of-line blocking).
  */
@@ -22,16 +26,19 @@ interface Leader {
   gap: number;
   vL: number | null;
 }
-/** §1.6 leader over `others` on the origin link for a candidate span, entering front = len. */
-function leaderFor(others: VView[], span: [number, number], len: number): Leader {
+/** §1.6 leader over `others` on the origin link for a candidate span, entering front = len,
+ * with look-ahead cap D (a leader whose rear is farther than D from the front is none). */
+function leaderFor(others: VView[], span: [number, number], len: number, D: number): Leader {
   let best: VView | null = null;
   for (const o of others) {
     if (o.lo > span[1] || span[0] > o.hi) continue;
     if (!(o.s > len)) continue;
     if (!best || o.s - o.length < best.s - best.length) best = o;
   }
-  return best ? { gap: best.s - best.length - len, vL: best.v } : { gap: Infinity, vL: null };
+  if (!best || best.s - best.length - len > D) return { gap: Infinity, vL: null };
+  return { gap: best.s - best.length - len, vL: best.v };
 }
+const lookAhead = (v0: number, b: number) => Math.max(150, (v0 * v0) / (2 * b) + 50);
 
 describe('insertion: jammed single-lane origin (lane mode)', () => {
   // Width change 3.5 m → 3.0 m at 200 m: band [0, 3.0]. Both classes are 3.2 m wide, so no
@@ -81,13 +88,12 @@ describe('insertion: jammed single-lane origin (lane mode)', () => {
           vs.filter((o) => o.id !== v.id && o.link === 'up'),
           [0, 0],
           v.length,
+          lookAhead(rec.v0, rec.b),
         );
         expect(ld.gap).toBeGreaterThanOrEqual(rec.s0 + v.v * rec.T - 1e-9);
         if (ld.vL === null) {
           expect(v.v).toBe(rec.v0);
-        } else if (ld.gap <= 150) {
-          // (for a leader farther than the §1.6 look-ahead the spec does not say whether the
-          // insertion leader search is capped, so only near leaders are checked exactly)
+        } else {
           expect(v.v).toBe(Math.min(rec.v0, ld.vL));
           checkedV++;
         }
@@ -136,7 +142,7 @@ describe('insertion: strip-mode candidate choice', () => {
       expect(v.y + h).toBeLessThanOrEqual(W + 1e-9);
       const others = vs.filter((o) => o.id !== v.id && o.link === 'main');
       const evals = cands.map((y) => {
-        const ld = leaderFor(others, occupiedRef(y, 1.8, 0.2, L), v.length);
+        const ld = leaderFor(others, occupiedRef(y, 1.8, 0.2, L), v.length, lookAhead(CAR.v0, CAR.b));
         const vIns = ld.vL === null ? CAR.v0 : Math.min(CAR.v0, ld.vL);
         return { y, gap: ld.gap, vIns, feasible: ld.gap >= CAR.s0 + vIns * CAR.T };
       });
@@ -146,7 +152,7 @@ describe('insertion: strip-mode candidate choice', () => {
       const best = Math.max(...evals.filter((e) => e.feasible).map((e) => e.gap));
       if (best === Infinity) expect(chosen.gap).toBe(Infinity);
       else expect(chosen.gap).toBeGreaterThanOrEqual(best - 1e-9);
-      if (chosen.gap <= 150 || chosen.gap === Infinity) expect(v.v).toBeCloseTo(chosen.vIns, 12);
+      expect(v.v).toBeCloseTo(chosen.vIns, 12);
       expect(v.s).toBeCloseTo(v.length, 9);
       checked++;
     }

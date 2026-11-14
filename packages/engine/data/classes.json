@@ -24,9 +24,9 @@
      "note": "85th percentile of position-derived spot speeds at x=138.1 m (1491 vehicles). Traffic is near capacity (~41 km/h), so free-flow vehicles are rare: a proxy for the desired speed, likely an underestimate."
     },
     "T": {
-     "value": 0.641,
+     "value": 0.649,
      "provenance": "derived",
-     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 2262 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=14.62 m/s: T ranges 0.51-0.80 s under s0±1 m, v0±10%. 309 of 2571 steady samples (12.0%) with v > 0.9·v0 were excluded before inverting."
+     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 2261 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=14.62 m/s: T ranges 0.52-0.81 s under s0±1 m, v0±10%. 312 of 2573 steady samples (12.1%) with v > 0.9·v0 were excluded before inverting."
     },
     "s0": {
      "value": 2.0,
@@ -35,13 +35,13 @@
     },
     "a": {
      "value": 1.272,
-     "provenance": "derived",
-     "note": "95th percentile of position-derived longitudinal acceleration (54470 clean samples; Savitzky–Golay quadratic, 9 points = 4 s). Window-dependent: 5 pts 3.73, 7 pts 2.03, 9 pts 1.25, 11 pts 0.87, 15 pts 0.50 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+     "provenance": "assumption",
+     "note": "Informed by position-derived acceleration percentiles (p95 of 54470 clean samples), but the value is set by the smoothing window (9-point = 4 s quadratic Savitzky–Golay): 5 pts 3.73, 7 pts 2.03, 9 pts 1.25, 11 pts 0.87, 15 pts 0.50 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
     },
     "b": {
      "value": 1.355,
-     "provenance": "derived",
-     "note": "Minus the 5th percentile of position-derived longitudinal acceleration (54470 clean samples; 9-point window). Window-dependent: 5 pts 3.80, 7 pts 2.09, 9 pts 1.33, 11 pts 0.96, 15 pts 0.58 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+     "provenance": "assumption",
+     "note": "Informed by position-derived acceleration percentiles (minus p5 of 54470 clean samples), but the value is set by the smoothing window (9-point SG): 5 pts 3.80, 7 pts 2.09, 9 pts 1.33, 11 pts 0.96, 15 pts 0.58 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
     }
    },
    "clearance": {
@@ -120,7 +120,7 @@
      6.97
     ],
     "provenance": "derived",
-    "note": "Quantiles 0,5,...,100% of per-vehicle length over 800 vehicles."
+    "note": "Quantiles 0,5,...,100% of per-vehicle length over 800 vehicles. Kept as measured, but 5 'cars' are smaller than a car (width < 1.2 m or length < 3 m; likely misclassified two-wheelers/autos). Without them the length quantiles 0/5/50/95/100% would be 3.26/3.867/4.62/5.693/6.97 m instead of 1.98/3.85/4.605/5.691/6.97 m."
    },
    "widthM": {
     "kind": "quantiles",
@@ -148,7 +148,7 @@
      2.59
     ],
     "provenance": "derived",
-    "note": "Quantiles 0,5,...,100% of per-vehicle width over 800 vehicles."
+    "note": "Quantiles 0,5,...,100% of per-vehicle width over 800 vehicles. Kept as measured, but 5 'cars' are smaller than a car (width < 1.2 m or length < 3 m; likely misclassified two-wheelers/autos). Without them the width quantiles 0/5/50/95/100% would be 1.2/1.32/1.58/1.97/2.59 m instead of 0.57/1.31/1.58/1.97/2.59 m."
    },
    "idm": {
     "v0": {
@@ -157,9 +157,9 @@
      "note": "85th percentile of position-derived spot speeds at x=138.1 m (745 vehicles). Traffic is near capacity (~41 km/h), so free-flow vehicles are rare: a proxy for the desired speed, likely an underestimate."
     },
     "T": {
-     "value": 0.511,
+     "value": 0.503,
      "provenance": "derived",
-     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 1573 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=14.54 m/s: T ranges 0.33-0.65 s under s0±1 m, v0±10%. 350 of 1923 steady samples (18.2%) with v > 0.9·v0 were excluded before inverting."
+     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 1565 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=14.54 m/s: T ranges 0.33-0.65 s under s0±1 m, v0±10%. 347 of 1912 steady samples (18.1%) with v > 0.9·v0 were excluded before inverting."
     },
     "s0": {
      "value": 2.0,
@@ -168,13 +168,13 @@
     },
     "a": {
      "value": 1.082,
-     "provenance": "derived",
-     "note": "95th percentile of position-derived longitudinal acceleration (26755 clean samples; Savitzky–Golay quadratic, 9 points = 4 s). Window-dependent: 5 pts 3.15, 7 pts 1.71, 9 pts 1.07, 11 pts 0.75, 15 pts 0.51 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+     "provenance": "assumption",
+     "note": "Informed by position-derived acceleration percentiles (p95 of 26755 clean samples), but the value is set by the smoothing window (9-point = 4 s quadratic Savitzky–Golay): 5 pts 3.15, 7 pts 1.71, 9 pts 1.07, 11 pts 0.75, 15 pts 0.51 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
     },
     "b": {
      "value": 1.039,
-     "provenance": "derived",
-     "note": "Minus the 5th percentile of position-derived longitudinal acceleration (26755 clean samples; 9-point window). Window-dependent: 5 pts 3.05, 7 pts 1.63, 9 pts 1.03, 11 pts 0.77, 15 pts 0.54 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+     "provenance": "assumption",
+     "note": "Informed by position-derived acceleration percentiles (minus p5 of 26755 clean samples), but the value is set by the smoothing window (9-point SG): 5 pts 3.05, 7 pts 1.63, 9 pts 1.03, 11 pts 0.77, 15 pts 0.54 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
     }
    },
    "clearance": {
@@ -246,9 +246,9 @@
      "note": "85th percentile of position-derived spot speeds at x=138.1 m (341 vehicles). Traffic is near capacity (~41 km/h), so free-flow vehicles are rare: a proxy for the desired speed, likely an underestimate."
     },
     "T": {
-     "value": 0.937,
+     "value": 0.946,
      "provenance": "derived",
-     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 449 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=12.23 m/s: T ranges 0.83-1.07 s under s0±1 m, v0±10%. 216 of 665 steady samples (32.5%) with v > 0.9·v0 were excluded before inverting."
+     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 447 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=12.23 m/s: T ranges 0.84-1.11 s under s0±1 m, v0±10%. 218 of 665 steady samples (32.8%) with v > 0.9·v0 were excluded before inverting."
     },
     "s0": {
      "value": 2.0,
@@ -257,13 +257,13 @@
     },
     "a": {
      "value": 1.091,
-     "provenance": "derived",
-     "note": "95th percentile of position-derived longitudinal acceleration (15054 clean samples; Savitzky–Golay quadratic, 9 points = 4 s). Window-dependent: 5 pts 3.42, 7 pts 1.83, 9 pts 1.08, 11 pts 0.72, 15 pts 0.40 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+     "provenance": "assumption",
+     "note": "Informed by position-derived acceleration percentiles (p95 of 15054 clean samples), but the value is set by the smoothing window (9-point = 4 s quadratic Savitzky–Golay): 5 pts 3.42, 7 pts 1.83, 9 pts 1.08, 11 pts 0.72, 15 pts 0.40 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
     },
     "b": {
      "value": 1.025,
-     "provenance": "derived",
-     "note": "Minus the 5th percentile of position-derived longitudinal acceleration (15054 clean samples; 9-point window). Window-dependent: 5 pts 3.37, 7 pts 1.70, 9 pts 1.02, 11 pts 0.68, 15 pts 0.39 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+     "provenance": "assumption",
+     "note": "Informed by position-derived acceleration percentiles (minus p5 of 15054 clean samples), but the value is set by the smoothing window (9-point SG): 5 pts 3.37, 7 pts 1.70, 9 pts 1.02, 11 pts 0.68, 15 pts 0.39 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
     }
    },
    "clearance": {
@@ -275,7 +275,7 @@
     "c1": {
      "value": 0.0245,
      "provenance": "derived",
-     "note": "Slope of the per-speed-bin (2 m/s bins, ≥ 200 samples) p10 gap vs pair speed, halved: gap slope 0.0491 ± 0.0183 (SE) s over a 6 m/s span. Identified by the pre-set rule (span ≥ 6 m/s, |slope| > 2 SE), but borderline."
+     "note": "Slope of the per-speed-bin (2 m/s bins, ≥ 200 samples) p10 gap vs pair speed, halved: gap slope 0.0491 ± 0.0183 (SE) s over a 6 m/s span. Identified by the pre-set rule (span ≥ 6 m/s, |slope| > 2 SE, fixed before seeing the data), but borderline. Sensitivity: with c1 forced to 0, c0 = pooled p10/2 = 0.323 m."
     }
    },
    "gap": {
@@ -379,9 +379,9 @@
      "note": "85th percentile of position-derived spot speeds at x=138.1 m (92 vehicles). Traffic is near capacity (~41 km/h), so free-flow vehicles are rare: a proxy for the desired speed, likely an underestimate."
     },
     "T": {
-     "value": 0.823,
+     "value": 0.816,
      "provenance": "derived",
-     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 132 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=13.12 m/s: T ranges 0.55-0.96 s under s0±1 m, v0±10%. 58 of 190 steady samples (30.5%) with v > 0.9·v0 were excluded before inverting."
+     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 136 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=13.12 m/s: T ranges 0.56-0.96 s under s0±1 m, v0±10%. 60 of 196 steady samples (30.6%) with v > 0.9·v0 were excluded before inverting."
     },
     "s0": {
      "value": 2.0,
@@ -390,13 +390,13 @@
     },
     "a": {
      "value": 1.083,
-     "provenance": "derived",
-     "note": "95th percentile of position-derived longitudinal acceleration (3683 clean samples; Savitzky–Golay quadratic, 9 points = 4 s). Window-dependent: 5 pts 3.19, 7 pts 1.71, 9 pts 1.09, 11 pts 0.74, 15 pts 0.46 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+     "provenance": "assumption",
+     "note": "Informed by position-derived acceleration percentiles (p95 of 3683 clean samples), but the value is set by the smoothing window (9-point = 4 s quadratic Savitzky–Golay): 5 pts 3.19, 7 pts 1.71, 9 pts 1.09, 11 pts 0.74, 15 pts 0.46 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
     },
     "b": {
      "value": 0.903,
-     "provenance": "derived",
-     "note": "Minus the 5th percentile of position-derived longitudinal acceleration (3683 clean samples; 9-point window). Window-dependent: 5 pts 3.14, 7 pts 1.52, 9 pts 0.90, 11 pts 0.58, 15 pts 0.40 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+     "provenance": "assumption",
+     "note": "Informed by position-derived acceleration percentiles (minus p5 of 3683 clean samples), but the value is set by the smoothing window (9-point SG): 5 pts 3.14, 7 pts 1.52, 9 pts 0.90, 11 pts 0.58, 15 pts 0.40 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
     }
    },
    "clearance": {
@@ -512,7 +512,7 @@
      "note": "85th percentile of position-derived speed samples (373 clean samples; only 8 vehicles crossed x=138.1 m cleanly, < 20 for a spot-speed percentile). Traffic is near capacity (~41 km/h), so free-flow vehicles are rare: a proxy for the desired speed, likely an underestimate."
     },
     "T": {
-     "value": 0.511,
+     "value": 0.503,
      "provenance": "assumption",
      "note": "Only 3 usable steady-following samples (< 30; 7 dropped with v > 0.9·v0); the car value is used."
     },
@@ -523,13 +523,13 @@
     },
     "a": {
      "value": 0.964,
-     "provenance": "derived",
-     "note": "95th percentile of position-derived longitudinal acceleration (373 clean samples; Savitzky–Golay quadratic, 9 points = 4 s). Window-dependent: 5 pts 3.56, 7 pts 1.76, 9 pts 0.93, 11 pts 0.62, 15 pts 0.40 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+     "provenance": "assumption",
+     "note": "Informed by position-derived acceleration percentiles (p95 of 373 clean samples), but the value is set by the smoothing window (9-point = 4 s quadratic Savitzky–Golay): 5 pts 3.56, 7 pts 1.76, 9 pts 0.93, 11 pts 0.62, 15 pts 0.40 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
     },
     "b": {
      "value": 1.166,
-     "provenance": "derived",
-     "note": "Minus the 5th percentile of position-derived longitudinal acceleration (373 clean samples; 9-point window). Window-dependent: 5 pts 3.58, 7 pts 2.13, 9 pts 1.17, 11 pts 0.96, 15 pts 0.48 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+     "provenance": "assumption",
+     "note": "Informed by position-derived acceleration percentiles (minus p5 of 373 clean samples), but the value is set by the smoothing window (9-point SG): 5 pts 3.58, 7 pts 2.13, 9 pts 1.17, 11 pts 0.96, 15 pts 0.48 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
     }
    },
    "clearance": {
@@ -645,9 +645,9 @@
      "note": "85th percentile of position-derived spot speeds at x=138.1 m (39 vehicles). Traffic is near capacity (~41 km/h), so free-flow vehicles are rare: a proxy for the desired speed, likely an underestimate."
     },
     "T": {
-     "value": 1.006,
+     "value": 0.982,
      "provenance": "derived",
-     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 66 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=13.45 m/s: T ranges 0.91-1.49 s under s0±1 m, v0±10%. 31 of 97 steady samples (32.0%) with v > 0.9·v0 were excluded before inverting."
+     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 65 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=13.45 m/s: T ranges 0.87-1.53 s under s0±1 m, v0±10%. 33 of 98 steady samples (33.7%) with v > 0.9·v0 were excluded before inverting."
     },
     "s0": {
      "value": 2.0,
@@ -656,13 +656,13 @@
     },
     "a": {
      "value": 1.269,
-     "provenance": "derived",
-     "note": "95th percentile of position-derived longitudinal acceleration (1439 clean samples; Savitzky–Golay quadratic, 9 points = 4 s). Window-dependent: 5 pts 3.28, 7 pts 1.86, 9 pts 1.24, 11 pts 0.80, 15 pts 0.47 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+     "provenance": "assumption",
+     "note": "Informed by position-derived acceleration percentiles (p95 of 1439 clean samples), but the value is set by the smoothing window (9-point = 4 s quadratic Savitzky–Golay): 5 pts 3.28, 7 pts 1.86, 9 pts 1.24, 11 pts 0.80, 15 pts 0.47 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
     },
     "b": {
      "value": 0.916,
-     "provenance": "derived",
-     "note": "Minus the 5th percentile of position-derived longitudinal acceleration (1439 clean samples; 9-point window). Window-dependent: 5 pts 3.34, 7 pts 1.50, 9 pts 0.89, 11 pts 0.64, 15 pts 0.39 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+     "provenance": "assumption",
+     "note": "Informed by position-derived acceleration percentiles (minus p5 of 1439 clean samples), but the value is set by the smoothing window (9-point SG): 5 pts 3.34, 7 pts 1.50, 9 pts 0.89, 11 pts 0.64, 15 pts 0.39 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
     }
    },
    "clearance": {

@@ -16,15 +16,15 @@ import { layoutRef, occupiedRef } from '../helpers/strips-ref.ts';
 
 const IDM = { v0: 20, T: 1.5, s0: 2, a: 1.5, b: 2 };
 const CLASSES: ClassSpec[] = [
-  // J = max(1, floor(maxLat·τ/w)) with τ = 1 s, w = 7/23 = 0.3043 m: car → floor(2.63) = 2
+  // J = max(1, floor(maxLat·τ/Δ)) with τ = 1 s, Δ = 0.3 m (§1.5 fixed strip width): car → floor(2.67) = 2
   { id: 'car', length: 4.5, width: 1.8, idm: IDM, c0: 0.2, c1: 0, maxLat: 0.8, politeness: 0, threshold: 0.1 },
-  // auto: maxLat 1.0 → J = floor(3.29) = 3
+  // auto: maxLat 1.0 → J = floor(3.33) = 3
   { id: 'auto', length: 4.5, width: 1.8, idm: IDM, c0: 0.2, c1: 0, maxLat: 1.0, politeness: 0, threshold: 0.1 },
   { id: 'motorcycle', length: 2, width: 0.8, idm: IDM, c0: 0.15, c1: 0, maxLat: 0.8, politeness: 0, threshold: 0.1 },
 ];
 const H_CAR = 0.9 + 0.2; // body half-width + clearance
 const W7 = 7;
-const w7 = layoutRef(7, 0.3).w; // 7/23
+const w7 = layoutRef(7, 0.3).w; // Δ = 0.3 (24 strips on 7 m, the last one 0.1 m)
 
 function scene(vehicles: SceneVehicle[], W = W7): Scene {
   const s = buildScene({ W, lanes: 2, mode: 'strip', classes: CLASSES, vehicles });
@@ -50,7 +50,7 @@ function blockedScene(cls: 'car' | 'auto', lo: number, k: number, v = 10, mcFron
 describe('strip-mode candidates and J', () => {
   it('premise: the subject spans 8 strips, the motorcycle overlaps exactly k of them', () => {
     const L = layoutRef(7, 0.3);
-    expect(L.n).toBe(23);
+    expect(L).toEqual({ n: 24, w: 0.3, o: 0 });
     const [S, M] = blockedScene('car', 6, 2);
     expect(occupiedRef(S!.y, 1.8, 0.2, L)).toEqual([6, 13]);
     expect(occupiedRef(M!.y, 0.8, 0.15, L)).toEqual([12, 16]);
@@ -145,7 +145,7 @@ describe('strip-mode lateral speed and swept occupancy', () => {
 });
 
 describe('strip-mode commit order', () => {
-  // W = 8.5 m → n = round(28.33) = 28 strips, w = 8.5/28. A (strips 4..11) and B (13..20) are
+  // W = 8.5 m → n = ceil(28.33) = 29 strips of Δ = 0.3. A (strips 4..11) and B (13..20) are
   // side by side with ONE empty strip (12) between them. Each has a slow motorcycle overlapping
   // only its outer edge, so each escapes by moving one strip into strip 12. Individually both
   // decisions are safe (neither target overlaps the other's current span), but the swept spans

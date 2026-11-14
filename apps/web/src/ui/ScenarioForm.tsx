@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { ScenarioInput } from '@weave/engine';
+import { Scenario, type ScenarioInput } from '@weave/engine';
 import type { SimController } from '../state/controller.ts';
 
 /**
@@ -34,7 +34,7 @@ function NumberField(props: {
         inputMode="decimal"
         className={field}
         value={text}
-        step={props.step ?? 1}
+        step="any"
         min={props.min}
         max={props.max}
         onChange={(e) => {
@@ -75,6 +75,7 @@ type Params = Extract<ScenarioInput['network'], { kind: 'generator' }>['params']
 export function ScenarioForm({ ctrl, scenario }: { ctrl: SimController; scenario: ScenarioInput }) {
   const [draft, setDraft] = useState<Draft>(scenario);
   const [error, setError] = useState<string | null>(null);
+  const [issues, setIssues] = useState<string[]>([]);
   useEffect(() => {
     setDraft(scenario);
     setError(null);
@@ -102,11 +103,24 @@ export function ScenarioForm({ ctrl, scenario }: { ctrl: SimController; scenario
 
   const apply = () => {
     setError(null);
-    ctrl.loadScenario(draft).catch((e: unknown) => setError(String(e)));
+    // Validate the whole draft against the contract and show every problem (no silent no-op).
+    const parsed = Scenario.safeParse(draft);
+    if (!parsed.success) {
+      setIssues(
+        parsed.error.issues.map((i) => {
+          const path = i.path.filter((p) => typeof p !== 'number' || p > 0).join(' › ');
+          return path ? `${path}: ${i.message}` : i.message;
+        }),
+      );
+      return;
+    }
+    setIssues([]);
+    ctrl.loadScenario(draft).catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
   };
 
   return (
     <form
+      noValidate
       className="space-y-3"
       onSubmit={(e) => {
         e.preventDefault();
@@ -192,10 +206,16 @@ export function ScenarioForm({ ctrl, scenario }: { ctrl: SimController; scenario
           value={draft.mode ?? 'strip'}
           options={[
             { value: 'strip', label: 'Strips (mixed traffic)' },
-            { value: 'lane', label: 'Lanes' },
+            { value: 'lane', label: 'Lanes (theory check)' },
           ]}
           onChange={(mode) => setDraft({ ...draft, mode })}
         />
+        {draft.mode === 'lane' && (
+          <p className="mt-1 text-xs text-muted">
+            Lane mode reuses the strip-calibrated driver parameters, so its capacity is not calibrated. Use it to check
+            the model against classic lane-based theory.
+          </p>
+        )}
         </div>
         {od.length > 0 && (
           <NumberField id="f-demand" label="Demand (veh/h)" value={Math.round(demand)} step={100} min={0} onChange={setDemand} />
@@ -203,6 +223,16 @@ export function ScenarioForm({ ctrl, scenario }: { ctrl: SimController; scenario
         <NumberField id="f-seed" label="Seed" value={draft.seed} min={0} onChange={(v) => setDraft({ ...draft, seed: Math.max(0, Math.floor(v)) })} />
       </div>
 
+      {issues.length > 0 && (
+        <div role="alert" className="rounded-md border border-danger/40 bg-danger/10 p-2 text-xs text-danger">
+          <p className="font-medium">Fix these before applying:</p>
+          <ul className="mt-1 list-disc pl-4">
+            {issues.map((m) => (
+              <li key={m}>{m}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       {error && (
         <p role="alert" className="text-xs text-danger">
           {error}

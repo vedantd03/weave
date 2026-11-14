@@ -38,6 +38,7 @@ function metrics(s: Sim): MetricsDelta {
     generated: c.generated,
     exited: c.exited,
     meanSpeedMps: vs.length ? sum / vs.length : 0,
+    ...s.diagnostics(),
   };
 }
 

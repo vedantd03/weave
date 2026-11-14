@@ -179,3 +179,39 @@ The pre-calibration defaults remain available as `provisionalClasses()`.
 **Why:** insertion places clearance edges exactly on strip boundaries, where regrouping the
 arithmetic changes the rounded strip index. The engine and every spec-literal implementation
 (the tests, the Python leader rule) must agree to the bit.
+
+## ADR-019 Fixed, kerb-anchored strip grid (M2 fix)
+**Decision:** strips have a fixed width Δ = 0.25 m, anchored at each segment's left edge. A
+movement's grid is offset so it continues its approach link's grid. Each segment no longer tiles
+its own width exactly.
+
+**Why:**
+- **The defect:** the user found on the live app that strip mode lost about 40% of its capacity
+  at a lane drop. The node-saturation test reproduced it on a mere 7.2 → 7.0 m narrowing.
+- **The cause:** per-segment tiling (`W/round(W/Δ)`) misaligned the grids, so vehicles that were
+  legally side by side landed in overlapping strips downstream and braked at B_MAX.
+- **Why 0.25 m:** it divides the IRC lane widths 3.0, 3.25 and 3.5 m, so lane-based junction
+  bands line up too (user decision).
+
+**Consequences:** the narrowing now carries the same flow as the plain road. T changed by less
+than 3%.
+
+## ADR-020 Strict route bands; merging at lane drops not modelled (M2 fix, user decision)
+**Decision:** keep strict band-only insertion and band keeping.
+
+**Why:** a band zone (band rules within 150 m of the node only) made vehicles use the dropped
+lane. Without a zipper or forced-merge model, saturated throughput then collapsed in both modes.
+Cooperative yielding removed swap deadlocks at diverges but turned merges into stop-and-go.
+
+**Consequences:**
+- The lane-drop preset is renamed "Corridor narrowing (vehicles pre-sorted)".
+- A merge model is future work.
+
+## ADR-021 Kinematic gap floor for lateral moves (M2 fix)
+**Decision:** a lateral move needs gaps of at least `max(v·dt + ½·a⁺·dt² + 0.1 m, ½·s0)` to the
+new leader and from the new follower, including in the same-step commit re-check.
+
+**Why:** a follower could close a few-centimetre gap within the same synchronous step, before
+the move was visible to it.
+
+**Why not s0:** a floor of s0 blocked zipper-like squeezes at standstill.

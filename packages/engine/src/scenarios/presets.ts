@@ -35,7 +35,9 @@ export const PRESETS: Record<string, ScenarioInput> = {
   'corridor-lanedrop': {
     version: 1,
     id: 'corridor-lanedrop',
-    name: 'Corridor with lane drop',
+    // Vehicles enter already sorted into the continuing lanes (band rule, MODEL.md §2.3):
+    // merging at the drop is not modelled, so this shows a narrowing, not a merge.
+    name: 'Corridor narrowing (vehicles pre-sorted)',
     network: {
       kind: 'generator',
       params: {

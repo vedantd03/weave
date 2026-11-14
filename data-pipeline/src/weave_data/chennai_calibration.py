@@ -78,7 +78,19 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
     fs = cal.follower_samples(all_df, clearance, W)
     st = cal.steady(fs)
     rep["following"] = {"follower_samples": int(len(fs)), "steady_samples": int(len(st)),
-                        "steady_by_class": {k: int(v) for k, v in st["cls"].value_counts().items()}}
+                        "steady_by_class": {k: int(v) for k, v in st["cls"].value_counts().items()},
+                        "strip_width_m": cal.STRIP_WIDTH_M}
+    # c1 = 0 sensitivity: classes whose c1 was identified get c = pooled p10/2, c1 = 0; leaders
+    # (and so steady samples and T) are recomputed with that clearance.
+    ident = [c for c, r in clear_rep.items() if r["c1_fit"].get("identified")]
+    st_c1zero = None
+    if ident:
+        alt = dict(clearance)
+        for c in ident:
+            alt[c] = (clear_rep[c]["c_by_percentile"]["p10"], 0.0)
+        st_c1zero = cal.steady(cal.follower_samples(all_df, alt, W))
+    rep["c1_zero_sensitivity"] = {"classes": ident, "clearance_alt": {c: (clear_rep[c]["c_by_percentile"]["p10"], 0.0) for c in ident},
+                                  "clearance_fit": {c: clearance[c] for c in ident}, "T": {}}
 
     # ---- smoothing-window sensitivity of a and b
     win = accel_window_analysis(dfs)
@@ -112,6 +124,11 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
         Tm, n_used, n_no = cal.T_median(s_c["gap"], s_c["v"], v0, cal.S0_ASSUMED)
         sens = cal.T_sensitivity(s_c["gap"], s_c["v"], v0, cal.S0_ASSUMED)
         share_no = n_no / len(s_c) if len(s_c) else math.nan
+        if st_c1zero is not None:
+            s_z = st_c1zero[st_c1zero["cls"] == c]
+            Tz, nz, dz = cal.T_median(s_z["gap"], s_z["v"], v0, cal.S0_ASSUMED)
+            rep["c1_zero_sensitivity"]["T"][c] = {"T_fit": None, "T_c1_zero": Tz, "n_used": nz,
+                                                  "n_dropped": dz, "steady_samples": int(len(s_z))}
         T_rep[c] = {"T": Tm, "steady_samples": int(len(s_c)), "n_used": n_used,
                     "n_dropped_v_gt_0.9v0": n_no, "share_dropped": share_no,
                     "v0": v0, "sensitivity": sens}
@@ -154,15 +171,16 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
                             "Literature default: Treiber & Kesting (2013), Traffic Flow Dynamics, "
                             "Table 11.2, IDM s0 = 2 m (city traffic). The data has almost no slow or "
                             "stopped following, so s0 is not identifiable."),
-                "a": cal.p(a_val, "derived",
-                           f"95th percentile of position-derived longitudinal acceleration "
-                           f"({len(fr)} clean samples; Savitzky–Golay quadratic, 9 points = 4 s). "
-                           "Window-dependent: " + _win_range(win, c, "a") + ". Never the dataset's "
-                           "acceleration column."),
-                "b": cal.p(b_val, "derived",
-                           "Minus the 5th percentile of position-derived longitudinal acceleration "
-                           f"({len(fr)} clean samples; 9-point window). Window-dependent: "
-                           + _win_range(win, c, "b") + ". Never the dataset's acceleration column."),
+                "a": cal.p(a_val, "assumption",
+                           "Informed by position-derived acceleration percentiles (p95 of "
+                           f"{len(fr)} clean samples), but the value is set by the smoothing window "
+                           "(9-point = 4 s quadratic Savitzky–Golay): " + _win_range(win, c, "a")
+                           + ". Never the dataset's acceleration column."),
+                "b": cal.p(b_val, "assumption",
+                           "Informed by position-derived acceleration percentiles (minus p5 of "
+                           f"{len(fr)} clean samples), but the value is set by the smoothing window "
+                           "(9-point SG): " + _win_range(win, c, "b")
+                           + ". Never the dataset's acceleration column."),
             },
             "clearance": {
                 "c0": cal.p(cl0, "derived", _c1_c0_note(crep), nd=3) if crep.get("c1_fit", {}).get("identified")
@@ -179,7 +197,9 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
                              "Slope of the per-speed-bin (2 m/s bins, ≥ 200 samples) p10 gap vs pair speed, "
                              f"halved: gap slope {crep['c1_fit']['slope_gap']:.4f} ± {crep['c1_fit']['slope_se']:.4f} "
                              f"(SE) s over a {crep['c1_fit']['speed_span']:g} m/s span. Identified by the "
-                             "pre-set rule (span ≥ 6 m/s, |slope| > 2 SE), but borderline.", nd=4)
+                             "pre-set rule (span ≥ 6 m/s, |slope| > 2 SE, fixed before seeing the data), "
+                             "but borderline. Sensitivity: with c1 forced to 0, c0 = pooled p10/2 = "
+                             f"{crep['c_by_percentile']['p10']:.3f} m.", nd=4)
                        if crep.get("c1_fit", {}).get("identified") else
                        cal.p(0.0, "assumption",
                              "Speed slope not identified (" + crep.get("c1_fit", {}).get("reason", "no data")
@@ -208,6 +228,19 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
         })
     classes.sort(key=lambda k: order.index(k["id"]))
     rep["kinematics_by_class"] = kin_rep
+    for c, r in rep["c1_zero_sensitivity"]["T"].items():
+        r["T_fit"] = T_rep[c]["T"]
+    # small "cars": kept as measured, flagged
+    cars = veh[veh["cls"] == "car"]
+    small = (cars["width"] < 1.2) | (cars["length"] < 3.0)
+    big = cars[~small]
+    rep["small_cars"] = {
+        "n_cars": int(len(cars)), "n_small": int(small.sum()),
+        "n_width_lt_1.2": int((cars["width"] < 1.2).sum()), "n_length_lt_3": int((cars["length"] < 3.0).sum()),
+        "length_q_all": cal.size_quantiles(cars["length"]), "length_q_without": cal.size_quantiles(big["length"]),
+        "width_q_all": cal.size_quantiles(cars["width"]), "width_q_without": cal.size_quantiles(big["width"]),
+        "keys": sorted(cars.index[small].tolist()),
+    }
     rep["T"] = T_rep
     classes_json = {"version": 1, "source": SOURCE, "classes": classes}
 
@@ -347,6 +380,18 @@ def _c1_c0_note(crep: dict) -> str:
             f"identified); median gap {crep['median_gap']:.2f} m (not used).")
 
 
+def _small_car_note(v: pd.DataFrame, col: str) -> str:
+    small = (v["width"] < 1.2) | (v["length"] < 3.0)
+    if not small.any():
+        return ""
+    q_all = cal.size_quantiles(v[col])
+    q_wo = cal.size_quantiles(v.loc[~small, col])
+    return (f" Kept as measured, but {int(small.sum())} 'cars' are smaller than a car (width < 1.2 m or "
+            f"length < 3 m; likely misclassified two-wheelers/autos). Without them the {col} quantiles "
+            f"0/5/50/95/100% would be {q_wo[0]}/{q_wo[1]}/{q_wo[10]}/{q_wo[19]}/{q_wo[20]} m instead of "
+            f"{q_all[0]}/{q_all[1]}/{q_all[10]}/{q_all[19]}/{q_all[20]} m.")
+
+
 def _sizes(v: pd.DataFrame, c: str) -> tuple[dict, dict]:
     out = []
     for col in ("length", "width"):
@@ -360,6 +405,7 @@ def _sizes(v: pd.DataFrame, c: str) -> tuple[dict, dict]:
         else:
             out.append({"kind": "quantiles", "q": cal.size_quantiles(vals), "provenance": "derived",
                         "note": f"Quantiles 0,5,...,100% of per-vehicle {col} over {len(vals)} vehicles."
+                        + (_small_car_note(v, col) if c == "car" else "")
                         + (f" {int((vals > 2.6).sum())} vehicles are measured wider than the 2.6 m legal "
                            "limit (video measurement, mirrors); kept as measured."
                            if col == "width" and (vals > 2.6).any() else "")})

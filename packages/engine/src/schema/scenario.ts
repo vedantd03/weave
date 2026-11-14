@@ -146,7 +146,7 @@ export const Scenario = z.object({
   /** Replace generated/imported signal plans for these nodes. */
   signalOverrides: z.array(SignalPlan).default([]),
   mode: z.enum(['strip', 'lane']).default('strip'),
-  stripWidthM: z.number().min(0.1).max(1).default(0.3),
+  stripWidthM: z.number().min(0.1).max(1).default(0.25),
   dtS: z.number().min(0.05).max(0.5).default(0.2),
   durationS: z.number().positive().max(4 * 3600),
   warmupS: z.number().min(0).default(300),

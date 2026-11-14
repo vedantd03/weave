@@ -1,5 +1,5 @@
 import type { Network } from '../schema/network.ts';
-import { stripLayout, type StripLayout } from './strips.ts';
+import { laneLayout, stripLayout, type StripLayout } from './strips.ts';
 
 /**
  * Internal, simulation-ready view of a Network. Links and movement paths are both "segments"
@@ -56,7 +56,7 @@ export function buildNetwork(net: Network, mode: 'strip' | 'lane', stripWidthM: 
   const segByLinkId = new Map<string, number>();
   for (const l of net.links) {
     const p = polyArrays(l.polyline);
-    const layout = mode === 'lane' ? stripLayout(l.widthM, l.widthM / l.lanes) : stripLayout(l.widthM, stripWidthM);
+    const layout = mode === 'lane' ? laneLayout(l.widthM, l.lanes) : stripLayout(l.widthM, stripWidthM, 0);
     segByLinkId.set(l.id, segments.length);
     segments.push({
       index: segments.length,
@@ -82,9 +82,10 @@ export function buildNetwork(net: Network, mode: 'strip' | 'lane', stripWidthM: 
     let layout: StripLayout;
     if (mode === 'lane') {
       const laneW = from.widthM / (net.links[from.index]!.lanes || 1);
-      layout = stripLayout(m.widthM, m.widthM / Math.max(1, Math.floor(m.widthM / laneW + 0.5)));
+      layout = laneLayout(m.widthM, Math.max(1, Math.floor(m.widthM / laneW + 0.5)));
     } else {
-      layout = stripLayout(m.widthM, stripWidthM);
+      // Continue the approach link's grid across the stop line (§1.5).
+      layout = stripLayout(m.widthM, stripWidthM, -m.fromLateral[0]);
     }
     const idx = segments.length;
     segments.push({

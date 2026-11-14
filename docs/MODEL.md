@@ -127,21 +127,43 @@ export function ballistic(x: number, v: number, a: number, dt: number): { x: num
 ### 1.5 Strips: `network/strips.ts`
 
 ```ts
-export function stripLayout(roadWidthM: number, targetStripM: number): { n: number; w: number }
-export function occupiedStrips(yCentre: number, width: number, clearance: number, layout: { n: number; w: number }): [number, number]
-export function sweptStrips(yA: number, yB: number, width: number, clearance: number, layout: { n: number; w: number }): [number, number]
-export function laneStrip(yCentre: number, layout: { n: number; w: number }): [number, number]
+export interface StripLayout { n: number; w: number; o: number }   // count, strip width Δ, grid origin offset
+export function stripLayout(roadWidthM: number, stripM: number, originM?: number): StripLayout
+export function laneLayout(roadWidthM: number, lanes: number): StripLayout
+export function stripIndex(x: number, layout: StripLayout): number          // strip containing x
+export function occupiedStrips(yCentre: number, width: number, clearance: number, layout: StripLayout): [number, number]
+export function sweptStrips(yA: number, yB: number, width: number, clearance: number, layout: StripLayout): [number, number]
+export function laneStrip(yCentre: number, layout: StripLayout): [number, number]
 ```
 
-- **Layout:** `n = max(1, round(roadWidthM / targetStripM))` and `w = roadWidthM / n`, so the
-  strips tile the road exactly.
-  - **Strip mode:** the target is `scenario.stripWidthM`, 0.3 m by default.
-  - **Lane mode:** the target is `roadWidthM / lanes`, so `n = lanes` and one strip is one
-    lane.
+- **Layout (strip mode), revised in M2:** strips have a **fixed width Δ = `scenario.stripWidthM`**
+  (default **0.25 m**). The grid is anchored at the segment's left edge, shifted by an origin
+  offset `o ∈ [0, Δ)`.
+  - **Boundaries:** the strip boundaries are `{o + kΔ : 0 < o + kΔ < W}` together with 0 and
+    W. The first strip is `[0, o)` when o > 0, and the last strip may be narrower than Δ.
+  - **Count:** `n = (o > 0 ? 1 : 0) + ceil((W − o)/Δ − 1e-9)`, with n ≥ 1.
+  - **Index:** `stripIndex(x) = clamp(floor((x − o)/Δ + 1e-9) + (o > 0 ? 1 : 0), 0, n − 1)`.
+  - **Links** use o = 0, so grids on consecutive kerb-aligned segments coincide.
+  - **Movements** use `o = (−fromLateral[0]) mod Δ`, so the movement's boundaries continue
+    its approach link's grid. Offsets within 1e-9 of 0 or Δ count as 0.
+  - **Why it changed:** with a per-segment grid that tiles each width exactly
+    (`w = W/round(W/Δ)`), grids misaligned wherever the width changed. Vehicles legally side
+    by side upstream then landed in overlapping strips downstream and braked at B_MAX. A
+    7.2 → 7.0 m narrowing lost about 30% of its capacity (node-saturation test).
+  - **Why 0.25 m:** it divides the IRC lane widths 3.0, 3.25 and 3.5 m, so lane-based bands at
+    junctions also land on grid boundaries.
+- **Layout (lane mode):** `laneLayout(W, lanes)` = `{ n: lanes, w: W/lanes, o: 0 }`, so one
+  strip is one lane. A movement in lane mode has
+  `n = max(1, round(widthM / laneWidth(fromLink)))`.
 - **Occupancy (strip mode):** the body plus clearance on both sides covers
-  `[left, right) = [y − width/2 − c, y + width/2 + c)`. Then `lo = floor(left / w)` and
-  `hi = ceil(right / w) − 1`, each clamped to `[0, n − 1]`. The result is the inclusive pair
-  `[lo, hi]`.
+  `[left, right) = [y − width/2 − c, y + width/2 + c)`, evaluated in exactly that order.
+  - **lo** is `stripIndex(left)`.
+  - **hi** is the strip containing `right` when right lies strictly inside a strip; when right
+    is on a boundary, it is the strip just before that boundary. Equivalently,
+    `hi = clamp(ceil((right − o)/Δ − 1e-9) − 1 + (o > 0 ? 1 : 0), 0, n − 1)`.
+  - **Result:** the inclusive pair `[lo, hi]`.
+  - **Tolerance:** the 1e-9 strip tolerance makes edges that land on a boundary, as they do
+    for strip-grid insertion candidates, independent of rounding.
 - **During a lateral manoeuvre** from yA to yB, the vehicle occupies
   `sweptStrips = [min(lo_A, lo_B), max(hi_A, hi_B)]`.
 - **Occupancy (lane mode):** `laneStrip = [k, k]` with `k = clamp(floor(y / w), 0, n − 1)`.
@@ -295,8 +317,8 @@ After generation, each origin in index order tries to insert the head of its que
 origin link, repeating until an attempt fails.
 - **Placement:** the vehicle's front goes at `s = length` (rear at 0).
 - **Candidate lateral centres:**
-  - **Strip mode:** `y_m = h + m·w` for m = 0, 1, … while `y_m + h ≤ W`, where
-    `h = width/2 + c(v_ins)`, w is the strip width and W the link width.
+  - **Strip mode:** `y_m = h + m·Δ` for m = 0, 1, … while `y_m + h ≤ W`, where
+    `h = width/2 + c(v_ins)`, Δ is the strip width and W the link width.
   - **Lane mode:** the lane centres.
 - **Gap per candidate:** the full §1.6 leader rule from the inserted position gives
   `gap = rear_L − length` and `v_ins = min(v0_eff, v_L)`. The rule includes route
@@ -307,7 +329,14 @@ origin link, repeating until an attempt fails.
   parameters.
 - **Choice:** if the origin link's next route element is a movement with band `[b0, b1]`, and
   at least one candidate's body `[y − width/2, y + width/2]` fits inside the band
-  geometrically, only those in-band candidates are considered. If none of them is feasible,
+  geometrically, only those in-band candidates are considered.
+  - **Status:** vehicles enter already sorted, so the model does **not** simulate merging at
+    lane drops. This is a documented simplification (M2, user decision).
+  - **What was tried:** a band zone, where band rules apply only within 150 m of the node, made
+    vehicles use the dropped lane. Without a dedicated zipper or forced-merge model, saturated
+    throughput then collapsed (lane mode about 2,650–3,050 veh/h, strip mode 0–2,300, against
+    about 5,500–6,200 on the plain road). Cooperative yielding fixed swap deadlocks but turned
+    merges into stop-and-go. A merge model is future work. If none of them is feasible,
   the vehicle waits in the queue. Drivers enter on the side they need, which prevents swap
   deadlocks at diverges. When no candidate fits the band at all (the vehicle is wider than
   the band), every candidate is considered. Within that set, the candidate with the largest gap wins. Ties go to
@@ -325,8 +354,8 @@ computed in that step as the "current" values.
 at its target (`y = targetY`).
 
 **Candidate targets:**
-- **Strip mode:** `y' = y + j·w` for `j ∈ {−J, …, J} \ {0}`, with
-  `J = max(1, floor(maxLatSpeed · τ / w))` and τ = 1 s. A candidate must keep body plus
+- **Strip mode:** `y' = y + j·Δ` for `j ∈ {−J, …, J} \ {0}`, with
+  `J = max(1, floor(maxLatSpeed · τ / Δ))` and τ = 1 s. A candidate must keep body plus
   clearance inside the road: `y' − h ≥ 0` and `y' + h ≤ W`.
 - **Lane mode:** `y' = y ± laneWidth`, inside the road.
 
@@ -359,6 +388,15 @@ within `length_i + maxLength` of the segment start also count.
   current acceleration.
 
 **Safety (all required):**
+- **kinematic gap floor** (M2 revision): the new-leader gap is
+  `≥ v_i·dt + ½·a_i·dt² + 0.1 m`, and the new-follower gap (if N exists) is
+  `≥ v_N·dt + ½·a_N·dt² + 0.1 m`, and both are also `≥ ½·s0` of the vehicle behind (an
+  assumption: the tightest gap accepted in a standstill zipper merge).
+  - **Why:** the vehicle behind must not be able to close the gap within the same synchronous
+    step, before it can see the move.
+  - **Why not s0:** an earlier floor of s0 blocked zipper merges at standstill, where gaps
+    are below s0.
+  - **Acceleration term:** a is the IDM acceleration from step 1, taken as 0 when negative.
 - the new-leader gap is > 0, and the mover's own acceleration there satisfies
   `ã_c ≥ −B_SAFE` (self-safety; without it a fast vehicle can move in close behind a slower
   one that it cannot avoid even at B_MAX);
@@ -390,9 +428,9 @@ are 0. p is the class `politeness`.
 - **Re-check:** a decision is dropped if its swept span overlaps the swept span of a
   decision already committed this step (vehicle j), and either:
   - j's longitudinal interval, widened by `s0_i` on both ends, intersects i's interval; or
-  - the pair fails the safety criteria above. If j is ahead, i needs a gap > 0 and
-    `IDM_i(gap, v_j) ≥ −B_SAFE`; if j is behind, j needs a gap > 0 and
-    `IDM_j(gap, v_i) ≥ −B_SAFE`.
+  - the pair fails the safety criteria above. If j is ahead, i needs a gap > 0, at least
+    i's kinematic gap floor, and `IDM_i(gap, v_j) ≥ −B_SAFE`. If j is behind, j needs a gap
+    > 0, at least j's kinematic gap floor, and `IDM_j(gap, v_i) ≥ −B_SAFE`.
 - **Effect:** committing sets `targetY = y'`.
 
 **Lateral motion** (applied after the longitudinal integration):

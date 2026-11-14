@@ -105,7 +105,7 @@ export interface Sim {
   series(): SeriesRow[];
   addVehicle(spec: AddVehicleSpec): number;
   writeFrame(out: Float32Array): number;
-  diagnostics(): { guardActivations: number };
+  diagnostics(): { guardActivations: number; vehicleSteps: number };
 }
 
 export interface SimInput {
@@ -272,6 +272,7 @@ class SimImpl implements Sim {
   private exited = 0;
   private addedCount = 0;
   private guardHits = 0;
+  private vehicleSteps = 0;
   private stats: LinkStats[];
   private tripLog: TripRecord[] = [];
   private genLog: GeneratedRecord[] = [];
@@ -679,6 +680,26 @@ class SimImpl implements Sim {
     return idmAccel(P, v, gap, v - vl);
   }
 
+  /** Distance vehicle k can cover in one step from the snapshot, plus a 0.1 m margin. */
+  private gapFloor(k: number): number {
+    const st = this.st;
+    const a = st.a[k]! > 0 ? st.a[k]! : 0;
+    const kin = st.v[k]! * this.dt + 0.5 * a * this.dt * this.dt + 0.1;
+    const half = 0.5 * st.s0[k]!;
+    return kin > half ? kin : half;
+  }
+
+  /** Band of the movement that follows k's current link on its route, or null. */
+  private nextBand(k: number): [number, number] | null {
+    const st = this.st;
+    const seg = this.segs[st.seg[k]!]!;
+    if (seg.kind !== 'link') return null;
+    const nx = this.nextSeg(this.routes[st.route[k]!]!, st.rpos[k]!);
+    if (!nx) return null;
+    const ns = this.segs[nx.seg]!;
+    return ns.kind === 'movement' ? ns.fromLateral : null;
+  }
+
   /* ================= lateral decisions (§2.4) ================= */
 
   /** Nearest follower behind k on its link overlapping [lo, hi] (largest front; ties larger id). */
@@ -820,7 +841,7 @@ class SimImpl implements Sim {
       }
       if (clash) continue;
       const L = this.leader(k, -1, seg, front, st.id[k]!, yc, tlo, thi, width, st.cOcc[k]!, route, st.rpos[k]!, this.lookahead(v, st.b[k]!));
-      if (!(L.gap > 0)) continue;
+      if (!(L.gap > 0 && L.gap >= this.gapFloor(k))) continue; // kinematic gap floor (§2.4)
       const aTilde = this.idm(k, v, L.gap, L.vl);
       // Self-safety (MODEL.md §2.4): the mover must not need to brake harder than B_SAFE.
       if (aTilde < -B_SAFE) continue;
@@ -836,7 +857,7 @@ class SimImpl implements Sim {
       let dN = 0;
       if (N >= 0) {
         const gN = rear - nFront;
-        if (!(gN > 0)) continue;
+        if (!(gN > 0 && gN >= this.gapFloor(N))) continue; // kinematic gap floor (§2.4)
         const aN = this.idm(N, st.v[N]!, gN, v);
         if (aN < -B_SAFE) continue;
         dN = aN - st.a[N]!;
@@ -877,10 +898,10 @@ class SimImpl implements Sim {
         const j = c.k;
         if (st.s[j]! > fi) {
           const gap = st.s[j]! - st.len[j]! - fi;
-          if (!(gap > 0) || this.idm(k, st.v[k]!, gap, st.v[j]!) < -B_SAFE) ok = false;
+          if (!(gap > 0 && gap >= this.gapFloor(k)) || this.idm(k, st.v[k]!, gap, st.v[j]!) < -B_SAFE) ok = false;
         } else {
           const gap = ri - st.s[j]!;
-          if (!(gap > 0) || this.idm(j, st.v[j]!, gap, st.v[k]!) < -B_SAFE) ok = false;
+          if (!(gap > 0 && gap >= this.gapFloor(j)) || this.idm(j, st.v[j]!, gap, st.v[k]!) < -B_SAFE) ok = false;
         }
         if (!ok) break;
       }
@@ -946,6 +967,7 @@ class SimImpl implements Sim {
       st.ds[k] = r.x - st.s[k]!;
       st.v[k] = r.v;
     }
+    this.vehicleSteps += st.count;
     this.collisionGuard();
     // 5. Apply displacement and lateral motion.
     for (let k = 0; k < st.cap; k++) {
@@ -1035,9 +1057,9 @@ class SimImpl implements Sim {
     }
   }
 
-  /** Engine diagnostics: how often the collision guard had to bind. */
-  diagnostics(): { guardActivations: number } {
-    return { guardActivations: this.guardHits };
+  /** Engine diagnostics: how often the collision guard had to bind, out of all vehicle-steps. */
+  diagnostics(): { guardActivations: number; vehicleSteps: number } {
+    return { guardActivations: this.guardHits, vehicleSteps: this.vehicleSteps };
   }
 
   private exit(k: number, tNew: number): void {
@@ -1221,8 +1243,10 @@ class SimImpl implements Sim {
   addVehicle(spec: AddVehicleSpec): number {
     const ci = this.classes.findIndex((c) => c.id === spec.classId);
     if (ci < 0) throw new Error(`unknown class ${spec.classId}`);
-    const seg = this.net.segByLinkId.get(spec.link);
-    if (seg === undefined) throw new Error(`unknown link ${spec.link}`);
+    // `link` may be a link or a movement id (§2.7).
+    let seg = this.net.segByLinkId.get(spec.link);
+    if (seg === undefined) seg = this.segs.find((x) => x.kind === 'movement' && x.id === spec.link)?.index;
+    if (seg === undefined) throw new Error(`unknown link or movement ${spec.link}`);
     const cls = this.classes[ci]!;
     const sizeOf = (d: Dist) => (d.kind === 'fixed' ? d.value : sampleDist(d, 0.5));
     const id = ADDED_ID_BASE + this.addedCount++;

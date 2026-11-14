@@ -61,6 +61,9 @@ export const MetricsDelta = z.object({
   generated: z.number().int().min(0),
   exited: z.number().int().min(0),
   meanSpeedMps: z.number().min(0),
+  /** Collision-guard activations and vehicle-steps so far (ADR-015). */
+  guardActivations: z.number().int().min(0).default(0),
+  vehicleSteps: z.number().int().min(0).default(0),
 });
 export type MetricsDelta = z.infer<typeof MetricsDelta>;
 
