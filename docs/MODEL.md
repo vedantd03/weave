@@ -232,31 +232,362 @@ export function defaultClasses(): ClassSet                          // provision
 - **Driver variation:** each per-driver parameter is `value · (1 + spread · uniform(−1, 1))`
   from the `driver` substream.
 
-## 2. Lateral model (M2), outline
+## 2. Mixed traffic (M2)
 
-**Generalised MOBIL over strip offsets:**
-- **Candidates:** lateral targets within a horizon of reach τ·maxSpeedMps, discretised by strip
-  width.
-- **Incentive:** `ã_c − a_c + p·(ã_n − a_n) > Δa_th + bias_route`.
-- **Safety:** the new follower's acceleration must satisfy `ã_n ≥ −b_safe`.
-- **Lane mode:** the candidates are the adjacent lanes, which is exactly MOBIL.
-- **Commit order:** decisions come from the snapshot and are committed in order
-  `(s desc, id asc)`, each re-checked against the occupancy already committed.
+### 2.1 Zones, OD demand and routes
+- **Zones:** origins are the `in` zones and destinations the `out` zones. `originIndex` is the
+  zone's index among the network's `in` zones, in network order.
+- **Arrivals:** origin o has total rate `λ_o = Σ_d rateVph(o,d) / 3600` (veh/s). Its arrival
+  times come from substream `(arrivals, originIndex)`: `T_1 = exponential(λ_o)` and
+  `T_{k+1} = T_k + exponential(λ_o)`. Origins with λ_o = 0 generate nothing.
+- **Generation:** at the end of every step, after transfer, every arrival with `T_k ≤ t_new`
+  is generated in order and appended to its origin's FIFO **entry queue**. The vehicle's id is
+  `originIndex · 2^20 + (k − 1)`, and its generation time is `T_k` exactly.
+- **Vehicle substream** `(vehicle, id)`, drawn in this exact order:
+  1. **destination:** `u·λ_o` over that origin's OD rows, in table order;
+  2. **class:** `u·Σshares` over the classes in ClassSet order, with shares from
+     `compositionByOrigin[origin]`, or `composition` if absent;
+  3. **length**;
+  4. **width**;
+  5. **lateral preference** `u_lat` (see §2.3).
 
-Detailed equations will be added at the start of M2.
+  Initial vehicles (§1.7) use the same order with destination and lateral preference omitted.
+- **Driver substream** `(driver, id)`: the multipliers for v0, T, s0, a, b, in that order.
+- **Route:** the shortest path from the origin zone's link to the destination zone's link.
+  - **Cost:** cost = Σ segment length / segment speed limit.
+  - **Search:** Dijkstra over segments, where links lead to their movements and movements to
+    their toLink. Ties go to the smaller segment index, then to the shorter path in segments.
+  - **Caching:** routes are computed once per OD pair.
+  - **Unreachable pairs:** an OD pair with rate > 0 and no path makes `createSim` throw.
+- **Exit:** a vehicle leaves when its front passes the end of the last route element. It is
+  counted in `exited` and its trip is recorded.
 
-## 3. Junctions (M3), outline
+### 2.2 Lane-band rule
+When the next route element after a link is a movement with band `fromLateral = [b0, b1]`, a
+vehicle may continue only if its body `[y − width/2, y + width/2]` lies inside `[b0, b1]`.
+Otherwise the end of the link counts as a **standing obstacle** in the leader search: a
+candidate with rear end at offset `L_link − s_i` and speed 0. Vehicles that couldn't move
+across in time stop at the end and keep trying to move laterally.
 
-- **Movement paths:** each movement has an internal path with conflict areas computed from
-  intersecting swept paths.
-- **Signals:** movement-specific signal groups, with amber and all-red.
-- **Priority:** gap acceptance (critical gap and follow-up headway) with commitment.
-- **Spillback:** a vehicle enters a movement only if there is space beyond it, applied with
-  compliance probability `boxCompliance`.
-- **Gridlock:** gridlock is detected and reported.
-- **Layers:** conflicts exist only between movements at the same node.
+### 2.3 Insertion from the entry queue
+After generation, each origin in index order tries to insert the head of its queue onto the
+origin link, repeating until an attempt fails.
+- **Placement:** the vehicle's front goes at `s = length` (rear at 0).
+- **Candidate lateral centres:**
+  - **Strip mode:** `y_m = h + m·w` for m = 0, 1, … while `y_m + h ≤ W`, where
+    `h = width/2 + c(v_ins)`, w is the strip width and W the link width.
+  - **Lane mode:** the lane centres.
+- **Gap per candidate:** the leader rule over vehicles on the origin link overlapping the
+  candidate span gives `gap = rear_L − length` and `v_ins = min(v0_eff, v_L)`. With no leader,
+  `gap = ∞` and `v_ins = v0_eff`.
+- **Feasible:** a candidate is feasible when `gap ≥ s0 + v_ins·T`, using the driver's
+  parameters.
+- **Choice:** the feasible candidate with the largest gap. Ties go to the one closest to the
+  preferred centre `y_pref = h + u_lat·(W − 2h)`, then to the smaller y.
+- **Initial state:** the vehicle starts at `v = v_ins`, `targetY = y`.
+- **No feasible candidate:** the vehicle stays in the queue, which blocks the queue behind it
+  (FIFO). Time spent in the queue counts toward delay.
 
-Detailed equations will be added at the start of M3.
+### 2.4 Lateral decisions: generalised MOBIL
+Lateral decisions use the same snapshot as §1.7 step 1, and take the accelerations `a_x`
+computed in that step as the "current" values.
+
+**Who decides:** a vehicle decides only when it is on a **link** (not a movement path) and is
+at its target (`y = targetY`).
+
+**Candidate targets:**
+- **Strip mode:** `y' = y + j·w` for `j ∈ {−J, …, J} \ {0}`, with
+  `J = max(1, floor(maxLatSpeed · τ / w))` and τ = 1 s. A candidate must keep body plus
+  clearance inside the road: `y' − h ≥ 0` and `y' + h ≤ W`.
+- **Lane mode:** `y' = y ± laneWidth`, inside the road.
+
+**Quantities for each candidate**, with `span_t` the occupancy at y' (§1.5) and
+`span_s = sweptStrips(y, y')`:
+- **ã_c:** i's IDM acceleration at its new leader. The new leader comes from the §1.6 rule over
+  vehicles overlapping `span_t`, ahead of i, continuing along the route, with the lane-band
+  rule applied at y'.
+- **N (new follower):** among vehicles on i's link overlapping `span_t` and behind i
+  (`front_j < front_i`, or equal fronts and `id_j < id_i`), the one with the largest front
+  (ties go to the larger id).
+  - **Gap:** `g_N = (front_i − length_i) − front_N`.
+  - **Accelerations:** `ã_N = IDM_N(v_N, g_N, v_N − v_i)`; `a_N` is N's current acceleration.
+- **O (old follower):** chosen the same way, over i's current span. Its acceleration without
+  i, `ã_O`, comes from the §1.6 leader rule over O's span with i excluded. `a_O` is O's
+  current acceleration.
+
+**Safety (all required):**
+- the new-leader gap is > 0;
+- if N exists, `g_N > 0` and `ã_N ≥ −B_SAFE`, with `B_SAFE = 4 m/s²`;
+- no vehicle that overlaps `span_s` overlaps i longitudinally, meaning its interval
+  `[front − length, front]` intersects i's interval.
+
+**Incentive:**
+`Δ = (ã_c − a_c) + p·((ã_N − a_N) + (ã_O − a_O)) + bias(y, y')`. Terms for a missing N or O
+are 0. p is the class `politeness`.
+
+**Route bias:**
+- **Band:** if the next route element is a movement with band `[b0, b1]`, let
+  `dist(y) = max(0, b0 − (y − width/2)) + max(0, (y + width/2) − b1)`. Otherwise bias = 0.
+- **Bias:** `bias = β·(dist(y) − dist(y'))`, with `β = 0.5 · min(1, 50 / max(d, 1))` m/s² per
+  m, where d is the distance from i's front to the link end.
+
+**Decision:**
+- A candidate qualifies if it is safe and `Δ > Δa_th`, the class `thresholdMps2`. The threshold
+  is waived (taken as 0) when `dist(y) > 0` and `d < 30 m`.
+- The chosen target is the qualifying candidate with the largest Δ. Ties go to the smaller |j|,
+  then to the smaller y'.
+
+**Committing (deterministic):**
+- **Order:** within each link, decisions are committed in order of `(front desc, id asc)`.
+- **Re-check:** a decision is dropped if its swept span overlaps the swept span of a
+  decision already committed this step whose vehicle's longitudinal interval, widened by
+  `s0_i` on both ends, intersects i's interval.
+- **Effect:** committing sets `targetY = y'`.
+
+**Lateral motion** (applied after the longitudinal integration):
+- **Each step:** `y ← y + sign(targetY − y) · min(|targetY − y|, v_lat · dt)`.
+- **Lateral speed:**
+  - **Strip mode:** `v_lat = maxLatSpeed · min(1, 0.25 + v/4)`, so 25% of full lateral speed
+    at a standstill and full speed from 3 m/s.
+  - **Lane mode:** `v_lat = laneWidth / 3 s`.
+- **Occupancy while moving:** a vehicle with `y ≠ targetY` occupies `sweptStrips(y, targetY)`;
+  in lane mode, both lanes.
+- **Clearance edge condition:** in strip mode, clearance is applied against the road edges too.
+
+**Status of the constants:** B_SAFE, τ, β, the 30 m waiver, the lateral-speed shape and the 3 s
+lane change are engineering assumptions (ADR-004), not calibrated values.
+
+**Lane mode reduces to MOBIL:** with no route bias, candidates are the adjacent lanes, spans
+are single lanes, and Δ is the standard MOBIL incentive with politeness p and threshold Δa_th
+(Kesting, Treiber & Helbing 2007).
+
+### 2.5 Update order (replaces §1.7's list)
+1. From the snapshot, compute every vehicle's leader, gap and IDM acceleration.
+2. From the same snapshot, compute lateral decisions (§2.4).
+3. Commit the decisions (§2.4).
+4. Integrate longitudinal motion with `ballistic`.
+5. Apply lateral motion, then recompute occupancy.
+6. Transfer across segment ends, and remove vehicles that finished their route.
+7. Generate arrivals (§2.1) and insert from entry queues (§2.3).
+8. Set `t ← (step + 1)·dt` and `step ← step + 1`.
+
+### 2.6 Corridor generator (`generator: 'corridor'`)
+- **Geometry:** the corridor runs along +x. The left edge, which is the kerb, stays straight
+  at world y = 0, so a carriageway of width W has its centreline at y = −W/2.
+- **`change.kind = 'none'`:** one link `main` from (0, −W/2) to (L, −W/2), with zones `in` and
+  `out` on `main`.
+- **`width` or `laneDrop`:**
+  - **Upstream:** link `up` on x ∈ [0, atM], width W, `lanes`.
+  - **Taper:** movement `taper` at node `n1` with its path on x ∈ [atM, atM + taperM], width
+    W2, and `fromLateral = toLateral = [0, min(W, W2)]`.
+  - **Downstream:** link `down` on x ∈ [atM + taperM, L], width W2, `lanes2`. Its centreline
+    is at y = −W2/2, and so is the taper's.
+  - **Lane drop:** W2 = W·(lanes − dropLanes)/lanes and lanes2 = lanes − dropLanes. Lanes drop
+    on the right (median side).
+  - **Width change:** W2 = `toWidthM` and lanes2 = `toLanes`.
+  - **Zones:** `in` on `up`, `out` on `down`.
+- **Schema rule:** `atM + taperM < lengthM`, so the downstream link is longer than 0.
+
+### 2.7 Metrics
+- **`counters()`:** `generated` = exited + onNetwork + entryQueue, exactly, at every step
+  (T11). Initial vehicles count as generated.
+- **`linkStats()`:** cumulative per segment since t = 0: `entered`, `exited`,
+  `vehicleSeconds` (Σ over steps of occupants·dt, counted by front position after the step),
+  `travelTimeSum` and `travelTimeCount` (time between a vehicle's front entering and leaving,
+  for vehicles that did both).
+- **`trips()`:** completed trips `{ id, origin, destination, classId, tGen, tInsert, tExit, freeFlowS }`.
+  freeFlowS is the route length divided by `min(v0_driver, speedLimit)`, summed per segment.
+  Delay = `tExit − tGen − freeFlowS`.
+- **`generatedLog()`:** for every generated vehicle:
+  `{ id, origin, destination, classId, tGen, length, width, v0, T, s0, a, b }`.
+- **`series()`:** rows per 60 s window `{ t0, t1, generated, inserted, exited, exitFlowVph, meanSpeedMps, densityPerKm, entryQueue, onNetwork }`.
+  - meanSpeedMps is the time-average over the window's steps of the space-mean speed.
+  - densityPerKm is the time-average of onNetwork ÷ total link length in km.
+  - entryQueue and onNetwork are end-of-window values.
+- **`addVehicle(spec)`:** construction API for tests and scenarios.
+  - **Signature:** `addVehicle({ classId, link, s, y, v }): number` places a vehicle with its
+    class's base parameters (no driver draws) and `targetY = y`.
+  - **Ids and routes:** ids are `0x50000000 + k`. The route comes from the default route rule
+    of §1.7.
+- **`VehicleView`** gains `targetY`.
+
+## 3. Junctions (M3)
+
+### 3.1 Conflict areas (geometry): `network/conflicts.ts`
+```ts
+export function computeConflicts(net: Network): Map<string, Conflict[]>   // movement id → conflicts
+```
+- **Which pairs:** conflicts are computed only between movements at the **same node**, so
+  separate layers never conflict (T17). Movements that already carry `conflicts` keep them.
+- **Ribbons:** for movement m, `ribbon(m)` is the region within `widthM/2` of its centreline
+  path.
+- **Interval on m:** the conflict interval on m against m′ is the set of arc lengths s on m
+  whose cross-section segment (perpendicular, length `widthM`, centred on the path) intersects
+  `ribbon(m′)`. It is reported as `[min s, max s]`, and `other` is defined symmetrically.
+- **Sampling:** in practice, sample s every 0.25 m and lateral offsets at 9 points across
+  `[−w/2, w/2]`. Test points are expanded by the sample spacing so the result over-approximates.
+- **Analytic check (T22):** two straight strips of widths w₁ and w₂ crossing at angle θ give an
+  interval on path 1 of length `w₂/sin θ + w₁·|cot θ|`, centred on the crossing point of the
+  centrelines, and the symmetric result on path 2. With θ = 90° this reduces to w₂ and w₁.
+  Disjoint ribbons give no conflict.
+- **Type:**
+  - `merging` if `toLink` is equal;
+  - `diverging` if `fromLink` is equal (and toLink differs);
+  - otherwise `crossing`.
+- **Tolerance for T22:** the test tolerance is the sampling resolution (0.25 m plus
+  w·|cot θ|/8 from the 9-point cross-section).
+
+### 3.2 Signals: `junction/signals.ts`
+```ts
+export const SIG = { RED: 0, AMBER: 1, GREEN: 2, PERMISSIVE: 3, NONE: 255 } as const
+export function cycleLength(plan: SignalPlan): number   // Σ (greenS + amberS + allRedS)
+export function signalState(plan: SignalPlan, movementId: string, t: number): 0 | 1 | 2 | 3
+```
+- **Position in the cycle:** `τ = (t − offsetS) mod C`, taken in `[0, C)`. Phase i starts at
+  `start_i = Σ_{j<i}(green_j + amber + allRed)`.
+- **During `[start_i, start_i + green_i)`:** movements in `protected_i` are GREEN and those in
+  `permissive_i` are PERMISSIVE.
+- **During the inter-green after phase i:**
+  - **Amber window** `[start_i + green_i, + amber)`: movements green in phase i are AMBER,
+    unless they are also green or permissive in phase i+1 (cyclically), in which case they
+    keep their phase-i state.
+  - **All-red window** `[…, + allRed)`: movements green in phase i are RED unless they are
+    green in phase i+1, in which case they keep their state.
+- **Otherwise RED.** A movement listed as protected in one phase and permissive in another
+  takes the state of the phase that is running.
+- **Overrides:** `scenario.signalOverrides` replace the plans for their nodes.
+
+### 3.3 Gap acceptance: `junction/gap.ts`
+```ts
+export function acceptGap(timeToNextPriority: number, sinceLastEntry: number, tc: number, tf: number): boolean
+// = timeToNextPriority >= tc && sinceLastEntry >= tf
+export function saturatedDischarge(majorArrivals: readonly number[], tc: number, tf: number, horizon: number): number[]
+```
+- **Discharge model:** `saturatedDischarge` returns the entry times of an always-present minor
+  queue. Each entry happens at the earliest instant ≥ the previous entry + tf (or ≥ 0 for the
+  first) at which the time to the next major arrival is ≥ tc. Entries may happen exactly at
+  major arrival instants, after the major vehicle has passed. Entries stop at `horizon`.
+- **Theory (T14):** with Poisson major arrivals at rate q, the long-run entry rate is
+  **Harders' capacity** `q·e^{−q·tc} / (1 − e^{−q·tf})` (Harders 1968; the stepwise gap-acceptance capacity used for HCM two-way-stop control).
+- **Driver parameters:** `tc` and `tf` per driver are `criticalS · (1 + spread·u₁)` and
+  `followUpS · (1 + spread·u₂)` from substream `(gap, id)`. A third draw
+  `u₃ < boxCompliance` decides whether this driver obeys "don't block the box".
+
+### 3.4 Junction behaviour in the simulation
+A vehicle whose next route element is a movement m, at node X, has a stop line at the end of
+its current link. Its leader search (§1.6) also sees the **junction obstacles** below; each
+one is a standing obstacle with rear at the stop line, or at the conflict entry, and speed 0.
+
+1. **Signal:** if m is signal-controlled:
+   - **RED:** the stop line is an obstacle.
+   - **AMBER:** the stop line is an obstacle when the distance to it `d ≥ v²/(2b)`.
+   - **GREEN, PERMISSIVE or committed:** no signal obstacle.
+2. **Priority and gap acceptance** at a stop line, for each crossing or merging conflict c of m
+   against m′ where m must yield:
+   - **When m yields:** m′ is GREEN (protected) while m is PERMISSIVE; or at a priority node,
+     m is `minor` and m′ is `major`; or m′ is `free` and m is not.
+   - **Higher-priority vehicles:** vehicles on m′, or on m′'s fromLink within 150 m of its stop
+     line and routed through m′, whose rear has not passed the end of the conflict interval on
+     m′.
+   - **Estimated arrival:** `t_j = d_j / max(v_j, 0.5)`, where d_j is the distance from j's front
+     to the start of the conflict interval on m′ (0 if already inside).
+   - **Rule:** let `timeToNext = min_j t_j` (∞ if none) and `sinceLastEntry` = now minus the last
+     time a vehicle entered m from this link (∞ if none). The vehicle may cross its stop line
+     only if `acceptGap(timeToNext, sinceLastEntry, tc, tf)` holds for every yielding
+     conflict. Otherwise the stop line is an obstacle.
+   - **Timing:** the decision is evaluated each step while `d ≤ max(v²/(2b), 2 m) + v·dt`.
+3. **Commitment:** a vehicle is committed once its front crosses the stop line. A committed
+   vehicle ignores signals and gap acceptance for that movement. It still respects occupied
+   conflict areas (rule 4) and leaders.
+4. **Occupied conflict area (collision avoidance, every movement):**
+   - **Crossing conflict:** for a crossing conflict c ahead of vehicle i on m, if some vehicle
+     j ≠ i has its body intersecting c's interval on m′, then c's entry on m is an obstacle for
+     i. The exception: j is itself waiting before c on m′ because of a conflict with i's
+     movement, which avoids mutual blocking.
+   - **Merging and diverging conflicts:** vehicles on m′ inside the conflict interval are
+     projected onto m as leader candidates. Merging uses the distance remaining to the end of
+     each path; diverging uses the distance from the start. The overlap test uses the
+     movements' lateral bands.
+5. **Don't block the box:** a vehicle may cross its stop line into m only if the space on m's
+   toLink, `min_j(s_j − length_j)` over its occupants (or the toLink length if empty), is
+   `≥ length_i + s0_i`. This check is skipped for drivers whose `u₃ ≥ boxCompliance`.
+6. **Gridlock detector:** gridlock is reported as `{ detected: true, sinceS }` when, for
+   ≥ 300 s of simulated time:
+   - no vehicle on the network has speed > 0.1 m/s;
+   - nothing was inserted or exited;
+   - `onNetwork > 0`.
+
+   The window is longer than any signal cycle. Vehicles are never teleported. The result is
+   exposed as `sim.gridlock()` and in `series()` rows.
+
+### 3.5 Junction generator (`generator: 'junction'`), left-hand traffic
+- **Arms:** arm k has outward unit vector `e_k = (cos θ_k, sin θ_k)` (θ in degrees,
+  counter-clockwise from east, via dcos/dsin) and left normal `n_k = (−sin θ_k, cos θ_k)`.
+- **Box radius:** `r0 = 0.5·max_k(inWidthM_k + outWidthM_k) + 4 m`.
+- **Outbound link `arm{k}_out`:** travels outward from r0 to `r0 + lengthM` along e_k. Its
+  centreline is offset by `+n_k·outWidthM/2`, because traffic keeps left.
+- **Inbound link `arm{k}_in`:** travels inward from `r0 + lengthM` to r0. Its centreline is
+  offset by `−n_k·inWidthM/2`.
+- **Movements `m{i}_{k}`:** one for every inbound i to every outbound k with k ≠ i (no
+  U-turns).
+  - **Path:** a cubic Bézier from the inbound end P0 (heading −e_i) to the outbound start P3
+    (heading e_k), with `P1 = P0 − e_i·d` and `P2 = P3 − e_k·d`, `d = 0.4·|P3 − P0|`, sampled
+    at 17 points.
+  - **Turn type:** the turning angle δ from heading −e_i to e_k, normalised to (−180°, 180°]:
+    |δ| < 30° is through, δ > 0 is a left turn (towards the kerb in LHT), δ < 0 a right turn.
+  - **Bands:** with `lw = inWidthM/inLanes`, lanes are numbered from the left (kerb), from 0
+    to n−1.
+    - **One lane:** every movement uses [0, inWidthM].
+    - **Two or more lanes:** left turns use lane 0, right turns lane n−1, and through
+      movements lanes 0…n−1. `fromLateral` is the union of the allowed lanes.
+  - **Width and landing band:** the movement width is `w = min(fromLateral width, outWidthM)`.
+    `toLateral = [t0, t0 + w]`, where t0 is 0 for left turns, `outWidthM − w` for right turns,
+    and `clamp(fromLateral[0], 0, outWidthM − w)` for through movements.
+- **Control:**
+  - **signal:** every movement is `signal`. The default plan is **split phasing**: phase k
+    makes all of inbound arm k's movements protected, with greenS = 25, amber 3 and all-red 2.
+  - **priority:** movements between the two `majorArms` (both directions), plus left turns
+    from major arms, are `major`; all others are `minor`. The node kind is `priority`.
+- **Zones:** `arm{k}_in` on the arm's entry link and `arm{k}_out` on its exit link. Zone IDs
+  are the same whether the flyover is on or off.
+- **Flyover (enabled, arms A and B):** for each direction X→Y in {A→B, B→A}:
+  - **Approach split:** arm X's inbound is split at distance `r0 + rampLengthM + 20 m` from
+    the centre into:
+    - `arm{X}_in` (far part, from the arm end to the split node `dX`, where the zone stays);
+    - at-grade `arm{X}_in_near` (width `landingWidthM`, from dX to r0);
+    - `fly{X}{Y}_up` (layer 1, width `rampWidthM`, z 0 → heightM, from dX towards the
+      centre, ending at r0 + 10 m);
+    - `fly{X}{Y}_deck` (layer 1, width `deckWidthM`, z = heightM, straight across the box);
+    - `fly{X}{Y}_down` (layer 1, width `rampWidthM`, z heightM → 0, ending at merge node `mY`
+      at distance `r0 + rampLengthM + 20 m` along arm Y).
+  - **Exit split:** arm Y's outbound is split into `arm{Y}_out_near` (width `landingWidthM`,
+    from r0 to mY) and `arm{Y}_out` (far part, where the zone stays).
+  - **Nodes:** the split and merge nodes are at layer 0. The deck nodes are at layer 1.
+  - **Movements:** `free` movements join up→deck and deck→down. At `dX`, `arm{X}_in` diverges
+    to `arm{X}_in_near` and `fly{X}{Y}_up` (`free`). At `mY`, `fly{X}{Y}_down` (major) and
+    `arm{Y}_out_near` (minor) merge into `arm{Y}_out`.
+  - **Lateral placement (LHT):** the elevated carriageways run along the road axis in the
+    median. The at-grade near links are offset outward by `deckWidthM`.
+  - **Bands at the split:** `fly{X}{Y}_up` takes the right part of `arm{X}_in`
+    (`[inW − rampW, inW]`) and `arm{X}_in_near` takes the left part (`[0, landingW]`).
+  - **Grade (T23):** ramp grade = `heightM / rampLengthM`.
+  - **Routing:** through traffic X→Y prefers the deck because its free-flow cost is lower
+    (§2.1). Turning traffic uses the at-grade junction.
+
+### 3.6 Merge generator (`generator: 'merge'`), on-ramp joining from the kerb side
+- **Links:**
+  - `main_up` (mainWidthM, mainLanes) runs along +x to node `n1`.
+  - `ramp` (rampWidthM, one lane) arrives at `n1` at angle `angleDeg` from the kerb side.
+  - `accel` (width mainW + rampW, length taperM) is the acceleration lane.
+  - `main_down` (mainWidthM) follows it.
+- **Movements at n1:** `main_up→accel` with toLateral `[rampW, rampW + mainW]`, and
+  `ramp→accel` with toLateral `[0, rampW]`. Both are `free`; their bands are disjoint, so
+  there is no crossing conflict.
+- **End of the acceleration lane:** movement `accel→main_down` with fromLateral
+  `[rampW, rampW + mainW]` and toLateral `[0, mainW]`. Ramp vehicles must move across into the
+  main band before the end of `accel` (lane-band rule §2.2 plus route bias §2.4). Merging
+  therefore emerges from the lateral model.
+- **Zones:** `main_in` on main_up, `ramp_in` on ramp, `main_out` on main_down.
 
 ## 4. Vehicle classes
 

@@ -35,6 +35,12 @@ export const CorridorParams = z.object({
       taperM: z.number().min(0).max(200).default(50),
     }),
   ]),
+}).superRefine((p, ctx) => {
+  const bad = (message: string) => ctx.addIssue({ code: 'custom', message });
+  if (p.change.kind !== 'none' && p.change.atM + p.change.taperM >= p.lengthM) {
+    bad('change position + taper must be inside the corridor');
+  }
+  if (p.change.kind === 'laneDrop' && p.change.dropLanes >= p.lanes) bad('cannot drop every lane');
 });
 
 export const ArmParams = z.object({
