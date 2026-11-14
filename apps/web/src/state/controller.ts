@@ -250,6 +250,14 @@ export class SimController {
       },
       series: async () => this.state.series,
       signals: async () => Array.from(this.lastSignals),
+      runExperiment: async (o: { replications: number; compare: string }) => {
+        const { runExperiment } = await import('./experiment.ts');
+        const s = this.state.scenario;
+        if (!s) throw new Error('no scenario loaded');
+        const net = s.network.kind === 'file' ? await this.fileNetwork(s.network.id) : undefined;
+        const r = await runExperiment(s, net, o.replications, o.compare as never, () => {});
+        return { base: r.base, variant: r.variant };
+      },
       gridlock: async () => this.state.metrics?.gridlock ?? null,
       diagnostics: async () => {
         const m = this.state.metrics;

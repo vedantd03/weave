@@ -4,6 +4,7 @@ import { SimController } from './state/controller.ts';
 import { CLASS_COLORS } from './render/palette.ts';
 import { ScenarioForm } from './ui/ScenarioForm.tsx';
 import { LiveCharts } from './charts/LiveCharts.tsx';
+import { ExperimentPanel } from './ui/ExperimentPanel.tsx';
 
 const SPEEDS = [1, 2, 5, 10, 30, 60];
 
@@ -67,6 +68,7 @@ export default function App() {
   const playing = st.status === 'playing';
   const meanKmh = st.metrics ? (st.metrics.meanSpeedMps * 3.6).toFixed(1) : '—';
   const network = st.network;
+  const [tab, setTab] = useState<'live' | 'experiments'>('live');
 
   return (
     <div className="flex h-full flex-col">
@@ -194,7 +196,31 @@ export default function App() {
           )}
         </main>
 
-        <aside className="order-3 shrink-0 overflow-y-auto border-border bg-surface md:w-72 md:border-l">
+        <aside className="order-3 shrink-0 overflow-y-auto border-border bg-surface md:w-80 md:border-l">
+          <div role="tablist" aria-label="Results" className="flex border-b border-border px-2 pt-2">
+            {(['live', 'experiments'] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                role="tab"
+                aria-selected={tab === t}
+                onClick={() => setTab(t)}
+                className={`-mb-px border-b-2 px-3 py-2 text-sm ${tab === t ? 'border-accent text-text' : 'border-transparent text-muted hover:text-text'}`}
+              >
+                {t === 'live' ? 'Live' : 'Experiments'}
+              </button>
+            ))}
+          </div>
+          {tab === 'experiments' && (
+            <Panel title="Experiments">
+              {st.scenario ? (
+                <ExperimentPanel scenario={st.scenario} network={st.network} />
+              ) : (
+                <p className="text-sm text-muted">Choose a scenario first.</p>
+              )}
+            </Panel>
+          )}
+          {tab === 'live' && <>
           <Panel title="Live metrics">
             <div className="grid grid-cols-2 gap-2">
               <StatTile label="Time" value={formatTime(st.t)} />
@@ -231,6 +257,7 @@ export default function App() {
           <Panel title="Over time (1-minute windows)">
             <LiveCharts rows={st.series} />
           </Panel>
+          </>}
         </aside>
       </div>
 

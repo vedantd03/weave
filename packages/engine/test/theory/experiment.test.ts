@@ -9,7 +9,8 @@
  *   W and exited / not exited by durationS; throughputVph = exits in W·3600/|W|;
  *   meanSpeedKmh = 3.6·mean of meanSpeedMps over the series rows inside W; maxEntryQueue = max
  *   entryQueue over those rows; lockedJunctions = gridlock()?.junctions.length ?? 0;
- *   guardPer10k = guardActivations per 10 000 vehicle-steps.
+ *   guardPer10k = guardActivations per 10 000 vehicle-steps over the whole run (Σ vehicleCount()
+ *   after every step).
  * Counts must match exactly, means to 1e-9 relative (summation order). warmupS and durationS
  * are multiples of 60 s so the window is made of whole series rows.
  */
@@ -108,8 +109,8 @@ function manual(scenario: ScenarioInput, seed: number): Manual {
 function expectSame(got: Record<MetricId, number>, m: Manual) {
   for (const k of METRICS) {
     if (k === 'guardPer10k') {
-      // the spec does not say whether vehicle-steps count over the window or the whole run
-      expect([m.guardWholeRun, m.guardWindow].some((x) => Math.abs(got[k] - x) <= 1e-9 * Math.max(1, x))).toBe(true);
+      // §5.2: activations per 10 000 vehicle-steps over the whole run
+      expect(Math.abs(got[k] - m.guardWholeRun)).toBeLessThanOrEqual(1e-9 * Math.max(1, m.guardWholeRun));
       continue;
     }
     const e = m.metrics[k];

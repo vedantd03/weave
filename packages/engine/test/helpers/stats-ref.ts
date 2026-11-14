@@ -68,7 +68,7 @@ export type Plan = ReturnType<typeof SignalPlan.parse>;
 
 /**
  * Reference retiming: keep C and the per-phase lost time; G = C − Σ(amber + allRed);
- * y_p = max over the phase's protected movements of ratio (0 if none / missing);
+ * y_p = max over the phase's protected and permissive movements of ratio (0 if none / missing);
  * g_p ∝ y_p, with phases that would fall below 5 s fixed at 5 s and the rest rescaled
  * (repeated until stable); equal split when Σy = 0.
  */
@@ -76,7 +76,7 @@ export function retimeRef(plan: Plan, ratio: Record<string, number>): number[] {
   const lost = plan.amberS + plan.allRedS;
   const C = plan.phases.reduce((a, ph) => a + ph.greenS + lost, 0);
   const G = C - plan.phases.length * lost;
-  const y = plan.phases.map((ph) => Math.max(0, ...ph.protected.map((m) => ratio[m] ?? 0)));
+  const y = plan.phases.map((ph) => Math.max(0, ...[...ph.protected, ...ph.permissive].map((m) => ratio[m] ?? 0)));
   const Y = y.reduce((a, b) => a + b, 0);
   if (Y === 0) return plan.phases.map(() => G / plan.phases.length);
   const fixed = new Set<number>();

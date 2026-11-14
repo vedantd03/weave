@@ -792,7 +792,8 @@ export function compare(base: ReplicateResult[], variant: ReplicateResult[]): Re
 - **Incomplete trips:** generated in the window but not exited by `durationS`. They are
   reported as a count, never dropped silently.
 - **Gridlock and guard:** `lockedJunctions` comes from `gridlock()` at the end;
-  `guardPer10k` is guard activations per 10k vehicle-steps over the **whole run**.
+  `guardPer10k` is guard activations per 10k vehicle-steps over the **whole run**. Vehicle-steps
+  are the sum over steps of the vehicles on the network **after** each step.
 - **Windows:** "in the window" is inclusive. Series rows count when `t0 ≥ warmupS` and
   `t1 ≤ durationS`. `SimInput` is `{ scenario, classes, network? }`, the same as for
   `createSim`.

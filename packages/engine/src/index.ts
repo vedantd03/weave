@@ -13,3 +13,7 @@ export { SIG, cycleLength, signalState } from './junction/signals.ts';
 export { acceptGap, saturatedDischarge } from './junction/gap.ts';
 export { defaultClasses, provisionalClasses } from './scenarios/defaultClasses.ts';
 export { PRESETS } from './scenarios/presets.ts';
+export { tQuantile, tCdf } from './stats/tdist.ts';
+export { meanCI, pairedCI, type CI } from './stats/ci.ts';
+export { runReplicate, summarize, compare, METRICS, METRIC_LABELS, type MetricId, type ReplicateResult } from './stats/experiment.ts';
+export { retimeWebster, criticalFlowRatios, retimedFlyoverScenario } from './junction/retime.ts';

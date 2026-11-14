@@ -257,3 +257,25 @@ export function cheapest(net: Network, from: string, to: string): { cost: number
   return { cost: dist.get(to)!, path };
 }
 
+
+/**
+ * §5.3 critical flow ratio oracle: route every OD row with the §2.1 rule (reference Dijkstra
+ * `cheapest`), q_m = Σ rates of the rows whose route uses m, s_m = 1800 veh/h per 3.5 m of
+ * movement width; returns q_m/s_m for every movement (0 when unused).
+ */
+export function criticalFlowRatiosRef(
+  net: Network,
+  od: readonly { origin: string; destination: string; rateVph: number }[],
+): Record<string, number> {
+  const q: Record<string, number> = {};
+  const isMovement = new Set(net.movements.map((m) => m.id));
+  for (const row of od) {
+    if (!(row.rateVph > 0)) continue;
+    const from = net.zones.find((z) => z.id === row.origin)!.link;
+    const to = net.zones.find((z) => z.id === row.destination)!.link;
+    for (const seg of cheapest(net, from, to).path) if (isMovement.has(seg)) q[seg] = (q[seg] ?? 0) + row.rateVph;
+  }
+  const r: Record<string, number> = {};
+  for (const m of net.movements) r[m.id] = (q[m.id] ?? 0) / ((1800 * m.widthM) / 3.5);
+  return r;
+}

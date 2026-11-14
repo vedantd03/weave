@@ -8,10 +8,11 @@
  */
 import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
-import { retimeWebster } from '../../src/junction/retime.ts';
+import { criticalFlowRatios, retimeWebster, retimedFlyoverScenario } from '../../src/junction/retime.ts';
 import { generateNetwork } from '../../src/index.ts';
 import { GeneratorParams, Network } from '../../src/schema/index.ts';
-import { cheapest, plan, type Plan } from '../helpers/m3.ts';
+import { criticalFlowRatiosRef, junctionScenario, plan, type Plan } from '../helpers/m3.ts';
+import { classSet, corridorScenario, makeSim } from '../helpers/m2.ts';
 import { retimeRef } from '../helpers/stats-ref.ts';
 
 const P3 = plan({
@@ -89,20 +90,7 @@ describe('critical flow ratios on a generated flyover junction (§5.3 "Use")', (
       od.push({ origin: `arm${i}_in`, destination: `arm${k}_out`, rateVph: through && (i % 2 === 0) ? 900 : through ? 300 : 120 });
     }
   }
-  function ratios(net: Network): Record<string, number> {
-    const q: Record<string, number> = {};
-    for (const row of od) {
-      const from = net.zones.find((z) => z.id === row.origin)!.link;
-      const to = net.zones.find((z) => z.id === row.destination)!.link;
-      for (const seg of cheapest(net, from, to).path) {
-        if (net.movements.some((m) => m.id === seg)) q[seg] = (q[seg] ?? 0) + row.rateVph;
-      }
-    }
-    const r: Record<string, number> = {};
-    const centre = net.signals[0]!.node;
-    for (const m of net.movements.filter((x) => x.node === centre)) r[m.id] = (q[m.id] ?? 0) / ((1800 * m.widthM) / 3.5);
-    return r;
-  }
+  const ratios = (net: Network) => criticalFlowRatiosRef(net, od);
   const gen = (flyover?: typeof fly) =>
     Network.parse(generateNetwork(GeneratorParams.parse({ generator: 'junction', arms, control: 'signal', ...(flyover ? { flyover } : {}) })));
 
@@ -124,5 +112,61 @@ describe('critical flow ratios on a generated flyover junction (§5.3 "Use")', (
     // phases 0 and 2 serve the flyover arms
     expect(pOn.phases[0]!.greenS).toBeLessThan(pOff.phases[0]!.greenS);
     expect(pOn.phases[2]!.greenS).toBeLessThan(pOff.phases[2]!.greenS);
+  });
+});
+
+describe('criticalFlowRatios(input) and retimedFlyoverScenario(input) (§5.3)', () => {
+  const arms = [0, 90, 180, 270].map((a) => ({ angleDeg: a, inWidthM: 7, outWidthM: 7, inLanes: 2, outLanes: 2, lengthM: 250 }));
+  const fly = { enabled: true, armA: 0, armB: 2, deckWidthM: 7, rampWidthM: 3.5, landingWidthM: 3.5, rampLengthM: 120, heightM: 6.5 };
+  const od: { origin: string; destination: string; rateVph: number }[] = [];
+  for (let i = 0; i < 4; i++) for (let k = 0; k < 4; k++) if (i !== k) od.push({ origin: `arm${i}_in`, destination: `arm${k}_out`, rateVph: 100 + 50 * i + 20 * k });
+  const classes = classSet([{ id: 'car', length: 4.5, width: 1.8, idm: { v0: 12, T: 1.2, s0: 2, a: 1.5, b: 2 } }]);
+  const junction = (flyover: boolean) => junctionScenario({ arms, od, ...(flyover ? { flyover: fly } : {}) });
+  const corridor = corridorScenario({
+    lengthM: 600, widthM: 7, lanes: 2, change: { kind: 'laneDrop', atM: 300, dropLanes: 1, taperM: 50 }, rateVph: 1500,
+  });
+  // ratios are sums of integer rates divided by 1800·w/3.5: the oracle and the engine may group
+  // the division differently, so compare to 1e-12 relative
+  const same = (got: Record<string, number>, ref: Record<string, number>) => {
+    expect(Object.keys(got).sort()).toEqual(Object.keys(ref).sort());
+    for (const [k, v] of Object.entries(ref)) expect(Math.abs(got[k]! - v), k).toBeLessThanOrEqual(1e-12 * Math.max(1, v));
+  };
+
+  for (const [name, sc] of [
+    ['junction, flyover off', junction(false)],
+    ['junction, flyover on', junction(true)],
+    ['lane-drop corridor', corridor],
+  ] as const) {
+    it(`${name}: equals the oracle (§2.1 routes with penalties, q_m/s_m) for every movement`, () => {
+      const net = makeSim(sc, classes).network;
+      const ref = criticalFlowRatiosRef(net, sc.od ?? []);
+      expect(Object.values(ref).some((v) => v > 0)).toBe(true);
+      same(criticalFlowRatios({ scenario: sc, classes }), ref);
+    });
+  }
+
+  it('corridor: the taper carries all the demand: ratio = 1500 / (1800·W2/3.5) with W2 = 3.5 m', () => {
+    const r = criticalFlowRatios({ scenario: corridor, classes });
+    expect(r.taper).toBeCloseTo(1500 / 1800, 12);
+  });
+
+  it('retimedFlyoverScenario: signalOverrides = retimeWebster(plan, ratios) for every plan; nothing else changes', () => {
+    const sc = junction(true);
+    const net = makeSim(sc, classes).network;
+    const ref = criticalFlowRatiosRef(net, od);
+    const out = retimedFlyoverScenario({ scenario: sc, classes });
+    const { signalOverrides, ...rest } = out;
+    const { signalOverrides: _orig, ...restIn } = sc;
+    expect(rest).toEqual(restIn);
+    const plans = (signalOverrides ?? []) as unknown as Plan[];
+    expect(plans.map((p) => p.node)).toEqual(net.signals.map((p) => p.node));
+    plans.forEach((p, i) => {
+      const base = net.signals[i]!;
+      expect([p.offsetS, p.amberS, p.allRedS]).toEqual([base.offsetS, base.amberS, base.allRedS]);
+      expect(p.phases.map((ph) => [ph.protected, ph.permissive ?? []])).toEqual(base.phases.map((ph) => [ph.protected, ph.permissive]));
+      close(greens(p), retimeRef(base, ref));
+    });
+    // and the flyover arms lose green relative to the generated split phasing
+    expect(plans[0]!.phases[0]!.greenS).toBeLessThan(net.signals[0]!.phases[0]!.greenS);
   });
 });

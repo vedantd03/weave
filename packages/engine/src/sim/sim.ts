@@ -116,6 +116,8 @@ export interface Sim {
   gridlock(): GridlockReport | null;
   /** Signal colour per network movement (index order), SIG codes; 255 = uncontrolled. */
   signalCodes(): Uint8Array;
+  /** The fixed route of every OD row (segment ids, §2.1). */
+  odRoutes(): { origin: string; destination: string; rateVph: number; segments: string[] }[];
 }
 
 export interface GridlockReport {
@@ -1269,7 +1271,6 @@ class SimImpl implements Sim {
       st.ds[k] = r.x - st.s[k]!;
       st.v[k] = r.v;
     }
-    this.vehicleSteps += st.count;
     this.collisionGuard();
     // 5. Apply displacement and lateral motion.
     for (let k = 0; k < st.cap; k++) {
@@ -1332,6 +1333,7 @@ class SimImpl implements Sim {
     // Metrics after the step.
     for (let g = 0; g < this.occ.length; g++) this.stats[g]!.vehicleSeconds += this.occ[g]!.length * dt;
     this.trackGridlock(tNew);
+    this.vehicleSteps += st.count; // vehicles on the network after the step (§5.2)
     this.sampleSeries();
   }
 
@@ -1416,6 +1418,18 @@ class SimImpl implements Sim {
     if (!locked.length && !net) return null;
     const since = Math.min(net ? this.netLastActive : Infinity, ...locked.map((j) => j.sinceS));
     return { detected: true, sinceS: since, junctions: locked };
+  }
+
+  odRoutes(): { origin: string; destination: string; rateVph: number; segments: string[] }[] {
+    const out: { origin: string; destination: string; rateVph: number; segments: string[] }[] = [];
+    for (const o of this.origins) {
+      for (const r of o.rows) {
+        const d = this.destZones[r.dest]!;
+        const ri = this.routeFor(o.link, d.link, o.zone, d.zone);
+        out.push({ origin: o.zone, destination: d.zone, rateVph: r.rate, segments: this.routes[ri]!.segs.map((g) => this.segs[g]!.id) });
+      }
+    }
+    return out;
   }
 
   signalCodes(): Uint8Array {
