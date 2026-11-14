@@ -22,6 +22,8 @@ export interface VView {
   lo: number;
   hi: number;
   targetY: number;
+  /** free-flow time for the distance the front has actually travelled since insertion (§5.2) */
+  freeFlowTravelledS: number;
 }
 export interface Counters {
   generated: number;

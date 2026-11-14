@@ -18,6 +18,11 @@ export default defineConfig({
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
+    // Cross-engine determinism (ADR-002): the browser-vs-Node state-hash checks in Firefox and WebKit.
+    // Firefox is not included: Playwright's Firefox build fails to launch on the development
+    // machine ("Could not find profile folder"), so cross-engine determinism is verified in
+    // Chromium and WebKit only (README, VALIDATION.md).
+    { name: 'webkit-hash', use: { ...devices['Desktop Safari'] }, grep: /state hash|hash equal|determinism/i },
   ],
   webServer: local
     ? { command: 'pnpm build && pnpm preview', url: baseURL, reuseExistingServer: false, timeout: 120_000 }

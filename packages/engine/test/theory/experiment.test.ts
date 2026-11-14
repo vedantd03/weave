@@ -4,9 +4,10 @@
  * Every metric is recomputed in the test from an equivalent manual createSim run (same scenario
  * and seed) using sim.trips(), sim.generatedLog(), sim.series(), counters() and gridlock():
  *   window W = [warmupS, durationS]; trips count when tGen ∈ W;
- *   meanDelayS = mean over ALL trips generated in W of tExit − tGen − freeFlowS (completed) or
- *   durationS − tGen − freeFlowS (unfinished: in an entry queue or on the network at durationS,
- *   freeFlowS from generatedLog); meanDelayCompletedS = the same over completed trips only;
+ *   meanDelayS = mean over ALL trips generated in W of tExit − tGen − freeFlowS (completed),
+ *   durationS − tGen − freeFlowTravelledS (still on the network at durationS; VehicleView) or
+ *   durationS − tGen (still in an entry queue: nothing travelled); meanDelayCompletedS = the
+ *   same over completed trips only;
  *   meanTravelTimeS = mean(tExit − tGen) over completed trips (NaN if none);
  *   gridlocked = 1 if lockedJunctions > 0 else 0; completedTrips / incompleteTrips = generated in
  *   W and exited / not exited by durationS; throughputVph = exits in W·3600/|W|;
@@ -95,9 +96,12 @@ function manual(scenario: ScenarioInput, seed: number, network?: Network, classe
   const done = new Map(trips.map((t) => [t.id, t]));
   // generatedLog's freeFlowS is "computed as in trips()" (§2.7)
   for (const r of gen) if (done.has(r.id)) expect(Math.abs(r.freeFlowS - done.get(r.id)!.freeFlowS)).toBeLessThanOrEqual(1e-9);
+  const onNet = new Map(sim.vehicles().map((v) => [v.id, v]));
   const allDelays = gen.map((r) => {
     const t = done.get(r.id);
-    return t ? t.tExit - t.tGen - t.freeFlowS : D - r.tGen - r.freeFlowS;
+    if (t) return t.tExit - t.tGen - t.freeFlowS;
+    const v = onNet.get(r.id);
+    return v ? D - r.tGen - v.freeFlowTravelledS : D - r.tGen;
   });
   const locked = sim.gridlock()?.junctions.length ?? 0;
   return {
@@ -177,9 +181,95 @@ describe('runReplicate', () => {
     // delay = queue time + time on the network beyond free flow; the latter is ≥ −length/v0
     // (the front starts at s = length), so delay ≥ queue time − 1 s (completed trips)
     expect(r.metrics.meanDelayCompletedS).toBeGreaterThanOrEqual(m.meanQueueTime - 1);
-    // the queue keeps growing, so the vehicles still queued at the end add even larger delays
     expect(r.metrics.incompleteTrips).toBeGreaterThan(0);
-    expect(r.metrics.meanDelayS).toBeGreaterThan(r.metrics.meanDelayCompletedS);
+  });
+});
+
+describe('delay so far: accounting identity and queued vehicles (§2.7, §5.2)', () => {
+  /*
+   * Single-lane corridor (one link 'main', length L), demand above the insertion capacity, so
+   * vehicles finish, are on the link or are still queued at D. Over ALL generated vehicles:
+   *   Σ delay so far = Σ (time since generation, in the network or the entry queue)
+   *                    − Σ free-flow time for the distance actually travelled.
+   * Test side, computed independently:
+   *   VS = Σ_steps (onNetwork + entryQueue)·dt (counts after each step);
+   *   FFT = Σ_exited (L − ℓ)/v_ff + Σ_on-link (s − ℓ)/v_ff, v_ff = min(v0, speed limit), since a
+   *   front is inserted at s = ℓ and a single link has one v_ff.
+   * Engine side: completed tExit − tGen − freeFlowS, on the link D − tGen − freeFlowTravelledS,
+   * queued D − tGen.
+   * Known systematic term: a completed trip's freeFlowS is the route's L/v_ff while its front
+   * only travelled L − ℓ (+ an overshoot past the end that the test does not credit either), so
+   * Σ_completed ℓ/v_ff is added back exactly. What remains is discretisation, per vehicle:
+   *   - generation: tGen lies inside a step while VS counts whole steps from the step end: < dt;
+   *   - exit / end: VS counts whole steps up to the exit step (or to D); tExit is a step instant
+   *     or inside the exit step: < dt;
+   *   - free-flow credit: accumulated per step along one link, equal to (s − ℓ)/v_ff up to
+   *     rounding (≤ 1e-9 s).
+   * Bound: Σ_vehicles 2·dt + 1e-9.
+   */
+  const sc = corridor({ rateVph: 3000 });
+  const W = 0; // whole run
+  it('Σ delay so far = vehicle-seconds − free-flow time travelled, within Σ 2·dt', () => {
+    const sim = makeSim({ ...sc, warmupS: W, seed: 2 }, CLASSES) as unknown as M3Sim;
+    const D = sc.durationS;
+    let VS = 0;
+    for (let k = 1; k <= Math.round(D / DT); k++) {
+      sim.advance(1);
+      const c = sim.counters();
+      VS += (c.onNetwork + c.entryQueue) * DT;
+    }
+    const L = 800;
+    const log = sim.generatedLog();
+    const vff = new Map(log.map((r) => [r.id, Math.min(r.v0, 40)]));
+    const len = new Map(log.map((r) => [r.id, r.length]));
+    const trips = new Map(sim.trips().map((t) => [t.id, t]));
+    const views = new Map(sim.vehicles().map((v) => [v.id, v]));
+    let delay = 0;
+    let fft = 0;
+    let lengthCredit = 0;
+    let queued = 0;
+    for (const r of log) {
+      const t = trips.get(r.id);
+      const v = views.get(r.id);
+      if (t) {
+        delay += t.tExit - t.tGen - t.freeFlowS;
+        fft += (L - r.length) / vff.get(r.id)!;
+        lengthCredit += r.length / vff.get(r.id)!;
+      } else if (v) {
+        delay += D - r.tGen - v.freeFlowTravelledS;
+        const travelled = (v.s - len.get(r.id)!) / vff.get(r.id)!;
+        expect(Math.abs(v.freeFlowTravelledS - travelled)).toBeLessThanOrEqual(1e-9 * Math.max(1, travelled));
+        fft += travelled;
+      } else {
+        delay += D - r.tGen;
+        queued++;
+      }
+    }
+    expect(queued).toBeGreaterThan(0);
+    expect(trips.size).toBeGreaterThan(0);
+    const residual = delay - (VS - fft) + lengthCredit;
+    const bound = log.length * 2 * DT + 1e-9;
+    (globalThis as unknown as { console: { log(s: string): void } }).console.log(
+      `DELAY_ACCOUNTING total_delay=${delay.toFixed(3)} VS=${VS.toFixed(3)} FFT=${fft.toFixed(3)} length_credit=${lengthCredit.toFixed(3)} residual=${residual.toFixed(4)} bound=${bound.toFixed(2)} vehicles=${log.length}`,
+    );
+    expect(Math.abs(residual)).toBeLessThanOrEqual(bound);
+  });
+
+  it('vehicles still in the entry queue at durationS have delay exactly durationS − tGen', () => {
+    const r = runReplicate({ scenario: sc, classes: CLASSES }, 2);
+    const m = manual(sc, 2);
+    expect(Math.abs(r.metrics.meanDelayS - m.metrics.meanDelayS)).toBeLessThanOrEqual(1e-9 * Math.max(1, m.metrics.meanDelayS));
+    // premise: queued vehicles exist, and using their route free-flow time instead would change
+    // the mean by far more than rounding, so the match above pins down the queued rule
+    const sim = makeSim({ ...sc, seed: 2 }, CLASSES);
+    sim.advance(Math.round(sc.durationS / DT));
+    const inW = (t: number) => t >= sc.warmupS! && t <= sc.durationS;
+    const ids = new Set([...sim.trips().map((t) => t.id), ...sim.vehicles().map((v) => v.id)]);
+    const queuedInW = sim.generatedLog().filter((g) => inW(g.tGen) && !ids.has(g.id));
+    expect(queuedInW.length).toBeGreaterThan(0);
+    const nInW = sim.generatedLog().filter((g) => inW(g.tGen)).length;
+    const shift = queuedInW.reduce((a, g) => a + g.freeFlowS, 0) / nInW;
+    expect(shift).toBeGreaterThan(1e-3);
   });
 });
 
