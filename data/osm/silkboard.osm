@@ -1,0 +1,2804 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="Overpass API 0.7.62.11 87bfad18">
+<note>The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.</note>
+<meta osm_base="2026-11-14T10:53:33Z"/>
+
+  <node id="247989225" lat="12.9161411" lon="77.6169634" version="33" timestamp="2024-06-22T10:21:14Z" changeset="153023223" uid="2425805" user="uknown-gryphus"/>
+  <node id="247989227" lat="12.9161763" lon="77.6174276" version="30" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="247989228" lat="12.9163685" lon="77.6192664" version="31" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="247989232" lat="12.9176822" lon="77.6243834" version="17" timestamp="2023-09-15T17:59:27Z" changeset="141314197" uid="2425805" user="uknown-gryphus"/>
+  <node id="247989234" lat="12.9176300" lon="77.6259616" version="15" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="247989237" lat="12.9168787" lon="77.6285971" version="16" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="260911861" lat="12.9241419" lon="77.6288623" version="35" timestamp="2026-11-11T04:26:16Z" changeset="191771398" uid="3926189" user="Vonter">
+    <tag k="bus" v="yes"/>
+    <tag k="name" v="Krupanidhi College"/>
+    <tag k="name:en" v="Krupanidhi College"/>
+    <tag k="name:kn" v="ಕೃಪಾನಿಧಿ ಕಾಲೇಜು"/>
+    <tag k="network" v="BMTC"/>
+    <tag k="network:wikidata" v="Q3345039"/>
+    <tag k="network:wikipedia" v="en:Bengaluru Metropolitan Transport Corporation"/>
+    <tag k="operator" v="BMTC"/>
+    <tag k="public_transport" v="stop_position"/>
+  </node>
+  <node id="262431180" lat="12.9239992" lon="77.6286643" version="5" timestamp="2019-06-03T15:44:11Z" changeset="70890855" uid="8782065" user="vinay gowda"/>
+  <node id="262431181" lat="12.9239475" lon="77.6285248" version="4" timestamp="2019-06-03T15:44:11Z" changeset="70890855" uid="8782065" user="vinay gowda"/>
+  <node id="262431182" lat="12.9228794" lon="77.6235996" version="4" timestamp="2019-06-03T15:44:11Z" changeset="70890855" uid="8782065" user="vinay gowda"/>
+  <node id="306593854" lat="12.9147868" lon="77.6240948" version="30" timestamp="2024-02-26T04:17:39Z" changeset="147915658" uid="2425805" user="uknown-gryphus"/>
+  <node id="306594280" lat="12.9172507" lon="77.6224563" version="59" timestamp="2022-12-23T19:11:12Z" changeset="130433840" uid="2425805" user="uknown-gryphus">
+    <tag k="highway" v="traffic_signals"/>
+  </node>
+  <node id="306611189" lat="12.9175235" lon="77.6248374" version="18" timestamp="2015-07-30T07:51:20Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="306611192" lat="12.9174070" lon="77.6258551" version="10" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="306611193" lat="12.9166856" lon="77.6282518" version="10" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="306611194" lat="12.9166937" lon="77.6283830" version="10" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="306611195" lat="12.9166108" lon="77.6292106" version="13" timestamp="2015-09-12T16:49:22Z" changeset="33983728" uid="3103507" user="PR_Mapper"/>
+  <node id="306611415" lat="12.9141678" lon="77.6269691" version="18" timestamp="2015-07-30T07:51:19Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="306611644" lat="12.9145090" lon="77.6267505" version="10" timestamp="2015-07-30T07:51:20Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="306611825" lat="12.9165111" lon="77.6254690" version="10" timestamp="2015-07-30T07:51:20Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="306611889" lat="12.9172556" lon="77.6249821" version="16" timestamp="2015-10-27T12:26:32Z" changeset="34902285" uid="3103507" user="PR_Mapper"/>
+  <node id="306611966" lat="12.9140978" lon="77.6279751" version="20" timestamp="2023-08-17T12:18:38Z" changeset="140010240" uid="16275544" user="nileshbarawkar"/>
+  <node id="306612056" lat="12.9149618" lon="77.6264820" version="7" timestamp="2013-08-03T15:20:09Z" changeset="17204924" uid="634020" user="Prasanth Rajan"/>
+  <node id="306612124" lat="12.9167763" lon="77.6252775" version="7" timestamp="2015-07-30T07:51:20Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="306612618" lat="12.9140523" lon="77.6286535" version="11" timestamp="2015-07-30T07:51:20Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="306613207" lat="12.9139345" lon="77.6304757" version="12" timestamp="2023-10-13T11:39:51Z" changeset="142520115" uid="2425805" user="uknown-gryphus"/>
+  <node id="306613918" lat="12.9140510" lon="77.6285920" version="9" timestamp="2023-10-13T08:45:47Z" changeset="142512461" uid="2425805" user="uknown-gryphus"/>
+  <node id="306619236" lat="12.9139913" lon="77.6297789" version="8" timestamp="2015-07-30T07:51:20Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="306619290" lat="12.9140290" lon="77.6292168" version="5" timestamp="2013-08-03T15:20:09Z" changeset="17204924" uid="634020" user="Prasanth Rajan"/>
+  <node id="306619430" lat="12.9138246" lon="77.6317285" version="7" timestamp="2023-10-13T11:39:51Z" changeset="142520115" uid="2425805" user="uknown-gryphus"/>
+  <node id="307402762" lat="12.9174030" lon="77.6239010" version="9" timestamp="2024-09-09T05:16:49Z" changeset="156377166" uid="2425805" user="uknown-gryphus"/>
+  <node id="307407783" lat="12.9165508" lon="77.6201826" version="25" timestamp="2024-07-16T17:48:06Z" changeset="154026697" uid="3926189" user="Vonter"/>
+  <node id="307408085" lat="12.9183851" lon="77.6187759" version="6" timestamp="2013-10-27T14:18:57Z" changeset="18566898" uid="634020" user="Prasanth Rajan"/>
+  <node id="307408086" lat="12.9181687" lon="77.6203959" version="9" timestamp="2023-05-06T07:44:20Z" changeset="135766379" uid="2425805" user="uknown-gryphus"/>
+  <node id="307408087" lat="12.9180091" lon="77.6215310" version="11" timestamp="2023-05-06T07:44:20Z" changeset="135766379" uid="2425805" user="uknown-gryphus"/>
+  <node id="307408088" lat="12.9182465" lon="77.6219809" version="10" timestamp="2015-07-30T07:21:07Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="307408116" lat="12.9181642" lon="77.6218520" version="12" timestamp="2025-04-28T12:53:16Z" changeset="165548094" uid="21016670" user="dhanashreetaley"/>
+  <node id="307409018" lat="12.9198247" lon="77.6174229" version="5" timestamp="2013-10-27T14:18:57Z" changeset="18566898" uid="634020" user="Prasanth Rajan"/>
+  <node id="307409019" lat="12.9195515" lon="77.6177531" version="6" timestamp="2015-08-07T11:29:22Z" changeset="33177412" uid="2897465" user="maheshrkm"/>
+  <node id="307409020" lat="12.9193203" lon="77.6180005" version="5" timestamp="2013-10-27T14:18:57Z" changeset="18566898" uid="634020" user="Prasanth Rajan"/>
+  <node id="307409021" lat="12.9190311" lon="77.6181477" version="5" timestamp="2013-10-27T14:18:57Z" changeset="18566898" uid="634020" user="Prasanth Rajan"/>
+  <node id="307409022" lat="12.9183451" lon="77.6183366" version="9" timestamp="2014-11-01T15:40:08Z" changeset="26484323" uid="1765920" user="Nagesh_Blr"/>
+  <node id="307409041" lat="12.9183720" lon="77.6185174" version="4" timestamp="2014-11-01T15:40:08Z" changeset="26484323" uid="1765920" user="Nagesh_Blr"/>
+  <node id="308717371" lat="12.9183194" lon="77.6192735" version="5" timestamp="2024-03-13T06:46:08Z" changeset="148577856" uid="3926189" user="Vonter"/>
+  <node id="308717373" lat="12.9182450" lon="77.6198162" version="5" timestamp="2024-03-13T06:46:08Z" changeset="148577856" uid="3926189" user="Vonter"/>
+  <node id="308875510" lat="12.9196209" lon="77.6172002" version="8" timestamp="2019-06-03T19:03:05Z" changeset="70897512" uid="8782065" user="vinay gowda"/>
+  <node id="417298239" lat="12.9169273" lon="77.6283946" version="9" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271023" lat="12.9169759" lon="77.6216695" version="3" timestamp="2013-10-27T14:30:39Z" changeset="18566898" uid="634020" user="Prasanth Rajan"/>
+  <node id="494271025" lat="12.9209358" lon="77.6182020" version="3" timestamp="2020-02-24T14:11:45Z" changeset="81410008" uid="10285111" user="Anushad"/>
+  <node id="494271026" lat="12.9213178" lon="77.6185649" version="2" timestamp="2023-09-15T17:59:27Z" changeset="141314197" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271027" lat="12.9220231" lon="77.6191566" version="2" timestamp="2013-10-26T14:52:21Z" changeset="18552061" uid="634020" user="Prasanth Rajan"/>
+  <node id="494271028" lat="12.9221825" lon="77.6192304" version="4" timestamp="2013-10-26T14:52:21Z" changeset="18552061" uid="634020" user="Prasanth Rajan"/>
+  <node id="494271029" lat="12.9221973" lon="77.6195750" version="9" timestamp="2019-06-04T19:06:33Z" changeset="70934678" uid="9086377" user="Charitha CNK"/>
+  <node id="494271030" lat="12.9201791" lon="77.6176520" version="2" timestamp="2013-10-27T14:18:57Z" changeset="18566898" uid="634020" user="Prasanth Rajan"/>
+  <node id="494271056" lat="12.9205010" lon="77.6178917" version="2" timestamp="2013-10-27T14:18:57Z" changeset="18566898" uid="634020" user="Prasanth Rajan"/>
+  <node id="494271061" lat="12.9135919" lon="77.6248109" version="3" timestamp="2015-11-17T05:47:26Z" changeset="35367765" uid="3103507" user="PR_Mapper"/>
+  <node id="494271063" lat="12.9175108" lon="77.6267689" version="7" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271065" lat="12.9176757" lon="77.6257316" version="4" timestamp="2018-07-23T04:40:44Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271066" lat="12.9176164" lon="77.6249271" version="5" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271067" lat="12.9176224" lon="77.6251311" version="5" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271069" lat="12.9150658" lon="77.6239418" version="4" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271072" lat="12.9132317" lon="77.6251714" version="4" timestamp="2015-07-30T07:43:27Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="494271073" lat="12.9140741" lon="77.6246589" version="9" timestamp="2024-05-23T03:55:32Z" changeset="151703177" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271075" lat="12.9192766" lon="77.6214862" version="6" timestamp="2019-11-12T08:22:01Z" changeset="76946489" uid="9086377" user="Charitha CNK"/>
+  <node id="494271078" lat="12.9143606" lon="77.6246624" version="7" timestamp="2022-09-20T03:49:35Z" changeset="126402682" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271079" lat="12.9162354" lon="77.6236869" version="7" timestamp="2023-09-15T17:59:27Z" changeset="141314197" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271080" lat="12.9173238" lon="77.6231607" version="10" timestamp="2026-04-02T13:19:49Z" changeset="180767825" uid="2425805" user="uknown-gryphus">
+    <tag k="highway" v="traffic_signals"/>
+  </node>
+  <node id="494271082" lat="12.9189075" lon="77.6219107" version="3" timestamp="2013-07-15T09:16:55Z" changeset="16959080" uid="634020" user="Prasanth Rajan"/>
+  <node id="494271083" lat="12.9193284" lon="77.6215358" version="7" timestamp="2019-11-12T08:22:01Z" changeset="76946489" uid="9086377" user="Charitha CNK"/>
+  <node id="494271084" lat="12.9194475" lon="77.6214053" version="7" timestamp="2019-11-12T08:22:01Z" changeset="76946489" uid="9086377" user="Charitha CNK"/>
+  <node id="494271091" lat="12.9163133" lon="77.6199358" version="6" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271095" lat="12.9163543" lon="77.6187185" version="4" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271106" lat="12.9211388" lon="77.6204844" version="10" timestamp="2022-12-23T19:11:12Z" changeset="130433840" uid="2425805" user="uknown-gryphus">
+    <tag k="highway" v="traffic_signals"/>
+  </node>
+  <node id="494271113" lat="12.9175781" lon="77.6257560" version="5" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271114" lat="12.9175253" lon="77.6259953" version="5" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271115" lat="12.9167498" lon="77.6285856" version="5" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="494271117" lat="12.9167297" lon="77.6287887" version="5" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="650141295" lat="12.9166561" lon="77.6299413" version="5" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="737856638" lat="12.9142759" lon="77.6174338" version="3" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="737856902" lat="12.9139845" lon="77.6177917" version="4" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="737857047" lat="12.9128591" lon="77.6189525" version="4" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="737857272" lat="12.9138265" lon="77.6179709" version="4" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="752202889" lat="12.9128328" lon="77.6245364" version="5" timestamp="2024-03-13T06:32:54Z" changeset="148577413" uid="3926189" user="Vonter"/>
+  <node id="752203531" lat="12.9113778" lon="77.6259966" version="8" timestamp="2024-04-29T05:09:15Z" changeset="150644528" uid="21150819" user="olaag"/>
+  <node id="1123386059" lat="12.9167078" lon="77.6235807" version="7" timestamp="2023-09-15T17:59:27Z" changeset="141314197" uid="2425805" user="uknown-gryphus"/>
+  <node id="1123386062" lat="12.9169283" lon="77.6219684" version="8" timestamp="2024-10-21T12:20:08Z" changeset="158167304" uid="19831062" user="olaritam"/>
+  <node id="1123386064" lat="12.9172851" lon="77.6236868" version="6" timestamp="2026-04-23T09:16:57Z" changeset="181707704" uid="2425805" user="uknown-gryphus"/>
+  <node id="1123386065" lat="12.9168512" lon="77.6221812" version="6" timestamp="2024-02-26T04:17:39Z" changeset="147915658" uid="2425805" user="uknown-gryphus"/>
+  <node id="1123386067" lat="12.9166094" lon="77.6227779" version="8" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="1123386069" lat="12.9173256" lon="77.6237122" version="4" timestamp="2015-07-30T07:51:20Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="1123386070" lat="12.9167603" lon="77.6228902" version="8" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="1309736834" lat="12.9153399" lon="77.6166045" version="5" timestamp="2024-11-08T07:57:04Z" changeset="158884658" uid="19819962" user="bitsu"/>
+  <node id="1309736835" lat="12.9154413" lon="77.6165199" version="3" timestamp="2022-10-12T11:37:44Z" changeset="127410460" uid="3030846" user="Saikat Maiti"/>
+  <node id="1309736836" lat="12.9151871" lon="77.6166290" version="3" timestamp="2024-11-08T07:57:04Z" changeset="158884658" uid="19819962" user="bitsu"/>
+  <node id="1309736838" lat="12.9149857" lon="77.6166715" version="3" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="1309736986" lat="12.9127393" lon="77.6227693" version="3" timestamp="2013-07-15T09:11:41Z" changeset="16959080" uid="634020" user="Prasanth Rajan"/>
+  <node id="1309736989" lat="12.9128086" lon="77.6222527" version="5" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="1309736990" lat="12.9128293" lon="77.6238234" version="4" timestamp="2020-12-19T16:37:17Z" changeset="96114788" uid="10493403" user="tstsr"/>
+  <node id="1417443722" lat="12.9131047" lon="77.6253805" version="5" timestamp="2015-07-30T07:43:27Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="1417443754" lat="12.9141173" lon="77.6275540" version="5" timestamp="2023-10-13T08:45:47Z" changeset="142512461" uid="2425805" user="uknown-gryphus"/>
+  <node id="1472248429" lat="12.9193784" lon="77.6212875" version="5" timestamp="2013-09-26T13:15:35Z" changeset="18044654" uid="634020" user="Prasanth Rajan"/>
+  <node id="1472248431" lat="12.9196804" lon="77.6210467" version="6" timestamp="2015-07-30T07:18:03Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="1472248447" lat="12.9237068" lon="77.6186023" version="6" timestamp="2015-07-30T07:18:04Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="1472248450" lat="12.9234501" lon="77.6188855" version="6" timestamp="2015-07-30T07:18:04Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="1472878453" lat="12.9178913" lon="77.6252968" version="4" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="1472878456" lat="12.9178719" lon="77.6248138" version="4" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="1472878457" lat="12.9178281" lon="77.6243750" version="7" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="1472878459" lat="12.9169821" lon="77.6287014" version="6" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="1472878461" lat="12.9176973" lon="77.6264421" version="3" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="1472878462" lat="12.9171617" lon="77.6279717" version="2" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="1472878464" lat="12.9180682" lon="77.6224461" version="6" timestamp="2023-09-15T17:59:27Z" changeset="141314197" uid="2425805" user="uknown-gryphus"/>
+  <node id="1473241748" lat="12.9235503" lon="77.6266787" version="4" timestamp="2019-06-03T15:44:11Z" changeset="70890855" uid="8782065" user="vinay gowda"/>
+  <node id="1473350074" lat="12.9170474" lon="77.6283833" version="4" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="1474003919" lat="12.9228858" lon="77.6232206" version="3" timestamp="2015-05-09T19:10:38Z" changeset="30945773" uid="1306" user="PlaneMad"/>
+  <node id="1474003920" lat="12.9215439" lon="77.6209598" version="3" timestamp="2013-09-27T14:46:29Z" changeset="18062625" uid="634020" user="Prasanth Rajan"/>
+  <node id="1474003921" lat="12.9240423" lon="77.6283741" version="3" timestamp="2017-02-24T08:56:50Z" changeset="46361165" uid="2644101" user="Chetan_Gowda"/>
+  <node id="1477086431" lat="12.9221108" lon="77.6219277" version="3" timestamp="2019-05-07T14:27:25Z" changeset="69981825" uid="8938557" user="randh1"/>
+  <node id="1607769588" lat="12.9212668" lon="77.6201122" version="6" timestamp="2017-02-24T08:52:56Z" changeset="46361071" uid="2644101" user="Chetan_Gowda"/>
+  <node id="1607769618" lat="12.9215875" lon="77.6188015" version="2" timestamp="2013-10-26T14:52:21Z" changeset="18552061" uid="634020" user="Prasanth Rajan"/>
+  <node id="1613147976" lat="12.9186160" lon="77.6218568" version="5" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus"/>
+  <node id="1613147978" lat="12.9186638" lon="77.6219355" version="6" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus"/>
+  <node id="1614298009" lat="12.9221457" lon="77.6193723" version="2" timestamp="2013-10-26T14:52:20Z" changeset="18552061" uid="634020" user="Prasanth Rajan"/>
+  <node id="1614298011" lat="12.9227458" lon="77.6193219" version="3" timestamp="2015-07-30T07:18:04Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="1617743335" lat="12.9224033" lon="77.6195407" version="3" timestamp="2015-07-30T07:18:04Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="1617747730" lat="12.9147233" lon="77.6239622" version="9" timestamp="2020-02-21T11:53:34Z" changeset="81316040" uid="10285111" user="Anushad"/>
+  <node id="1617747733" lat="12.9141495" lon="77.6247742" version="8" timestamp="2022-09-20T03:49:35Z" changeset="126402682" uid="2425805" user="uknown-gryphus"/>
+  <node id="1617747736" lat="12.9142964" lon="77.6243627" version="6" timestamp="2024-02-26T04:17:39Z" changeset="147915658" uid="2425805" user="uknown-gryphus"/>
+  <node id="1723780076" lat="12.9121059" lon="77.6255643" version="5" timestamp="2020-02-21T11:53:34Z" changeset="81316040" uid="10285111" user="Anushad"/>
+  <node id="1723780079" lat="12.9115928" lon="77.6258294" version="6" timestamp="2024-08-22T09:49:05Z" changeset="155596390" uid="9091656" user="SarangK"/>
+  <node id="1723780080" lat="12.9117200" lon="77.6257500" version="7" timestamp="2024-08-30T04:24:43Z" changeset="155954701" uid="19620700" user="jyotikatke"/>
+  <node id="1723790725" lat="12.9171705" lon="77.6222334" version="4" timestamp="2024-07-22T11:59:17Z" changeset="154259528" uid="16275581" user="ompatekar"/>
+  <node id="1723790748" lat="12.9174009" lon="77.6224010" version="3" timestamp="2023-05-06T07:44:20Z" changeset="135766379" uid="2425805" user="uknown-gryphus"/>
+  <node id="1723790751" lat="12.9172421" lon="77.6223071" version="3" timestamp="2023-05-06T07:44:20Z" changeset="135766379" uid="2425805" user="uknown-gryphus"/>
+  <node id="1723790753" lat="12.9176923" lon="77.6223472" version="6" timestamp="2024-08-20T15:39:57Z" changeset="155516266" uid="7465570" user="addyx"/>
+  <node id="1723790755" lat="12.9175658" lon="77.6224120" version="4" timestamp="2023-05-06T07:44:20Z" changeset="135766379" uid="2425805" user="uknown-gryphus"/>
+  <node id="1723790761" lat="12.9189241" lon="77.6215050" version="3" timestamp="2015-07-30T07:18:03Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="1723790766" lat="12.9193120" lon="77.6211981" version="5" timestamp="2015-07-30T07:18:03Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="1723790769" lat="12.9174798" lon="77.6224202" version="4" timestamp="2023-05-06T07:44:20Z" changeset="135766379" uid="2425805" user="uknown-gryphus"/>
+  <node id="1723790771" lat="12.9173339" lon="77.6223712" version="3" timestamp="2023-05-06T07:44:20Z" changeset="135766379" uid="2425805" user="uknown-gryphus"/>
+  <node id="1723795920" lat="12.9176473" lon="77.6227867" version="3" timestamp="2015-07-30T07:21:07Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="1723795922" lat="12.9175903" lon="77.6228687" version="5" timestamp="2024-09-09T05:16:49Z" changeset="156377166" uid="2425805" user="uknown-gryphus"/>
+  <node id="1723795924" lat="12.9172126" lon="77.6226574" version="5" timestamp="2023-05-06T07:44:20Z" changeset="135766379" uid="2425805" user="uknown-gryphus"/>
+  <node id="1723795926" lat="12.9180739" lon="77.6225286" version="4" timestamp="2022-12-23T19:11:12Z" changeset="130433840" uid="2425805" user="uknown-gryphus"/>
+  <node id="1723795928" lat="12.9175475" lon="77.6229935" version="5" timestamp="2024-09-09T05:16:49Z" changeset="156377166" uid="2425805" user="uknown-gryphus"/>
+  <node id="1723795929" lat="12.9175615" lon="77.6236280" version="2" timestamp="2015-07-30T07:21:07Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="1723812884" lat="12.9123212" lon="77.6258659" version="3" timestamp="2015-07-30T07:43:27Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="1723812907" lat="12.9168603" lon="77.6288171" version="4" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="1723812913" lat="12.9171404" lon="77.6228925" version="1" timestamp="2012-04-20T10:03:07Z" changeset="11361817" uid="634020" user="Prasanth Rajan"/>
+  <node id="1723812967" lat="12.9118944" lon="77.6261921" version="3" timestamp="2015-07-30T07:43:27Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="1723812971" lat="12.9176200" lon="77.6224757" version="2" timestamp="2013-09-26T13:15:36Z" changeset="18044654" uid="634020" user="Prasanth Rajan"/>
+  <node id="1723812983" lat="12.9115309" lon="77.6263591" version="4" timestamp="2024-05-23T03:55:32Z" changeset="151703177" uid="2425805" user="uknown-gryphus"/>
+  <node id="1723812991" lat="12.9175317" lon="77.6253078" version="3" timestamp="2015-07-30T07:51:20Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="1723813002" lat="12.9171082" lon="77.6227896" version="2" timestamp="2013-09-26T13:15:35Z" changeset="18044654" uid="634020" user="Prasanth Rajan"/>
+  <node id="1723840726" lat="12.9180437" lon="77.6223393" version="1" timestamp="2012-04-20T10:26:22Z" changeset="11361817" uid="634020" user="Prasanth Rajan"/>
+  <node id="1837005115" lat="12.9211600" lon="77.6205247" version="3" timestamp="2019-06-03T15:44:11Z" changeset="70890855" uid="8782065" user="vinay gowda"/>
+  <node id="1837005120" lat="12.9212646" lon="77.6204326" version="2" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus"/>
+  <node id="1837005124" lat="12.9218412" lon="77.6217106" version="2" timestamp="2019-06-03T15:44:11Z" changeset="70890855" uid="8782065" user="vinay gowda"/>
+  <node id="1837005129" lat="12.9227043" lon="77.6229131" version="1" timestamp="2012-07-24T21:08:04Z" changeset="12476578" uid="1306" user="PlaneMad"/>
+  <node id="1837005131" lat="12.9227511" lon="77.6232282" version="2" timestamp="2019-06-03T15:44:11Z" changeset="70890855" uid="8782065" user="vinay gowda"/>
+  <node id="1837005138" lat="12.9240947" lon="77.6286029" version="3" timestamp="2024-07-26T02:23:49Z" changeset="154418498" uid="2425805" user="uknown-gryphus">
+    <tag k="highway" v="traffic_signals"/>
+  </node>
+  <node id="2385130562" lat="12.9127953" lon="77.6243596" version="2" timestamp="2020-12-19T16:37:17Z" changeset="96114788" uid="10493403" user="tstsr"/>
+  <node id="2385130574" lat="12.9127263" lon="77.6232242" version="4" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="2385130575" lat="12.9127432" lon="77.6230435" version="3" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="2385133857" lat="12.9165801" lon="77.6235864" version="3" timestamp="2024-09-09T05:16:49Z" changeset="156377166" uid="2425805" user="uknown-gryphus"/>
+  <node id="2385133858" lat="12.9173475" lon="77.6237354" version="4" timestamp="2024-09-09T05:16:49Z" changeset="156377166" uid="2425805" user="uknown-gryphus"/>
+  <node id="2385134552" lat="12.9179832" lon="77.6225017" version="2" timestamp="2015-07-30T07:21:07Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="2389119238" lat="12.9120151" lon="77.6261219" version="2" timestamp="2015-07-30T07:43:27Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="2406851448" lat="12.9198761" lon="77.6173072" version="3" timestamp="2019-06-03T19:03:05Z" changeset="70897512" uid="8782065" user="vinay gowda"/>
+  <node id="2453736858" lat="12.9165405" lon="77.6317612" version="3" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="2471287779" lat="12.9169435" lon="77.6292565" version="4" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="2471287780" lat="12.9168241" lon="77.6292550" version="4" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="2472135134" lat="12.9189684" lon="77.6215952" version="1" timestamp="2013-09-26T13:15:35Z" changeset="18044654" uid="634020" user="Prasanth Rajan"/>
+  <node id="2472135136" lat="12.9201591" lon="77.6209061" version="1" timestamp="2013-09-26T13:15:35Z" changeset="18044654" uid="634020" user="Prasanth Rajan"/>
+  <node id="2472135138" lat="12.9204515" lon="77.6207247" version="1" timestamp="2013-09-26T13:15:35Z" changeset="18044654" uid="634020" user="Prasanth Rajan"/>
+  <node id="2472135139" lat="12.9151188" lon="77.6240446" version="2" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus"/>
+  <node id="2509423116" lat="12.9160516" lon="77.6186148" version="1" timestamp="2013-10-26T14:44:06Z" changeset="18552061" uid="634020" user="Prasanth Rajan"/>
+  <node id="2509423118" lat="12.9161699" lon="77.6199352" version="3" timestamp="2026-01-31T16:52:19Z" changeset="177933528" uid="2425805" user="uknown-gryphus"/>
+  <node id="2509423121" lat="12.9165505" lon="77.6229543" version="4" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="2509423122" lat="12.9160684" lon="77.6231905" version="3" timestamp="2020-02-21T11:53:34Z" changeset="81316040" uid="10285111" user="Anushad"/>
+  <node id="2509423123" lat="12.9161893" lon="77.6186346" version="4" timestamp="2025-01-17T05:22:03Z" changeset="161441774" uid="16275581" user="ompatekar"/>
+  <node id="2509428534" lat="12.9168542" lon="77.6212842" version="4" timestamp="2018-04-17T08:07:35Z" changeset="58160064" uid="15188" user="Polyglot">
+    <tag k="bus" v="yes"/>
+    <tag k="public_transport" v="stop_position"/>
+  </node>
+  <node id="2509428537" lat="12.9210474" lon="77.6182909" version="1" timestamp="2013-10-26T14:52:20Z" changeset="18552061" uid="634020" user="Prasanth Rajan"/>
+  <node id="2509428540" lat="12.9211938" lon="77.6184385" version="1" timestamp="2013-10-26T14:52:20Z" changeset="18552061" uid="634020" user="Prasanth Rajan"/>
+  <node id="2510395005" lat="12.9163194" lon="77.6166903" version="2" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="2619300312" lat="12.9166296" lon="77.6289134" version="2" timestamp="2015-07-30T07:51:20Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="2619300315" lat="12.9182166" lon="77.6219400" version="1" timestamp="2014-01-12T03:12:13Z" changeset="19946514" uid="492742" user="docaneesh"/>
+  <node id="2619300318" lat="12.9167749" lon="77.6210334" version="1" timestamp="2014-01-12T03:12:13Z" changeset="19946514" uid="492742" user="docaneesh"/>
+  <node id="2619300320" lat="12.9181732" lon="77.6218722" version="1" timestamp="2014-01-12T03:12:13Z" changeset="19946514" uid="492742" user="docaneesh"/>
+  <node id="2619300330" lat="12.9166941" lon="77.6292164" version="3" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="2619300333" lat="12.9181180" lon="77.6209335" version="1" timestamp="2014-01-12T03:12:13Z" changeset="19946514" uid="492742" user="docaneesh"/>
+  <node id="2619304351" lat="12.9171440" lon="77.6236144" version="4" timestamp="2026-04-23T09:16:57Z" changeset="181707704" uid="2425805" user="uknown-gryphus"/>
+  <node id="2971089259" lat="12.9171967" lon="77.6227353" version="1" timestamp="2014-07-20T05:47:58Z" changeset="24248258" uid="91490" user="Heinz_V"/>
+  <node id="2971089260" lat="12.9174509" lon="77.6227954" version="4" timestamp="2022-12-23T19:11:12Z" changeset="130433840" uid="2425805" user="uknown-gryphus">
+    <tag k="highway" v="traffic_signals"/>
+  </node>
+  <node id="2971089262" lat="12.9176101" lon="77.6227273" version="2" timestamp="2015-07-30T07:21:07Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="3161221547" lat="12.9214919" lon="77.6187173" version="1" timestamp="2014-11-01T15:37:11Z" changeset="26484236" uid="1765920" user="Nagesh_Blr"/>
+  <node id="3161221566" lat="12.9202663" lon="77.6177169" version="1" timestamp="2014-11-01T15:37:11Z" changeset="26484236" uid="1765920" user="Nagesh_Blr"/>
+  <node id="3672909296" lat="12.9185336" lon="77.6217925" version="2" timestamp="2015-07-30T07:21:07Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="3672909298" lat="12.9234331" lon="77.6187935" version="1" timestamp="2015-07-30T07:18:02Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="3672915610" lat="12.9177121" lon="77.6227392" version="1" timestamp="2015-07-30T07:21:07Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="3672915611" lat="12.9175595" lon="77.6231011" version="3" timestamp="2024-09-09T05:16:49Z" changeset="156377166" uid="2425805" user="uknown-gryphus"/>
+  <node id="3672940764" lat="12.9108981" lon="77.6267462" version="2" timestamp="2024-05-23T03:55:32Z" changeset="151703177" uid="2425805" user="uknown-gryphus"/>
+  <node id="3672954241" lat="12.9173827" lon="77.6238123" version="2" timestamp="2024-09-09T05:16:49Z" changeset="156377166" uid="2425805" user="uknown-gryphus"/>
+  <node id="3672954243" lat="12.9166389" lon="77.6287657" version="1" timestamp="2015-07-30T07:51:19Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="3672954244" lat="12.9166511" lon="77.6286445" version="1" timestamp="2015-07-30T07:51:19Z" changeset="32971161" uid="3103507" user="PR_Mapper"/>
+  <node id="3672954245" lat="12.9174506" lon="77.6256606" version="2" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="3672954246" lat="12.9174697" lon="77.6255041" version="2" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="3740373535" lat="12.9162914" lon="77.6234858" version="6" timestamp="2024-12-31T04:42:33Z" changeset="160819020" uid="2425805" user="uknown-gryphus"/>
+  <node id="3740373536" lat="12.9163778" lon="77.6230294" version="4" timestamp="2022-10-21T10:35:43Z" changeset="127875605" uid="16275581" user="ompatekar"/>
+  <node id="3804880020" lat="12.9174761" lon="77.6238988" version="2" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="3804880021" lat="12.9176182" lon="77.6253351" version="2" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="3804880023" lat="12.9166138" lon="77.6309395" version="2" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="3804880025" lat="12.9176102" lon="77.6255550" version="2" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="3804880026" lat="12.9175524" lon="77.6244169" version="2" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="3804880033" lat="12.9168049" lon="77.6283794" version="2" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="3804880035" lat="12.9176109" lon="77.6247091" version="2" timestamp="2018-07-23T04:40:43Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="3804943924" lat="12.9178679" lon="77.6256919" version="3" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="3804943925" lat="12.9177105" lon="77.6250219" version="2" timestamp="2018-07-23T04:40:44Z" changeset="60968885" uid="2425805" user="uknown-gryphus"/>
+  <node id="3805003786" lat="12.9168664" lon="77.6228536" version="3" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="3805003787" lat="12.9171577" lon="77.6228631" version="3" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="3805003788" lat="12.9170482" lon="77.6228392" version="3" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="3805003789" lat="12.9169462" lon="77.6228375" version="4" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar">
+    <tag k="highway" v="traffic_signals"/>
+    <tag k="traffic_signals" v="signal"/>
+  </node>
+  <node id="3805003790" lat="12.9173954" lon="77.6229259" version="4" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="4105324822" lat="12.9172887" lon="77.6229515" version="4" timestamp="2024-11-20T11:00:32Z" changeset="159360642" uid="16275581" user="ompatekar"/>
+  <node id="4206360249" lat="12.9165847" lon="77.6228622" version="2" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="4703140386" lat="12.9209276" lon="77.6202958" version="5" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus">
+    <tag k="highway" v="traffic_signals"/>
+  </node>
+  <node id="4803663641" lat="12.9236267" lon="77.6270650" version="2" timestamp="2019-06-03T15:44:11Z" changeset="70890855" uid="8782065" user="vinay gowda"/>
+  <node id="5067333232" lat="12.9178158" lon="77.6248781" version="2" timestamp="2024-03-13T06:32:54Z" changeset="148577413" uid="3926189" user="Vonter"/>
+  <node id="5067333233" lat="12.9176961" lon="77.6240038" version="2" timestamp="2024-03-13T06:32:54Z" changeset="148577413" uid="3926189" user="Vonter"/>
+  <node id="5067333234" lat="12.9176674" lon="77.6234801" version="3" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="5067333235" lat="12.9178623" lon="77.6230079" version="4" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="5067333236" lat="12.9181046" lon="77.6227173" version="4" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="5067333237" lat="12.9176988" lon="77.6229179" version="3" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="5067333239" lat="12.9185042" lon="77.6225295" version="3" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="5067333240" lat="12.9190028" lon="77.6221800" version="4" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="5067333241" lat="12.9190668" lon="77.6220452" version="3" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="5067333242" lat="12.9191001" lon="77.6218761" version="3" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="5067333243" lat="12.9190728" lon="77.6216997" version="3" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="5067333244" lat="12.9190240" lon="77.6216117" version="3" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="5067333245" lat="12.9189401" lon="77.6215249" version="3" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="5067333246" lat="12.9188463" lon="77.6214152" version="4" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="5389481767" lat="12.9215814" lon="77.6199308" version="1" timestamp="2018-02-05T10:21:28Z" changeset="56080580" uid="5680733" user="venkanna37"/>
+  <node id="5965902017" lat="12.9202307" lon="77.6208647" version="2" timestamp="2024-08-28T09:18:19Z" changeset="155869702" uid="19582889" user="chandrashekaru"/>
+  <node id="6130636338" lat="12.9181996" lon="77.6223676" version="5" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus"/>
+  <node id="6130636339" lat="12.9179206" lon="77.6221970" version="4" timestamp="2025-03-24T04:27:02Z" changeset="164013210" uid="19294194" user="olasakeeb"/>
+  <node id="6137525100" lat="12.9231182" lon="77.6242560" version="1" timestamp="2018-12-14T15:31:02Z" changeset="65477085" uid="9086369" user="Renganathan I"/>
+  <node id="6137525101" lat="12.9230244" lon="77.6242948" version="2" timestamp="2019-06-03T15:44:11Z" changeset="70890855" uid="8782065" user="vinay gowda"/>
+  <node id="6137767346" lat="12.9237296" lon="77.6269752" version="1" timestamp="2018-12-14T17:37:59Z" changeset="65480766" uid="9086375" user="SANDHYARANI"/>
+  <node id="6142782103" lat="12.9170451" lon="77.6235967" version="3" timestamp="2024-09-09T05:16:49Z" changeset="156377166" uid="2425805" user="uknown-gryphus"/>
+  <node id="6142951432" lat="12.9232583" lon="77.6248792" version="1" timestamp="2018-12-17T15:53:26Z" changeset="65554294" uid="8725961" user="Shyamala Chandrababu"/>
+  <node id="6152812151" lat="12.9194580" lon="77.6178532" version="1" timestamp="2018-12-22T03:56:02Z" changeset="65684952" uid="9086400" user="Siva U"/>
+  <node id="6162825333" lat="12.9163634" lon="77.6236474" version="6" timestamp="2025-01-21T09:50:51Z" changeset="161593126" uid="19294194" user="olasakeeb"/>
+  <node id="6182653341" lat="12.9163182" lon="77.6170671" version="3" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="6196977039" lat="12.9126626" lon="77.6256544" version="1" timestamp="2019-01-10T02:40:28Z" changeset="66180879" uid="9086377" user="Charitha CNK"/>
+  <node id="6417395916" lat="12.9232773" lon="77.6189926" version="1" timestamp="2019-04-20T07:52:58Z" changeset="69396815" uid="7579632" user="Kalpataru Das"/>
+  <node id="6461628322" lat="12.9127422" lon="77.6228914" version="2" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="6497456137" lat="12.9177084" lon="77.6247366" version="1" timestamp="2019-05-24T11:12:54Z" changeset="70582458" uid="2425805" user="uknown-gryphus"/>
+  <node id="6518859291" lat="12.9212859" lon="77.6185313" version="1" timestamp="2019-06-03T19:03:05Z" changeset="70897512" uid="8782065" user="vinay gowda"/>
+  <node id="6518859300" lat="12.9163528" lon="77.6163047" version="2" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="6521888721" lat="12.9127512" lon="77.6225709" version="2" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="6521888734" lat="12.9127096" lon="77.6237132" version="2" timestamp="2020-12-19T16:37:17Z" changeset="96114788" uid="10493403" user="tstsr"/>
+  <node id="6521888738" lat="12.9140439" lon="77.6243665" version="2" timestamp="2020-02-21T11:53:34Z" changeset="81316040" uid="10285111" user="Anushad"/>
+  <node id="6521888739" lat="12.9129435" lon="77.6250232" version="4" timestamp="2022-09-05T09:34:14Z" changeset="125805416" uid="16275544" user="nileshbarawkar"/>
+  <node id="6521888740" lat="12.9143149" lon="77.6241957" version="3" timestamp="2024-03-13T06:32:54Z" changeset="148577413" uid="3926189" user="Vonter"/>
+  <node id="6521888741" lat="12.9128671" lon="77.6246955" version="4" timestamp="2024-03-13T06:32:54Z" changeset="148577413" uid="3926189" user="Vonter"/>
+  <node id="6521888756" lat="12.9127883" lon="77.6217455" version="4" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="6521888993" lat="12.9220258" lon="77.6220184" version="1" timestamp="2019-06-04T19:06:33Z" changeset="70934678" uid="9086377" user="Charitha CNK"/>
+  <node id="6521889001" lat="12.9225657" lon="77.6193558" version="1" timestamp="2019-06-04T19:06:33Z" changeset="70934678" uid="9086377" user="Charitha CNK"/>
+  <node id="6521889009" lat="12.9228306" lon="77.6191968" version="1" timestamp="2019-06-04T19:06:33Z" changeset="70934678" uid="9086377" user="Charitha CNK"/>
+  <node id="6528148981" lat="12.9116454" lon="77.6263033" version="1" timestamp="2019-06-06T10:43:25Z" changeset="70984990" uid="8782065" user="vinay gowda"/>
+  <node id="6528167688" lat="12.9128735" lon="77.6239093" version="3" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="6528167690" lat="12.9128209" lon="77.6241988" version="2" timestamp="2020-12-19T16:37:17Z" changeset="96114788" uid="10493403" user="tstsr"/>
+  <node id="6531845886" lat="12.9195897" lon="77.6177069" version="1" timestamp="2019-06-07T11:04:33Z" changeset="71019514" uid="9086377" user="Charitha CNK"/>
+  <node id="6816543194" lat="12.9127649" lon="77.6224825" version="4" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="6887379345" lat="12.9174011" lon="77.6267966" version="2" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="6887379346" lat="12.9174749" lon="77.6270655" version="2" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="6968390494" lat="12.9213614" lon="77.6206183" version="1" timestamp="2019-11-12T08:22:01Z" changeset="76946489" uid="9086377" user="Charitha CNK"/>
+  <node id="6968390495" lat="12.9195205" lon="77.6213541" version="1" timestamp="2019-11-12T08:22:01Z" changeset="76946489" uid="9086377" user="Charitha CNK"/>
+  <node id="6970466614" lat="12.9200598" lon="77.6209846" version="1" timestamp="2019-11-13T00:46:15Z" changeset="76986827" uid="10285109" user="Smahat2"/>
+  <node id="6970652827" lat="12.9234795" lon="77.6187611" version="1" timestamp="2019-11-13T04:53:42Z" changeset="76991139" uid="9086377" user="Charitha CNK"/>
+  <node id="7018332326" lat="12.9178165" lon="77.6222664" version="2" timestamp="2023-05-06T07:44:20Z" changeset="135766379" uid="2425805" user="uknown-gryphus"/>
+  <node id="7018332328" lat="12.9177574" lon="77.6223044" version="2" timestamp="2023-05-06T07:44:20Z" changeset="135766379" uid="2425805" user="uknown-gryphus"/>
+  <node id="7062415783" lat="12.9214785" lon="77.6208375" version="1" timestamp="2019-12-17T05:26:04Z" changeset="78505974" uid="9086400" user="Siva U"/>
+  <node id="7172695073" lat="12.9220184" lon="77.6197926" version="2" timestamp="2023-09-05T13:27:26Z" changeset="140850561" uid="19574787" user="pavithralashu"/>
+  <node id="7232644748" lat="12.9134831" lon="77.6247047" version="1" timestamp="2020-02-21T11:53:34Z" changeset="81316040" uid="10285111" user="Anushad"/>
+  <node id="7232644749" lat="12.9152415" lon="77.6236515" version="2" timestamp="2024-08-27T06:03:38Z" changeset="155812007" uid="19620700" user="jyotikatke"/>
+  <node id="7294283056" lat="12.9175581" lon="77.6244453" version="3" timestamp="2026-11-11T04:26:20Z" changeset="191771398" uid="3926189" user="Vonter">
+    <tag k="bus" v="yes"/>
+    <tag k="name" v="Central Silk Board"/>
+    <tag k="name:en" v="Central Silk Board"/>
+    <tag k="name:kn" v="ಕೇಂದ್ರಿಯ ರೇಷ್ಮೆ ಇಲಾಖೆ"/>
+    <tag k="network" v="BMTC"/>
+    <tag k="network:wikidata" v="Q3345039"/>
+    <tag k="network:wikipedia" v="en:Bengaluru Metropolitan Transport Corporation"/>
+    <tag k="operator" v="BMTC"/>
+    <tag k="public_transport" v="stop_position"/>
+  </node>
+  <node id="7294299968" lat="12.9193942" lon="77.6211643" version="1" timestamp="2020-03-14T10:50:32Z" changeset="82190524" uid="3926189" user="Vonter"/>
+  <node id="7294299975" lat="12.9200060" lon="77.6208506" version="3" timestamp="2026-11-11T04:26:20Z" changeset="191771398" uid="3926189" user="Vonter">
+    <tag k="bus" v="yes"/>
+    <tag k="name" v="Madiwala"/>
+    <tag k="name:en" v="Madiwala"/>
+    <tag k="name:kn" v="ಮಡಿವಾಳ"/>
+    <tag k="network" v="BMTC"/>
+    <tag k="network:wikidata" v="Q3345039"/>
+    <tag k="network:wikipedia" v="en:Bengaluru Metropolitan Transport Corporation"/>
+    <tag k="operator" v="BMTC"/>
+    <tag k="public_transport" v="stop_position"/>
+  </node>
+  <node id="7479071347" lat="12.9217864" lon="77.6189636" version="1" timestamp="2020-05-04T09:32:17Z" changeset="84612470" uid="10882262" user="VLD212"/>
+  <node id="7488258471" lat="12.9226377" lon="77.6228023" version="2" timestamp="2022-12-30T18:28:45Z" changeset="130698414" uid="3926189" user="Vonter"/>
+  <node id="8239896807" lat="12.9164634" lon="77.6197582" version="4" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="8239896808" lat="12.9163779" lon="77.6195352" version="4" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="8239896810" lat="12.9163443" lon="77.6193191" version="3" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="8239896811" lat="12.9163339" lon="77.6189793" version="2" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="8239896812" lat="12.9163121" lon="77.6175646" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239896813" lat="12.9162816" lon="77.6171045" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239896814" lat="12.9162711" lon="77.6166660" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239896815" lat="12.9164012" lon="77.6155799" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239896816" lat="12.9164387" lon="77.6150652" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947017" lat="12.9164926" lon="77.6142033" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947018" lat="12.9165024" lon="77.6139489" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947019" lat="12.9165901" lon="77.6106789" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947020" lat="12.9166269" lon="77.6087690" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947021" lat="12.9166490" lon="77.6068966" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947022" lat="12.9167301" lon="77.6046272" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947023" lat="12.9167565" lon="77.6018886" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947031" lat="12.9165871" lon="77.6214669" version="4" timestamp="2026-01-31T16:52:19Z" changeset="177933528" uid="2425805" user="uknown-gryphus"/>
+  <node id="8239947032" lat="12.9162740" lon="77.6204783" version="3" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="8239947033" lat="12.9161431" lon="77.6200263" version="3" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="8239947035" lat="12.9161852" lon="77.6188446" version="4" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="8239947036" lat="12.9162143" lon="77.6183345" version="2" timestamp="2024-07-08T07:13:24Z" changeset="153689237" uid="10493403" user="tstsr"/>
+  <node id="8239947037" lat="12.9162126" lon="77.6175812" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947038" lat="12.9161807" lon="77.6170888" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947039" lat="12.9161772" lon="77.6166649" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947040" lat="12.9163031" lon="77.6155396" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947041" lat="12.9163545" lon="77.6150370" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947042" lat="12.9164078" lon="77.6141976" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947043" lat="12.9164169" lon="77.6139087" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947044" lat="12.9164666" lon="77.6106846" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947045" lat="12.9165563" lon="77.6068882" version="2" timestamp="2025-01-17T05:22:03Z" changeset="161441774" uid="16275581" user="ompatekar"/>
+  <node id="8239947046" lat="12.9166282" lon="77.6046139" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947047" lat="12.9166567" lon="77.6018855" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947084" lat="12.9166037" lon="77.6055308" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947085" lat="12.9166985" lon="77.6055093" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947087" lat="12.9165118" lon="77.6087578" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947088" lat="12.9165832" lon="77.6118255" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947091" lat="12.9164619" lon="77.6118265" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947094" lat="12.9163313" lon="77.6161169" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947095" lat="12.9163509" lon="77.6175426" version="1" timestamp="2020-12-18T10:10:50Z" changeset="96059952" uid="10493403" user="tstsr"/>
+  <node id="8239947097" lat="12.9161908" lon="77.6191564" version="3" timestamp="2025-01-17T05:22:03Z" changeset="161441774" uid="16275581" user="ompatekar"/>
+  <node id="8239947099" lat="12.9160480" lon="77.6181013" version="2" timestamp="2022-11-02T11:47:15Z" changeset="128387838" uid="16275581" user="ompatekar"/>
+  <node id="8243049230" lat="12.9127955" lon="77.6216014" version="4" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="8243049231" lat="12.9127080" lon="77.6212688" version="3" timestamp="2022-10-12T11:37:44Z" changeset="127410460" uid="3030846" user="Saikat Maiti"/>
+  <node id="8243049232" lat="12.9125446" lon="77.6207203" version="3" timestamp="2022-10-12T11:37:44Z" changeset="127410460" uid="3030846" user="Saikat Maiti"/>
+  <node id="8243049233" lat="12.9125080" lon="77.6201972" version="3" timestamp="2022-10-12T11:37:44Z" changeset="127410460" uid="3030846" user="Saikat Maiti"/>
+  <node id="8243049234" lat="12.9124883" lon="77.6196474" version="4" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="8243049235" lat="12.9125472" lon="77.6194208" version="4" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="8243049237" lat="12.9133254" lon="77.6184334" version="3" timestamp="2022-10-12T11:37:44Z" changeset="127410460" uid="3030846" user="Saikat Maiti"/>
+  <node id="8243049254" lat="12.9126770" lon="77.6236293" version="1" timestamp="2020-12-19T16:37:17Z" changeset="96114788" uid="10493403" user="tstsr"/>
+  <node id="8243174052" lat="12.9130260" lon="77.6251583" version="2" timestamp="2022-09-05T09:34:14Z" changeset="125805416" uid="16275544" user="nileshbarawkar"/>
+  <node id="8243174053" lat="12.9129192" lon="77.6249748" version="3" timestamp="2024-03-13T06:32:54Z" changeset="148577413" uid="3926189" user="Vonter"/>
+  <node id="9593357279" lat="12.9126289" lon="77.6255442" version="1" timestamp="2022-03-21T05:10:19Z" changeset="118718147" uid="14196197" user="BhargavKrish2122"/>
+  <node id="9719835309" lat="12.9124658" lon="77.6257763" version="1" timestamp="2022-05-06T07:08:01Z" changeset="120616295" uid="15089619" user="Khairunnisa1996"/>
+  <node id="9795169333" lat="12.9209742" lon="77.6182326" version="1" timestamp="2022-06-04T16:46:59Z" changeset="121946309" uid="2425805" user="uknown-gryphus"/>
+  <node id="9795169350" lat="12.9213448" lon="77.6202103" version="1" timestamp="2022-06-04T16:46:59Z" changeset="121946309" uid="2425805" user="uknown-gryphus"/>
+  <node id="9797838896" lat="12.9114595" lon="77.6261198" version="2" timestamp="2024-04-29T05:09:15Z" changeset="150644528" uid="21150819" user="olaag"/>
+  <node id="9797838897" lat="12.9114446" lon="77.6262768" version="1" timestamp="2022-06-06T06:06:57Z" changeset="122005448" uid="15089619" user="Khairunnisa1996"/>
+  <node id="9853869176" lat="12.9183567" lon="77.6222590" version="2" timestamp="2023-09-15T17:59:27Z" changeset="141314197" uid="2425805" user="uknown-gryphus"/>
+  <node id="9857190370" lat="12.9168937" lon="77.6235785" version="2" timestamp="2023-09-15T17:59:27Z" changeset="141314197" uid="2425805" user="uknown-gryphus"/>
+  <node id="9910908314" lat="12.9161423" lon="77.6168465" version="2" timestamp="2024-06-22T10:21:14Z" changeset="153023223" uid="2425805" user="uknown-gryphus"/>
+  <node id="9927375271" lat="12.9162034" lon="77.6194127" version="1" timestamp="2022-08-02T16:04:27Z" changeset="124398835" uid="3926189" user="Vonter"/>
+  <node id="9968184749" lat="12.9177011" lon="77.6236376" version="3" timestamp="2024-03-13T06:32:54Z" changeset="148577413" uid="3926189" user="Vonter"/>
+  <node id="10081476786" lat="12.9126517" lon="77.6210931" version="2" timestamp="2022-10-12T11:37:44Z" changeset="127410460" uid="3030846" user="Saikat Maiti"/>
+  <node id="10081538827" lat="12.9167765" lon="77.6215184" version="1" timestamp="2022-10-07T09:30:36Z" changeset="127141740" uid="16638013" user="nileshdhandak"/>
+  <node id="10081538830" lat="12.9168810" lon="77.6221002" version="2" timestamp="2024-10-21T12:20:08Z" changeset="158167304" uid="19831062" user="olaritam"/>
+  <node id="10081671364" lat="12.9141389" lon="77.6272759" version="3" timestamp="2023-10-13T08:45:47Z" changeset="142512461" uid="2425805" user="uknown-gryphus"/>
+  <node id="10081671384" lat="12.9119624" lon="77.6261525" version="1" timestamp="2022-10-07T10:40:55Z" changeset="127144780" uid="16638013" user="nileshdhandak"/>
+  <node id="10081671385" lat="12.9116638" lon="77.6257836" version="2" timestamp="2024-08-22T09:49:05Z" changeset="155596390" uid="9091656" user="SarangK"/>
+  <node id="10095107480" lat="12.9161515" lon="77.6171756" version="1" timestamp="2022-10-12T11:37:44Z" changeset="127410460" uid="3030846" user="Saikat Maiti"/>
+  <node id="10095107481" lat="12.9161138" lon="77.6172039" version="1" timestamp="2022-10-12T11:37:44Z" changeset="127410460" uid="3030846" user="Saikat Maiti"/>
+  <node id="10095107482" lat="12.9160720" lon="77.6172750" version="1" timestamp="2022-10-12T11:37:44Z" changeset="127410460" uid="3030846" user="Saikat Maiti"/>
+  <node id="10095107483" lat="12.9160517" lon="77.6173843" version="1" timestamp="2022-10-12T11:37:44Z" changeset="127410460" uid="3030846" user="Saikat Maiti"/>
+  <node id="10095107484" lat="12.9160439" lon="77.6175110" version="1" timestamp="2022-10-12T11:37:44Z" changeset="127410460" uid="3030846" user="Saikat Maiti"/>
+  <node id="10095126137" lat="12.9128426" lon="77.6220319" version="2" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="10095126143" lat="12.9125028" lon="77.6195481" version="2" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="10095126144" lat="12.9126334" lon="77.6192598" version="2" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="10095126145" lat="12.9132217" lon="77.6185463" version="1" timestamp="2022-10-12T11:37:44Z" changeset="127410460" uid="3030846" user="Saikat Maiti"/>
+  <node id="10095126151" lat="12.9145413" lon="77.6171227" version="2" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="10095126152" lat="12.9149302" lon="77.6167198" version="2" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="10095126153" lat="12.9150354" lon="77.6166494" version="2" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="10097182473" lat="12.9167038" lon="77.6205252" version="1" timestamp="2022-10-13T08:14:34Z" changeset="127454270" uid="12266079" user="Kavithaptpm"/>
+  <node id="10097182474" lat="12.9169554" lon="77.6213678" version="1" timestamp="2022-10-13T08:14:34Z" changeset="127454270" uid="12266079" user="Kavithaptpm"/>
+  <node id="10097182475" lat="12.9169193" lon="77.6214901" version="1" timestamp="2022-10-13T08:14:34Z" changeset="127454270" uid="12266079" user="Kavithaptpm"/>
+  <node id="10118500634" lat="12.9160163" lon="77.6238032" version="3" timestamp="2024-12-31T04:42:33Z" changeset="160819020" uid="2425805" user="uknown-gryphus"/>
+  <node id="10151254220" lat="12.9160441" lon="77.6175464" version="1" timestamp="2022-11-02T11:46:30Z" changeset="128387794" uid="16275581" user="ompatekar"/>
+  <node id="10153737446" lat="12.9193669" lon="77.6171072" version="1" timestamp="2022-11-03T04:41:26Z" changeset="128418017" uid="16275581" user="ompatekar"/>
+  <node id="10153741988" lat="12.9192192" lon="77.6180520" version="1" timestamp="2022-11-03T04:45:50Z" changeset="128418105" uid="16275581" user="ompatekar"/>
+  <node id="10153741991" lat="12.9189644" lon="77.6181697" version="1" timestamp="2022-11-03T04:45:50Z" changeset="128418105" uid="16275581" user="ompatekar"/>
+  <node id="10153812615" lat="12.9226750" lon="77.6231013" version="1" timestamp="2022-11-03T06:11:41Z" changeset="128420140" uid="16275544" user="nileshbarawkar"/>
+  <node id="10153835418" lat="12.9228900" lon="77.6236503" version="1" timestamp="2022-11-03T06:11:41Z" changeset="128420140" uid="16275544" user="nileshbarawkar"/>
+  <node id="10153960137" lat="12.9173496" lon="77.6233051" version="1" timestamp="2022-11-03T07:16:07Z" changeset="128422360" uid="10516176" user="Manithak"/>
+  <node id="10282769895" lat="12.9210808" lon="77.6203740" version="1" timestamp="2022-12-23T19:11:12Z" changeset="130433840" uid="2425805" user="uknown-gryphus"/>
+  <node id="10282769898" lat="12.9213128" lon="77.6202306" version="3" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus">
+    <tag k="highway" v="traffic_signals"/>
+  </node>
+  <node id="10282769901" lat="12.9212213" lon="77.6201362" version="2" timestamp="2025-04-01T11:20:50Z" changeset="164369693" uid="16275544" user="nileshbarawkar">
+    <tag k="crossing" v="marked"/>
+    <tag k="crossing:markings" v="yes"/>
+    <tag k="highway" v="crossing"/>
+    <tag k="tactile_paving" v="yes"/>
+  </node>
+  <node id="10282769902" lat="12.9212751" lon="77.6202544" version="1" timestamp="2022-12-23T19:11:12Z" changeset="130433840" uid="2425805" user="uknown-gryphus">
+    <tag k="crossing" v="uncontrolled"/>
+    <tag k="highway" v="crossing"/>
+  </node>
+  <node id="10282769905" lat="12.9181080" lon="77.6225080" version="2" timestamp="2023-09-15T17:59:27Z" changeset="141314197" uid="2425805" user="uknown-gryphus"/>
+  <node id="10282769906" lat="12.9184133" lon="77.6223207" version="1" timestamp="2022-12-23T19:11:12Z" changeset="130433840" uid="2425805" user="uknown-gryphus"/>
+  <node id="10282769907" lat="12.9185050" lon="77.6221845" version="1" timestamp="2022-12-23T19:11:12Z" changeset="130433840" uid="2425805" user="uknown-gryphus"/>
+  <node id="10282796509" lat="12.9173744" lon="77.6228281" version="1" timestamp="2022-12-23T19:11:12Z" changeset="130433840" uid="2425805" user="uknown-gryphus"/>
+  <node id="10282796511" lat="12.9173014" lon="77.6225966" version="2" timestamp="2023-05-06T07:44:20Z" changeset="135766379" uid="2425805" user="uknown-gryphus"/>
+  <node id="10301629533" lat="12.9132917" lon="77.6252720" version="1" timestamp="2023-01-03T02:34:29Z" changeset="130809264" uid="10989856" user="Anandh T"/>
+  <node id="10685050552" lat="12.9211101" lon="77.6204297" version="1" timestamp="2023-02-22T06:35:34Z" changeset="132863962" uid="16275581" user="ompatekar"/>
+  <node id="10775075568" lat="12.9210144" lon="77.6202471" version="1" timestamp="2023-03-31T09:04:22Z" changeset="134334936" uid="16638013" user="nileshdhandak"/>
+  <node id="10855370145" lat="12.9173328" lon="77.6228350" version="1" timestamp="2023-04-29T05:13:22Z" changeset="135490859" uid="2425805" user="uknown-gryphus"/>
+  <node id="10855370146" lat="12.9172966" lon="77.6228346" version="1" timestamp="2023-04-29T05:13:22Z" changeset="135490859" uid="2425805" user="uknown-gryphus"/>
+  <node id="10855370147" lat="12.9172563" lon="77.6228033" version="1" timestamp="2023-04-29T05:13:22Z" changeset="135490859" uid="2425805" user="uknown-gryphus"/>
+  <node id="10872824023" lat="12.9177118" lon="77.6236995" version="3" timestamp="2026-11-11T04:26:20Z" changeset="191771398" uid="3926189" user="Vonter">
+    <tag k="bus" v="yes"/>
+    <tag k="name" v="Silk Board"/>
+    <tag k="name:en" v="Silk Board"/>
+    <tag k="network" v="BMTC"/>
+    <tag k="network:wikidata" v="Q3345039"/>
+    <tag k="network:wikipedia" v="en:Bengaluru Metropolitan Transport Corporation"/>
+    <tag k="operator" v="BMTC"/>
+    <tag k="public_transport" v="stop_position"/>
+  </node>
+  <node id="10872824026" lat="12.9167774" lon="77.6223288" version="4" timestamp="2026-11-11T04:26:20Z" changeset="191771398" uid="3926189" user="Vonter">
+    <tag k="bus" v="yes"/>
+    <tag k="name" v="Silk Board"/>
+    <tag k="name:en" v="Silk Board"/>
+    <tag k="network" v="BMTC"/>
+    <tag k="network:wikidata" v="Q3345039"/>
+    <tag k="network:wikipedia" v="en:Bengaluru Metropolitan Transport Corporation"/>
+    <tag k="operator" v="BMTC"/>
+    <tag k="public_transport" v="stop_position"/>
+  </node>
+  <node id="11011902990" lat="12.9180104" lon="77.6213435" version="1" timestamp="2023-06-28T09:12:46Z" changeset="137869368" uid="18812446" user="neharikas"/>
+  <node id="11011919639" lat="12.9187727" lon="77.6182327" version="1" timestamp="2023-06-28T09:09:26Z" changeset="137869233" uid="18812446" user="neharikas"/>
+  <node id="11194357335" lat="12.9149416" lon="77.6243665" version="1" timestamp="2023-09-15T17:59:27Z" changeset="141314197" uid="2425805" user="uknown-gryphus"/>
+  <node id="11194357337" lat="12.9148074" lon="77.6244349" version="1" timestamp="2023-09-15T17:59:27Z" changeset="141314197" uid="2425805" user="uknown-gryphus"/>
+  <node id="11259449002" lat="12.9137829" lon="77.6322857" version="2" timestamp="2023-10-13T11:39:51Z" changeset="142520115" uid="2425805" user="uknown-gryphus">
+    <tag k="highway" v="crossing"/>
+  </node>
+  <node id="11259847533" lat="12.9140513" lon="77.6286239" version="1" timestamp="2023-10-13T11:39:51Z" changeset="142520115" uid="2425805" user="uknown-gryphus">
+    <tag k="highway" v="crossing"/>
+  </node>
+  <node id="11374929987" lat="12.9174544" lon="77.6242922" version="2" timestamp="2024-08-23T07:17:58Z" changeset="155636919" uid="19795114" user="kunalchhapre"/>
+  <node id="11374929988" lat="12.9175302" lon="77.6242664" version="1" timestamp="2023-11-25T08:34:33Z" changeset="144432870" uid="2425805" user="uknown-gryphus"/>
+  <node id="11374929996" lat="12.9174616" lon="77.6248704" version="1" timestamp="2023-11-25T08:34:33Z" changeset="144432870" uid="2425805" user="uknown-gryphus"/>
+  <node id="11374930008" lat="12.9164911" lon="77.6322917" version="2" timestamp="2025-02-23T05:18:07Z" changeset="162839103" uid="2425805" user="uknown-gryphus"/>
+  <node id="11384916085" lat="12.9180642" lon="77.6211386" version="1" timestamp="2023-11-30T04:17:08Z" changeset="144610759" uid="19574772" user="sambreen"/>
+  <node id="11664293080" lat="12.9175115" lon="77.6247419" version="1" timestamp="2024-02-26T04:17:39Z" changeset="147915658" uid="2425805" user="uknown-gryphus"/>
+  <node id="11664293081" lat="12.9175380" lon="77.6246532" version="2" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="11664293083" lat="12.9172672" lon="77.6233596" version="3" timestamp="2026-06-22T16:25:40Z" changeset="184439630" uid="3926189" user="Vonter"/>
+  <node id="11664293084" lat="12.9169125" lon="77.6228183" version="2" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="11664293085" lat="12.9168385" lon="77.6224551" version="2" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="11664293086" lat="12.9167706" lon="77.6221146" version="2" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="11664293087" lat="12.9166989" lon="77.6218727" version="2" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="11664293088" lat="12.9166519" lon="77.6226466" version="1" timestamp="2024-02-26T04:17:39Z" changeset="147915658" uid="2425805" user="uknown-gryphus"/>
+  <node id="11664293089" lat="12.9166984" lon="77.6225201" version="2" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="11664293090" lat="12.9167191" lon="77.6224655" version="2" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="11664293091" lat="12.9168034" lon="77.6222602" version="1" timestamp="2024-02-26T04:17:39Z" changeset="147915658" uid="2425805" user="uknown-gryphus"/>
+  <node id="11664293092" lat="12.9163879" lon="77.6234745" version="3" timestamp="2024-07-08T07:13:24Z" changeset="153689237" uid="10493403" user="tstsr"/>
+  <node id="11664293093" lat="12.9159263" lon="77.6237162" version="1" timestamp="2024-02-26T04:17:39Z" changeset="147915658" uid="2425805" user="uknown-gryphus"/>
+  <node id="11664293094" lat="12.9153976" lon="77.6240067" version="1" timestamp="2024-02-26T04:17:39Z" changeset="147915658" uid="2425805" user="uknown-gryphus"/>
+  <node id="11664293095" lat="12.9148464" lon="77.6243203" version="1" timestamp="2024-02-26T04:17:39Z" changeset="147915658" uid="2425805" user="uknown-gryphus"/>
+  <node id="11664293096" lat="12.9145188" lon="77.6243915" version="1" timestamp="2024-02-26T04:17:39Z" changeset="147915658" uid="2425805" user="uknown-gryphus"/>
+  <node id="11665582368" lat="12.9129408" lon="77.6253504" version="1" timestamp="2024-02-26T15:56:14Z" changeset="147938345" uid="249458" user="sk_trav"/>
+  <node id="11726543769" lat="12.9178256" lon="77.6253276" version="2" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="11726543770" lat="12.9178157" lon="77.6251117" version="1" timestamp="2024-03-13T06:32:54Z" changeset="148577413" uid="3926189" user="Vonter"/>
+  <node id="11726543771" lat="12.9177909" lon="77.6246490" version="1" timestamp="2024-03-13T06:32:54Z" changeset="148577413" uid="3926189" user="Vonter"/>
+  <node id="11726543772" lat="12.9177295" lon="77.6241964" version="1" timestamp="2024-03-13T06:32:54Z" changeset="148577413" uid="3926189" user="Vonter"/>
+  <node id="11726543773" lat="12.9177654" lon="77.6244170" version="1" timestamp="2024-03-13T06:32:54Z" changeset="148577413" uid="3926189" user="Vonter"/>
+  <node id="11726543774" lat="12.9176687" lon="77.6238075" version="1" timestamp="2024-03-13T06:32:54Z" changeset="148577413" uid="3926189" user="Vonter"/>
+  <node id="11726543775" lat="12.9176909" lon="77.6233348" version="3" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="11726543776" lat="12.9188884" lon="77.6222926" version="4" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="11726543777" lat="12.9187445" lon="77.6223980" version="3" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="11726718192" lat="12.9182871" lon="77.6213522" version="6" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="11809900885" lat="12.9241909" lon="77.6287288" version="1" timestamp="2024-04-11T15:57:42Z" changeset="149871401" uid="14828866" user="LBond93"/>
+  <node id="11810954339" lat="12.9117167" lon="77.6261085" version="1" timestamp="2024-04-12T04:14:10Z" changeset="149889754" uid="3926189" user="Vonter"/>
+  <node id="11810954342" lat="12.9121277" lon="77.6258542" version="1" timestamp="2024-04-12T04:14:10Z" changeset="149889754" uid="3926189" user="Vonter"/>
+  <node id="11886138314" lat="12.9161879" lon="77.6181144" version="1" timestamp="2024-05-07T08:53:56Z" changeset="150998626" uid="21182694" user="olasangeeth"/>
+  <node id="11927297367" lat="12.9123723" lon="77.6258342" version="1" timestamp="2024-05-23T03:55:32Z" changeset="151703177" uid="2425805" user="uknown-gryphus">
+    <tag k="crossing" v="uncontrolled"/>
+    <tag k="crossing:markings" v="zebra"/>
+    <tag k="highway" v="crossing"/>
+  </node>
+  <node id="11964440714" lat="12.9148111" lon="77.6242258" version="1" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="11964440729" lat="12.9161431" lon="77.6233472" version="1" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus"/>
+  <node id="11964440731" lat="12.9185930" lon="77.6219816" version="1" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus">
+    <tag k="maxspeed" v="40"/>
+    <tag k="traffic_sign" v="maxspeed"/>
+    <tag k="traffic_sign:direction" v="forward"/>
+  </node>
+  <node id="11964440742" lat="12.9212099" lon="77.6202961" version="1" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus"/>
+  <node id="11964440743" lat="12.9211609" lon="77.6201733" version="1" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus"/>
+  <node id="12000459724" lat="12.9154096" lon="77.6165486" version="1" timestamp="2024-06-22T10:21:14Z" changeset="153023223" uid="2425805" user="uknown-gryphus">
+    <tag k="crossing" v="unmarked"/>
+    <tag k="crossing:markings" v="no"/>
+    <tag k="highway" v="crossing"/>
+  </node>
+  <node id="12040966305" lat="12.9168819" lon="77.6233245" version="2" timestamp="2024-07-08T07:13:24Z" changeset="153689237" uid="10493403" user="tstsr"/>
+  <node id="12040966309" lat="12.9181035" lon="77.6213308" version="5" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="12040966310" lat="12.9188054" lon="77.6213794" version="4" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="12040966311" lat="12.9177180" lon="77.6211722" version="5" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="12040966313" lat="12.9172983" lon="77.6208466" version="5" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="12040966317" lat="12.9169280" lon="77.6204835" version="5" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="12040966319" lat="12.9168642" lon="77.6204042" version="5" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="12040966320" lat="12.9167296" lon="77.6202517" version="5" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="12040966321" lat="12.9176249" lon="77.6210992" version="4" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="12040966322" lat="12.9170452" lon="77.6206226" version="5" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="12040966323" lat="12.9165965" lon="77.6200749" version="4" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="12041127734" lat="12.9177069" lon="77.6254590" version="1" timestamp="2024-07-08T07:13:24Z" changeset="153689237" uid="10493403" user="tstsr"/>
+  <node id="12041127735" lat="12.9178017" lon="77.6257399" version="2" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12041127736" lat="12.9165005" lon="77.6212047" version="3" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12041127738" lat="12.9170258" lon="77.6205048" version="3" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="12041127739" lat="12.9173425" lon="77.6208167" version="3" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="12041127740" lat="12.9177408" lon="77.6211109" version="3" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="12041127742" lat="12.9181129" lon="77.6212690" version="3" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="12041127743" lat="12.9182833" lon="77.6212902" version="3" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="12041127744" lat="12.9186135" lon="77.6212908" version="3" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="12057714071" lat="12.9149255" lon="77.6242747" version="2" timestamp="2024-09-10T06:47:37Z" changeset="156424366" uid="19795114" user="kunalchhapre"/>
+  <node id="12068001056" lat="12.9169900" lon="77.6228348" version="1" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="12068001057" lat="12.9170990" lon="77.6228463" version="1" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="12068001058" lat="12.9172150" lon="77.6228991" version="1" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="12068001059" lat="12.9172151" lon="77.6230347" version="1" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="12068001060" lat="12.9172485" lon="77.6229219" version="1" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar"/>
+  <node id="12068004841" lat="12.9173384" lon="77.6228341" version="1" timestamp="2024-07-22T11:57:05Z" changeset="154259433" uid="16275581" user="ompatekar"/>
+  <node id="12129307874" lat="12.9174042" lon="77.6235614" version="1" timestamp="2024-08-23T07:17:58Z" changeset="155636919" uid="19795114" user="kunalchhapre"/>
+  <node id="12141720523" lat="12.9204171" lon="77.6207471" version="1" timestamp="2024-08-28T09:18:19Z" changeset="155869702" uid="19582889" user="chandrashekaru"/>
+  <node id="12145386614" lat="12.9114431" lon="77.6259458" version="1" timestamp="2024-08-30T04:24:43Z" changeset="155954701" uid="19620700" user="jyotikatke"/>
+  <node id="12164834291" lat="12.9174551" lon="77.6238004" version="1" timestamp="2024-09-09T05:16:49Z" changeset="156377166" uid="2425805" user="uknown-gryphus"/>
+  <node id="12165492400" lat="12.9207826" lon="77.6205402" version="1" timestamp="2024-09-09T13:00:51Z" changeset="156393598" uid="19294194" user="olasakeeb"/>
+  <node id="12165530408" lat="12.9205049" lon="77.6206949" version="1" timestamp="2024-09-09T13:00:51Z" changeset="156393598" uid="19294194" user="olasakeeb"/>
+  <node id="12167530150" lat="12.9175840" lon="77.6265194" version="3" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12179565694" lat="12.9126907" lon="77.6251865" version="1" timestamp="2024-09-16T05:14:45Z" changeset="156671487" uid="21150819" user="olaag"/>
+  <node id="12179565696" lat="12.9127269" lon="77.6251631" version="1" timestamp="2024-09-16T05:14:45Z" changeset="156671487" uid="21150819" user="olaag"/>
+  <node id="12181383755" lat="12.9173673" lon="77.6236747" version="1" timestamp="2024-09-17T05:01:33Z" changeset="156712886" uid="21150819" user="olaag"/>
+  <node id="12196409775" lat="12.9178569" lon="77.6258381" version="2" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12196409792" lat="12.9178659" lon="77.6257399" version="2" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12196449734" lat="12.9164764" lon="77.6233750" version="1" timestamp="2024-09-24T07:08:58Z" changeset="157024583" uid="21150819" user="olaag"/>
+  <node id="12196449735" lat="12.9163304" lon="77.6230541" version="1" timestamp="2024-09-24T07:08:58Z" changeset="157024583" uid="21150819" user="olaag"/>
+  <node id="12196449736" lat="12.9163628" lon="77.6234390" version="2" timestamp="2025-01-21T09:50:51Z" changeset="161593126" uid="19294194" user="olasakeeb"/>
+  <node id="12196461255" lat="12.9148756" lon="77.6244002" version="1" timestamp="2024-09-24T07:05:02Z" changeset="157024463" uid="19294215" user="akshayola"/>
+  <node id="12229219527" lat="12.9179911" lon="77.6223147" version="3" timestamp="2026-11-11T04:26:20Z" changeset="191771398" uid="3926189" user="Vonter">
+    <tag k="bus" v="yes"/>
+    <tag k="network" v="BMTC"/>
+    <tag k="network:wikidata" v="Q3345039"/>
+    <tag k="network:wikipedia" v="en:Bengaluru Metropolitan Transport Corporation"/>
+    <tag k="operator" v="BMTC"/>
+    <tag k="public_transport" v="stop_position"/>
+  </node>
+  <node id="12249984864" lat="12.9137805" lon="77.6323629" version="1" timestamp="2024-10-14T07:51:27Z" changeset="157863682" uid="19819867" user="kavig"/>
+  <node id="12273334034" lat="12.9162567" lon="77.6196739" version="2" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="12273334035" lat="12.9161022" lon="77.6195751" version="1" timestamp="2024-10-21T12:20:08Z" changeset="158167304" uid="19831062" user="olaritam"/>
+  <node id="12328471497" lat="12.9214902" lon="77.6210995" version="3" timestamp="2026-11-11T04:26:20Z" changeset="191771398" uid="3926189" user="Vonter">
+    <tag k="bus" v="yes"/>
+    <tag k="name" v="Madivala"/>
+    <tag k="name:en" v="Madivala"/>
+    <tag k="name:kn" v="ಮಡಿವಾಳ"/>
+    <tag k="network" v="BMTC"/>
+    <tag k="network:wikidata" v="Q3345039"/>
+    <tag k="network:wikipedia" v="en:Bengaluru Metropolitan Transport Corporation"/>
+    <tag k="operator" v="BMTC"/>
+    <tag k="public_transport" v="stop_position"/>
+  </node>
+  <node id="12406990360" lat="12.9221473" lon="77.6194102" version="1" timestamp="2024-12-09T11:20:12Z" changeset="160088078" uid="10626847" user="SK@"/>
+  <node id="12456109869" lat="12.9175912" lon="77.6267440" version="2" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12464229060" lat="12.9153499" lon="77.6241525" version="1" timestamp="2024-12-31T04:42:33Z" changeset="160819020" uid="2425805" user="uknown-gryphus"/>
+  <node id="12464229061" lat="12.9140768" lon="77.6248164" version="1" timestamp="2024-12-31T04:42:33Z" changeset="160819020" uid="2425805" user="uknown-gryphus">
+    <tag k="traffic_calming" v="hump"/>
+  </node>
+  <node id="12617824683" lat="12.9212926" lon="77.6207556" version="1" timestamp="2025-02-25T09:41:24Z" changeset="162924042" uid="16275581" user="ompatekar"/>
+  <node id="12635372070" lat="12.9173444" lon="77.6249322" version="1" timestamp="2025-03-04T09:19:19Z" changeset="163192759" uid="19574772" user="sambreen"/>
+  <node id="12673094814" lat="12.9212494" lon="77.6202708" version="1" timestamp="2025-03-17T13:18:55Z" changeset="163731951" uid="19438866" user="adianand"/>
+  <node id="12695683918" lat="12.9164670" lon="77.6198819" version="1" timestamp="2025-03-24T02:59:02Z" changeset="164012068" uid="19574772" user="sambreen"/>
+  <node id="12695683928" lat="12.9165077" lon="77.6200281" version="1" timestamp="2025-03-24T02:59:02Z" changeset="164012068" uid="19574772" user="sambreen"/>
+  <node id="12697864643" lat="12.9168631" lon="77.6221488" version="1" timestamp="2025-03-25T03:58:48Z" changeset="164058572" uid="19294194" user="olasakeeb"/>
+  <node id="12774260876" lat="12.9130333" lon="77.6254247" version="1" timestamp="2025-04-22T04:21:50Z" changeset="165265064" uid="19505674" user="alivapanda"/>
+  <node id="12822455068" lat="12.9174072" lon="77.6271288" version="2" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12969313164" lat="12.9177301" lon="77.6260659" version="1" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12969313169" lat="12.9162035" lon="77.6188701" version="1" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12969313170" lat="12.9171720" lon="77.6269470" version="1" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12969313171" lat="12.9167864" lon="77.6281379" version="1" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12969313172" lat="12.9170256" lon="77.6270919" version="1" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12969313173" lat="12.9173223" lon="77.6264843" version="1" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12969313174" lat="12.9174399" lon="77.6260552" version="1" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12969313175" lat="12.9174909" lon="77.6258647" version="1" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12969313176" lat="12.9175341" lon="77.6256676" version="1" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12969313177" lat="12.9175550" lon="77.6254316" version="1" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12969313178" lat="12.9175680" lon="77.6251942" version="1" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="12969313179" lat="12.9175690" lon="77.6249565" version="1" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus"/>
+  <node id="13063288939" lat="12.9122579" lon="77.6259188" version="1" timestamp="2025-08-11T11:23:24Z" changeset="170287725" uid="22299024" user="mitz01"/>
+  <node id="13070461151" lat="12.9162105" lon="77.6199369" version="1" timestamp="2025-08-14T09:14:59Z" changeset="170425643" uid="3926189" user="Vonter"/>
+  <node id="13074467237" lat="12.9168704" lon="77.6210831" version="1" timestamp="2025-08-16T15:28:59Z" changeset="170529015" uid="3926189" user="Vonter"/>
+  <node id="13074467238" lat="12.9167977" lon="77.6211055" version="1" timestamp="2025-08-16T15:28:59Z" changeset="170529015" uid="3926189" user="Vonter"/>
+  <node id="13075406631" lat="12.9163890" lon="77.6194449" version="1" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="13075406632" lat="12.9183288" lon="77.6226139" version="1" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="13075406633" lat="12.9177667" lon="77.6231691" version="1" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="13075406634" lat="12.9179414" lon="77.6212219" version="2" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="13075406635" lat="12.9179259" lon="77.6212926" version="2" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="13075406636" lat="12.9185985" lon="77.6213565" version="2" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="13075406637" lat="12.9161579" lon="77.6172407" version="1" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="13075406638" lat="12.9161158" lon="77.6173179" version="1" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="13075406639" lat="12.9161288" lon="77.6180327" version="1" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="13075406640" lat="12.9161458" lon="77.6185074" version="1" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus"/>
+  <node id="13075406642" lat="12.9166887" lon="77.6293197" version="1" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus">
+    <tag k="traffic_calming" v="hump"/>
+  </node>
+  <node id="13272232850" lat="12.9231665" lon="77.6189720" version="1" timestamp="2025-10-31T13:30:22Z" changeset="174021414" uid="19294160" user="manojkiccha"/>
+  <node id="13277412194" lat="12.9163216" lon="77.6235604" version="1" timestamp="2025-11-03T11:12:12Z" changeset="174142267" uid="19505674" user="alivapanda"/>
+  <node id="13277412195" lat="12.9163061" lon="77.6235845" version="1" timestamp="2025-11-03T11:12:12Z" changeset="174142267" uid="19505674" user="alivapanda"/>
+  <node id="13277412196" lat="12.9162560" lon="77.6236070" version="1" timestamp="2025-11-03T11:12:12Z" changeset="174142267" uid="19505674" user="alivapanda"/>
+  <node id="13277412197" lat="12.9161089" lon="77.6236779" version="1" timestamp="2025-11-03T11:12:12Z" changeset="174142267" uid="19505674" user="alivapanda"/>
+  <node id="13277412198" lat="12.9160357" lon="77.6237593" version="1" timestamp="2025-11-03T11:12:12Z" changeset="174142267" uid="19505674" user="alivapanda"/>
+  <node id="13277412199" lat="12.9160645" lon="77.6237168" version="1" timestamp="2025-11-03T11:12:12Z" changeset="174142267" uid="19505674" user="alivapanda"/>
+  <node id="13287054979" lat="12.9192811" lon="77.6180205" version="1" timestamp="2025-11-07T11:29:26Z" changeset="174329423" uid="19294160" user="manojkiccha"/>
+  <node id="13304404065" lat="12.9227661" lon="77.6230178" version="1" timestamp="2025-11-14T10:24:57Z" changeset="174641676" uid="19294160" user="manojkiccha"/>
+  <node id="13337723222" lat="12.9145950" lon="77.6242019" version="1" timestamp="2025-11-28T06:19:09Z" changeset="175224705" uid="19505674" user="alivapanda"/>
+  <node id="13337723223" lat="12.9146418" lon="77.6240088" version="1" timestamp="2025-11-28T06:19:09Z" changeset="175224705" uid="19505674" user="alivapanda"/>
+  <node id="13354702089" lat="12.9166326" lon="77.6201341" version="2" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="13379577435" lat="12.9166696" lon="77.6009778" version="1" timestamp="2025-12-16T01:01:22Z" changeset="175984050" uid="2742073" user="arjunaraoc"/>
+  <node id="13379577436" lat="12.9167707" lon="77.6009818" version="1" timestamp="2025-12-16T01:01:22Z" changeset="175984050" uid="2742073" user="arjunaraoc"/>
+  <node id="13633880270" lat="12.9142548" lon="77.6247184" version="1" timestamp="2026-03-10T12:30:04Z" changeset="179636983" uid="21150819" user="olaag"/>
+  <node id="13633880281" lat="12.9139861" lon="77.6248690" version="1" timestamp="2026-03-10T12:30:04Z" changeset="179636983" uid="21150819" user="olaag"/>
+  <node id="13633888819" lat="12.9136533" lon="77.6246021" version="1" timestamp="2026-03-10T12:35:32Z" changeset="179637254" uid="21150819" user="olaag"/>
+  <node id="13633888826" lat="12.9140687" lon="77.6243509" version="1" timestamp="2026-03-10T12:35:32Z" changeset="179637254" uid="21150819" user="olaag"/>
+  <node id="13633949214" lat="12.9112778" lon="77.6265139" version="1" timestamp="2026-03-10T12:52:32Z" changeset="179638018" uid="21150819" user="olaag"/>
+  <node id="13633949224" lat="12.9110446" lon="77.6266566" version="1" timestamp="2026-03-10T12:52:32Z" changeset="179638018" uid="21150819" user="olaag"/>
+  <node id="13633977470" lat="12.9109912" lon="77.6266893" version="1" timestamp="2026-03-10T13:09:20Z" changeset="179638759" uid="21150819" user="olaag"/>
+  <node id="13633977480" lat="12.9106762" lon="77.6268810" version="1" timestamp="2026-03-10T13:09:20Z" changeset="179638759" uid="21150819" user="olaag"/>
+  <node id="13690404243" lat="12.9128348" lon="77.6219326" version="1" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="13690404261" lat="12.9128606" lon="77.6238558" version="1" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="13690404274" lat="12.9126883" lon="77.6236707" version="1" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="13690414706" lat="12.9127953" lon="77.6216789" version="1" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="13690414726" lat="12.9127759" lon="77.6190244" version="1" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus"/>
+  <node id="13748051108" lat="12.9175639" lon="77.6231201" version="1" timestamp="2026-04-21T10:04:12Z" changeset="181619040" uid="19294194" user="olasakeeb"/>
+  <node id="13748051109" lat="12.9174482" lon="77.6231480" version="1" timestamp="2026-04-21T10:04:12Z" changeset="181619040" uid="19294194" user="olasakeeb"/>
+  <node id="13757865467" lat="12.9168859" lon="77.6278307" version="1" timestamp="2026-04-24T05:19:15Z" changeset="181746276" uid="2425805" user="uknown-gryphus">
+    <tag k="maxspeed" v="40"/>
+    <tag k="traffic_sign" v="maxspeed"/>
+  </node>
+  <node id="13757865468" lat="12.9168983" lon="77.6277922" version="1" timestamp="2026-04-24T05:19:15Z" changeset="181746276" uid="2425805" user="uknown-gryphus">
+    <tag k="traffic_calming" v="rumble_strip"/>
+  </node>
+  <node id="13757865469" lat="12.9167250" lon="77.6283003" version="2" timestamp="2026-07-14T16:22:08Z" changeset="185727746" uid="21731097" user="Aswin Benny">
+    <tag k="barrier" v="height_restrictor"/>
+    <tag k="maxheight" v="4.5"/>
+  </node>
+  <node id="13907058885" lat="12.9203687" lon="77.6206323" version="1" timestamp="2026-06-03T12:11:23Z" changeset="183590918" uid="19294194" user="olasakeeb"/>
+  <node id="13912213836" lat="12.9205958" lon="77.6204956" version="1" timestamp="2026-06-05T12:45:22Z" changeset="183694121" uid="21150819" user="olaag"/>
+  <node id="13955791828" lat="12.9158764" lon="77.6238765" version="2" timestamp="2026-11-11T04:26:23Z" changeset="191771398" uid="3926189" user="Vonter">
+    <tag k="bus" v="yes"/>
+    <tag k="name" v="Silk Board Junction"/>
+    <tag k="name:en" v="Silk Board Junction"/>
+    <tag k="network" v="BMTC"/>
+    <tag k="network:wikidata" v="Q3345039"/>
+    <tag k="network:wikipedia" v="en:Bengaluru Metropolitan Transport Corporation"/>
+    <tag k="operator" v="BMTC"/>
+    <tag k="public_transport" v="stop_position"/>
+  </node>
+  <node id="13958221227" lat="12.9184547" lon="77.6222593" version="1" timestamp="2026-06-22T16:25:40Z" changeset="184439630" uid="3926189" user="Vonter"/>
+  <node id="13982856019" lat="12.9110221" lon="77.6266704" version="1" timestamp="2026-07-02T11:33:07Z" changeset="184970404" uid="18812448" user="rajanik"/>
+  <node id="14038716958" lat="12.9161526" lon="77.6237308" version="1" timestamp="2026-07-22T07:23:53Z" changeset="186160875" uid="19582889" user="chandrashekaru"/>
+  <node id="14136491822" lat="12.9168179" lon="77.6202167" version="1" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="14136491823" lat="12.9187527" lon="77.6213223" version="1" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="14136491824" lat="12.9187356" lon="77.6213899" version="1" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="14136491825" lat="12.9180073" lon="77.6212438" version="1" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="14136491826" lat="12.9179939" lon="77.6213126" version="1" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda"/>
+  <node id="14136491832" lat="12.9105848" lon="77.6268087" version="1" timestamp="2026-08-31T07:08:43Z" changeset="188288333" uid="16531141" user="tusharvalvi"/>
+  <node id="14231996107" lat="12.9170799" lon="77.6223011" version="1" timestamp="2026-09-29T15:21:25Z" changeset="189734133" uid="4685130" user="contrapunctus"/>
+  <node id="14231996113" lat="12.9182348" lon="77.6198937" version="1" timestamp="2026-09-29T15:21:25Z" changeset="189734133" uid="4685130" user="contrapunctus">
+    <tag k="traffic_calming" v="bump"/>
+  </node>
+  <node id="14231996131" lat="12.9169173" lon="77.6219358" version="1" timestamp="2026-09-29T15:21:25Z" changeset="189734133" uid="4685130" user="contrapunctus">
+    <tag k="crossing:island" v="yes"/>
+    <tag k="crossing:markings" v="no"/>
+    <tag k="crossing:signals" v="no"/>
+    <tag k="highway" v="crossing"/>
+  </node>
+  <node id="14231996151" lat="12.9181974" lon="77.6201781" version="1" timestamp="2026-09-29T15:21:25Z" changeset="189734133" uid="4685130" user="contrapunctus">
+    <tag k="traffic_calming" v="bump"/>
+  </node>
+  <node id="14232070420" lat="12.9170999" lon="77.6220290" version="1" timestamp="2026-09-29T15:21:25Z" changeset="189734133" uid="4685130" user="contrapunctus">
+    <tag k="crossing:island" v="yes"/>
+    <tag k="crossing:markings" v="no"/>
+    <tag k="crossing:signals" v="no"/>
+    <tag k="highway" v="crossing"/>
+  </node>
+  <way id="27555707" version="28" timestamp="2026-01-01T16:03:49Z" changeset="176709255" uid="14062769" user="NaanAvanIllai">
+    <nd ref="10282796511"/>
+    <nd ref="10282796509"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lanes" v="3"/>
+    <tag k="maxheight" v="5.5"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="27934854" version="22" timestamp="2025-11-07T13:54:18Z" changeset="174335452" uid="19294194" user="olasakeeb">
+    <nd ref="12249984864"/>
+    <nd ref="11259449002"/>
+    <nd ref="306619430"/>
+    <nd ref="306613207"/>
+    <nd ref="306619236"/>
+    <nd ref="306619290"/>
+    <nd ref="306612618"/>
+    <nd ref="11259847533"/>
+    <nd ref="306613918"/>
+    <nd ref="306611966"/>
+    <nd ref="1417443754"/>
+    <nd ref="10081671364"/>
+    <nd ref="306611415"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="name" v="15th Cross Road"/>
+    <tag k="name:kn" v="೧೫ನೇ ಅಡ್ಡ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="separate"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="27994464" version="12" timestamp="2026-09-29T15:21:25Z" changeset="189734133" uid="4685130" user="contrapunctus">
+    <nd ref="307409022"/>
+    <nd ref="307409041"/>
+    <nd ref="307408085"/>
+    <nd ref="308717371"/>
+    <nd ref="308717373"/>
+    <nd ref="14231996113"/>
+    <nd ref="14231996151"/>
+    <nd ref="307408086"/>
+    <tag k="highway" v="tertiary"/>
+  </way>
+  <way id="40696200" version="12" timestamp="2025-09-06T08:08:57Z" changeset="171529670" uid="19294160" user="manojkiccha">
+    <nd ref="307409018"/>
+    <nd ref="494271030"/>
+    <nd ref="3161221566"/>
+    <nd ref="494271056"/>
+    <nd ref="494271025"/>
+    <nd ref="9795169333"/>
+    <nd ref="2509428537"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="name" v="VP Road"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="40696219" version="14" timestamp="2022-12-23T19:11:12Z" changeset="130433840" uid="2425805" user="uknown-gryphus">
+    <nd ref="494271084"/>
+    <nd ref="494271083"/>
+    <nd ref="494271082"/>
+    <nd ref="10282769907"/>
+    <nd ref="9853869176"/>
+    <nd ref="6130636338"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="oneway" v="yes"/>
+  </way>
+  <way id="40696221" version="28" timestamp="2026-04-02T13:19:49Z" changeset="180767825" uid="2425805" user="uknown-gryphus">
+    <nd ref="1613147978"/>
+    <nd ref="11964440731"/>
+    <nd ref="1723840726"/>
+    <nd ref="1723812913"/>
+    <nd ref="2472135139"/>
+    <tag k="alt_name" v="Hosur Road"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="layer" v="1"/>
+    <tag k="lit" v="yes"/>
+    <tag k="loc_name" v="Hosur Road"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="maxweight:signed" v="no"/>
+    <tag k="name" v="Silk Board Flyover"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="official_name" v="Sri Mahasharana Madiwala Machideva Flyover"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="overtaking" v="no"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="40696222" version="26" timestamp="2026-04-02T13:19:49Z" changeset="180767825" uid="2425805" user="uknown-gryphus">
+    <nd ref="494271069"/>
+    <nd ref="11964440729"/>
+    <nd ref="1723813002"/>
+    <nd ref="2971089259"/>
+    <nd ref="1723812971"/>
+    <nd ref="1613147976"/>
+    <tag k="alt_name" v="Hosur Road"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="layer" v="1"/>
+    <tag k="lit" v="yes"/>
+    <tag k="loc_name" v="Hosur Road"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="maxweight:signed" v="no"/>
+    <tag k="name" v="Silk Board Flyover"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="official_name" v="Sri Mahasharana Madiwala Machideva Flyover"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="overtaking" v="no"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="40696223" version="30" timestamp="2024-08-27T06:36:58Z" changeset="155813157" uid="19620700" user="jyotikatke">
+    <nd ref="5965902017"/>
+    <nd ref="2472135136"/>
+    <nd ref="6970466614"/>
+    <nd ref="6968390495"/>
+    <nd ref="494271084"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="2"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="good"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="92196679" version="25" timestamp="2025-09-07T17:35:48Z" changeset="171597059" uid="10820632" user="hashhar">
+    <nd ref="260911861"/>
+    <nd ref="262431180"/>
+    <nd ref="262431181"/>
+    <nd ref="4803663641"/>
+    <nd ref="1473241748"/>
+    <nd ref="6137525101"/>
+    <nd ref="10153835418"/>
+    <nd ref="262431182"/>
+    <nd ref="1837005131"/>
+    <nd ref="10153812615"/>
+    <nd ref="6521888993"/>
+    <nd ref="1837005124"/>
+    <nd ref="12328471497"/>
+    <nd ref="12617824683"/>
+    <tag k="highway" v="primary"/>
+    <tag k="lane_markings" v="no"/>
+    <tag k="lit" v="yes"/>
+    <tag k="name" v="Madiwala Sarjapura Road"/>
+    <tag k="name:kn" v="ಮಡಿವಾಳ ಸರ್ಜಾಪುರ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="both"/>
+    <tag k="sidewalk:left:surface" v="paving_stones"/>
+    <tag k="surface" v="concrete"/>
+  </way>
+  <way id="133763765" version="27" timestamp="2024-12-07T15:27:45Z" changeset="160030645" uid="20472195" user="chirag_sukhala">
+    <nd ref="1472248429"/>
+    <nd ref="1472248431"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="good"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="160330784" version="9" timestamp="2026-08-18T00:27:53Z" changeset="187613991" uid="21731097" user="Aswin Benny">
+    <nd ref="1723790725"/>
+    <nd ref="1723790751"/>
+    <nd ref="1723790771"/>
+    <nd ref="1723790748"/>
+    <nd ref="1723790769"/>
+    <nd ref="1723790755"/>
+    <nd ref="1723790753"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="lane_markings" v="no"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="160331538" version="9" timestamp="2022-12-23T19:11:12Z" changeset="130433840" uid="2425805" user="uknown-gryphus">
+    <nd ref="1472878464"/>
+    <nd ref="2385134552"/>
+    <nd ref="2971089262"/>
+    <nd ref="2971089260"/>
+    <nd ref="10282796509"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="160331539" version="12" timestamp="2026-06-22T16:25:40Z" changeset="184439630" uid="3926189" user="Vonter">
+    <nd ref="10282769907"/>
+    <nd ref="13958221227"/>
+    <nd ref="10282769906"/>
+    <nd ref="10282769905"/>
+    <nd ref="1723795926"/>
+    <nd ref="3672915610"/>
+    <nd ref="1723795920"/>
+    <nd ref="1723795922"/>
+    <nd ref="1723795928"/>
+    <nd ref="3672915611"/>
+    <nd ref="13748051108"/>
+    <nd ref="9968184749"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="lane_markings" v="no"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="160556513" version="26" timestamp="2026-03-10T12:35:32Z" changeset="179637254" uid="21150819" user="olaag">
+    <nd ref="752203531"/>
+    <nd ref="12145386614"/>
+    <nd ref="1723780079"/>
+    <nd ref="10081671385"/>
+    <nd ref="1723780080"/>
+    <nd ref="1723780076"/>
+    <nd ref="12179565694"/>
+    <nd ref="12179565696"/>
+    <nd ref="6521888739"/>
+    <nd ref="7232644748"/>
+    <nd ref="13633888819"/>
+    <nd ref="6521888738"/>
+    <nd ref="13633888826"/>
+    <nd ref="6521888740"/>
+    <nd ref="13337723223"/>
+    <tag k="frontage_road" v="yes"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Service Road"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="172853382" version="29" timestamp="2026-07-06T05:01:47Z" changeset="185174743" uid="21731097" user="Aswin Benny">
+    <nd ref="1472248450"/>
+    <nd ref="6417395916"/>
+    <nd ref="1614298011"/>
+    <nd ref="1617743335"/>
+    <nd ref="7172695073"/>
+    <nd ref="9795169350"/>
+    <nd ref="10282769898"/>
+    <nd ref="10282769902"/>
+    <nd ref="12673094814"/>
+    <nd ref="11964440742"/>
+    <tag k="highway" v="primary"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="2"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="left"/>
+    <tag k="smoothness" v="good"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="229976708" version="19" timestamp="2026-03-30T05:51:38Z" changeset="180613029" uid="2425805" user="uknown-gryphus">
+    <nd ref="1309736835"/>
+    <nd ref="12000459724"/>
+    <nd ref="1309736834"/>
+    <nd ref="1309736836"/>
+    <nd ref="10095126153"/>
+    <nd ref="1309736838"/>
+    <nd ref="10095126152"/>
+    <nd ref="10095126151"/>
+    <nd ref="737856638"/>
+    <nd ref="737856902"/>
+    <nd ref="737857272"/>
+    <nd ref="8243049237"/>
+    <nd ref="10095126145"/>
+    <nd ref="737857047"/>
+    <nd ref="13690414726"/>
+    <nd ref="10095126144"/>
+    <nd ref="8243049235"/>
+    <nd ref="10095126143"/>
+    <nd ref="8243049234"/>
+    <nd ref="8243049233"/>
+    <nd ref="8243049232"/>
+    <nd ref="10081476786"/>
+    <nd ref="8243049231"/>
+    <nd ref="8243049230"/>
+    <nd ref="13690414706"/>
+    <nd ref="6521888756"/>
+    <nd ref="13690404243"/>
+    <nd ref="10095126137"/>
+    <nd ref="1309736989"/>
+    <nd ref="6816543194"/>
+    <nd ref="6521888721"/>
+    <nd ref="1309736986"/>
+    <nd ref="6461628322"/>
+    <nd ref="2385130575"/>
+    <nd ref="2385130574"/>
+    <nd ref="8243049254"/>
+    <nd ref="13690404274"/>
+    <nd ref="6521888734"/>
+    <nd ref="1309736990"/>
+    <nd ref="13690404261"/>
+    <nd ref="6528167688"/>
+    <nd ref="6528167690"/>
+    <nd ref="2385130562"/>
+    <nd ref="752202889"/>
+    <nd ref="6521888741"/>
+    <nd ref="8243174053"/>
+    <nd ref="6521888739"/>
+    <nd ref="8243174052"/>
+    <tag k="highway" v="secondary"/>
+    <tag k="name" v="Tank Bund Road"/>
+    <tag k="name:kn" v="ಟ್ಯಾಂಕ್ ಬಂಡ್ ರಸ್ತೆ"/>
+    <tag k="surface" v="concrete"/>
+  </way>
+  <way id="230423164" version="8" timestamp="2022-12-23T19:11:12Z" changeset="130433840" uid="2425805" user="uknown-gryphus">
+    <nd ref="10282796511"/>
+    <nd ref="1723790753"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="oneway" v="yes"/>
+  </way>
+  <way id="237025636" version="18" timestamp="2025-07-23T14:57:27Z" changeset="169349601" uid="3926189" user="Vonter">
+    <nd ref="2472135139"/>
+    <nd ref="11964440714"/>
+    <nd ref="11664293096"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="80"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="239438610" version="24" timestamp="2025-11-14T10:24:57Z" changeset="174641676" uid="19294160" user="manojkiccha">
+    <nd ref="11964440742"/>
+    <nd ref="1837005120"/>
+    <nd ref="6968390494"/>
+    <nd ref="7062415783"/>
+    <nd ref="1474003920"/>
+    <nd ref="1477086431"/>
+    <nd ref="7488258471"/>
+    <nd ref="1837005129"/>
+    <nd ref="13304404065"/>
+    <nd ref="1474003919"/>
+    <nd ref="6137525100"/>
+    <nd ref="6142951432"/>
+    <nd ref="6137767346"/>
+    <nd ref="1474003921"/>
+    <nd ref="1837005138"/>
+    <nd ref="11809900885"/>
+    <tag k="highway" v="primary"/>
+    <tag k="lane_markings" v="no"/>
+    <tag k="lit" v="yes"/>
+    <tag k="name" v="Madiwala Sarjapura Road"/>
+    <tag k="name:kn" v="ಮಡಿವಾಳ ಸರ್ಜಾಪುರ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk:left" v="yes"/>
+    <tag k="sidewalk:left:surface" v="paving_stones"/>
+    <tag k="surface" v="concrete"/>
+  </way>
+  <way id="243553545" version="11" timestamp="2024-10-21T12:20:08Z" changeset="158167304" uid="19831062" user="olaritam">
+    <nd ref="2509423118"/>
+    <nd ref="12273334035"/>
+    <nd ref="2509423116"/>
+    <nd ref="8239947099"/>
+    <nd ref="10151254220"/>
+    <nd ref="10095107484"/>
+    <nd ref="10095107483"/>
+    <nd ref="10095107482"/>
+    <nd ref="10095107481"/>
+    <nd ref="10095107480"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="maxspeed" v="30"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+  </way>
+  <way id="243554072" version="11" timestamp="2026-07-07T13:27:43Z" changeset="185264958" uid="21731097" user="Aswin Benny">
+    <nd ref="2509428540"/>
+    <nd ref="6518859291"/>
+    <nd ref="494271026"/>
+    <nd ref="3161221547"/>
+    <nd ref="1607769618"/>
+    <nd ref="7479071347"/>
+    <nd ref="494271027"/>
+    <nd ref="494271028"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="name" v="VP Road"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="243554073" version="6" timestamp="2023-11-15T04:11:39Z" changeset="144034403" uid="2425805" user="uknown-gryphus">
+    <nd ref="2509428537"/>
+    <nd ref="2509428540"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="243897292" version="12" timestamp="2024-03-13T06:32:54Z" changeset="148577413" uid="3926189" user="Vonter">
+    <nd ref="306593854"/>
+    <nd ref="494271069"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="80"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="243897293" version="33" timestamp="2024-02-26T15:56:14Z" changeset="147938345" uid="249458" user="sk_trav">
+    <nd ref="494271073"/>
+    <nd ref="494271072"/>
+    <nd ref="11665582368"/>
+    <nd ref="9593357279"/>
+    <tag k="alt_name" v="Srinagar - Kanyakumari Highway"/>
+    <tag k="alt_name_1" v="Delhi - Chennai Highway"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="80"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="ref_1" v="NH48"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="245809758" version="11" timestamp="2025-03-25T03:58:48Z" changeset="164058572" uid="19294194" user="olasakeeb">
+    <nd ref="2509423121"/>
+    <nd ref="4206360249"/>
+    <nd ref="1123386067"/>
+    <nd ref="11664293088"/>
+    <nd ref="11664293089"/>
+    <nd ref="11664293090"/>
+    <nd ref="10872824026"/>
+    <nd ref="11664293091"/>
+    <nd ref="1123386065"/>
+    <nd ref="12697864643"/>
+    <nd ref="10081538830"/>
+    <nd ref="1123386062"/>
+    <tag k="destination" v="btm layout;jayanagar"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxspeed" v="30"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH48"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="256258847" version="2" timestamp="2023-11-28T07:02:44Z" changeset="144534317" uid="19831062" user="olaritam">
+    <nd ref="2619300320"/>
+    <nd ref="2619300315"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="layer" v="1"/>
+  </way>
+  <way id="256258848" version="6" timestamp="2024-09-04T06:56:49Z" changeset="156171046" uid="7465570" user="addyx">
+    <nd ref="2619300315"/>
+    <nd ref="307408088"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="maxheight" v="2"/>
+    <tag k="truck" v="no"/>
+  </way>
+  <way id="256259311" version="10" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus">
+    <nd ref="306611195"/>
+    <nd ref="2619300312"/>
+    <nd ref="3672954243"/>
+    <nd ref="3672954244"/>
+    <nd ref="306611194"/>
+    <nd ref="306611193"/>
+    <nd ref="12969313172"/>
+    <nd ref="306611192"/>
+    <nd ref="3672954245"/>
+    <nd ref="3672954246"/>
+    <nd ref="1723812991"/>
+    <nd ref="306611189"/>
+    <tag k="frontage_road" v="yes"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="290639911" version="5" timestamp="2023-11-15T04:11:39Z" changeset="144034403" uid="2425805" user="uknown-gryphus">
+    <nd ref="2406851448"/>
+    <nd ref="307409018"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="290639912" version="10" timestamp="2026-02-11T19:37:30Z" changeset="178422713" uid="136860" user="indigomc">
+    <nd ref="307409018"/>
+    <nd ref="6531845886"/>
+    <nd ref="307409019"/>
+    <nd ref="6152812151"/>
+    <nd ref="307409020"/>
+    <nd ref="13287054979"/>
+    <nd ref="10153741988"/>
+    <nd ref="307409021"/>
+    <nd ref="10153741991"/>
+    <nd ref="11011919639"/>
+    <nd ref="307409022"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="name" v="3rd Cross Road"/>
+    <tag k="name:kn" v="೩ನೇ ಅಡ್ಡ ರಸ್ತೆ"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="312174028" version="14" timestamp="2026-09-29T15:21:25Z" changeset="189734133" uid="4685130" user="contrapunctus">
+    <nd ref="1723795924"/>
+    <nd ref="14231996107"/>
+    <nd ref="1123386062"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lanes" v="3"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="370328586" version="5" timestamp="2024-09-24T07:08:58Z" changeset="157024583" uid="21150819" user="olaag">
+    <nd ref="2509423122"/>
+    <nd ref="3740373535"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="370328587" version="6" timestamp="2024-08-23T07:17:58Z" changeset="155636919" uid="19795114" user="kunalchhapre">
+    <nd ref="1123386064"/>
+    <nd ref="2619304351"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="layer" v="1"/>
+    <tag k="maxweight:signed" v="no"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="370328588" version="18" timestamp="2026-07-22T07:23:53Z" changeset="186160875" uid="19582889" user="chandrashekaru">
+    <nd ref="6162825333"/>
+    <nd ref="494271079"/>
+    <nd ref="14038716958"/>
+    <nd ref="10118500634"/>
+    <nd ref="13955791828"/>
+    <nd ref="12464229060"/>
+    <nd ref="11194357335"/>
+    <nd ref="12196461255"/>
+    <nd ref="11194357337"/>
+    <nd ref="494271078"/>
+    <tag k="destination" v="hosur;electonic city;bommasandra"/>
+    <tag k="foot" v="yes"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="377124830" version="19" timestamp="2025-11-03T11:12:12Z" changeset="174142267" uid="19505674" user="alivapanda">
+    <nd ref="3740373535"/>
+    <nd ref="13277412194"/>
+    <nd ref="13277412195"/>
+    <nd ref="13277412196"/>
+    <nd ref="13277412197"/>
+    <nd ref="13277412199"/>
+    <nd ref="13277412198"/>
+    <nd ref="10118500634"/>
+    <tag k="alt_name" v="Delhi - Chennai Highway"/>
+    <tag k="foot" v="yes"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxspeed" v="80"/>
+    <tag k="name" v="Srinagar - Kanyakumari Highway"/>
+    <tag k="name:kn" v="ಕನ್ಯಾಕುಮಾರಿ - ಶ್ರೀನಗರ ಹೆದ್ದಾರಿ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44;NH48"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="ref_1" v="NH48"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="377132617" version="22" timestamp="2024-12-07T15:25:03Z" changeset="160030645" uid="20472195" user="chirag_sukhala">
+    <nd ref="1617747730"/>
+    <nd ref="7232644749"/>
+    <nd ref="2509423122"/>
+    <nd ref="12196449735"/>
+    <nd ref="3740373536"/>
+    <nd ref="2509423121"/>
+    <tag k="alt_name" v="Delhi - Chennai Highway"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="2"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="80"/>
+    <tag k="name" v="Srinagar - Kanyakumari Highway"/>
+    <tag k="name:kn" v="ಕನ್ಯಾಕುಮಾರಿ - ಶ್ರೀನಗರ ಹೆದ್ದಾರಿ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44;NH48"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="ref_1" v="NH48"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="380707240" version="8" timestamp="2025-11-28T06:19:09Z" changeset="175224705" uid="19505674" user="alivapanda">
+    <nd ref="13337723222"/>
+    <nd ref="13337723223"/>
+    <tag k="alt_name" v="Delhi - Chennai Highway"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxspeed" v="80"/>
+    <tag k="name" v="Srinagar - Kanyakumari Highway"/>
+    <tag k="name:kn" v="ಕನ್ಯಾಕುಮಾರಿ - ಶ್ರೀನಗರ ಹೆದ್ದಾರಿ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44;NH48"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="ref_1" v="NH48"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="380709621" version="8" timestamp="2025-03-26T03:28:41Z" changeset="164103880" uid="3926189" user="Vonter">
+    <nd ref="10282796509"/>
+    <nd ref="3805003790"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lanes" v="3"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="380980308" version="23" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus">
+    <nd ref="11374930008"/>
+    <nd ref="2453736858"/>
+    <nd ref="3804880023"/>
+    <nd ref="650141295"/>
+    <nd ref="13075406642"/>
+    <nd ref="2619300330"/>
+    <nd ref="494271117"/>
+    <nd ref="494271115"/>
+    <nd ref="3804880033"/>
+    <nd ref="494271114"/>
+    <nd ref="494271113"/>
+    <nd ref="3804880025"/>
+    <nd ref="3804880021"/>
+    <nd ref="494271067"/>
+    <nd ref="494271066"/>
+    <nd ref="3804880035"/>
+    <nd ref="7294283056"/>
+    <nd ref="3804880026"/>
+    <nd ref="11374929988"/>
+    <nd ref="3804880020"/>
+    <nd ref="12164834291"/>
+    <nd ref="12129307874"/>
+    <nd ref="10153960137"/>
+    <tag k="dual_carriageway" v="yes"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="official_name" v="KC Reddy Ring Road"/>
+    <tag k="official_name:etymology:wikidata" v="Q6323235"/>
+    <tag k="official_name:kn" v="ಕ್ಚ್ ರೆಡ್ಡಿ ವರ್ತುಲ ರಸ್ತೆನ್ಟ್"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44;NH48"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="separate"/>
+    <tag k="source:official_name" v="https://timesofindia.indiatimes.com/city/bengaluru/kc-reddy-vartula-raste-30km-orr-stretch-named-after-first-mysore-cm/articleshow/107002205.cms"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="464465162" version="9" timestamp="2025-03-26T03:28:41Z" changeset="164103880" uid="3926189" user="Vonter">
+    <nd ref="2509428534"/>
+    <nd ref="10097182475"/>
+    <nd ref="494271023"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lanes" v="3"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="464465163" version="9" timestamp="2025-03-26T03:28:41Z" changeset="164103880" uid="3926189" user="Vonter">
+    <nd ref="1723790725"/>
+    <nd ref="306594280"/>
+    <nd ref="10282796511"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lanes" v="3"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="464465164" version="8" timestamp="2022-08-30T17:55:01Z" changeset="125581508" uid="2425805" user="uknown-gryphus">
+    <nd ref="6130636339"/>
+    <nd ref="307408088"/>
+    <nd ref="3672909296"/>
+    <nd ref="1723790761"/>
+    <nd ref="1723790766"/>
+    <nd ref="7294299968"/>
+    <nd ref="1472248431"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="464465165" version="21" timestamp="2026-07-06T05:08:13Z" changeset="185174743" uid="21731097" user="Aswin Benny">
+    <nd ref="1472248431"/>
+    <nd ref="7294299975"/>
+    <nd ref="13907058885"/>
+    <nd ref="13912213836"/>
+    <nd ref="4703140386"/>
+    <nd ref="10775075568"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="left"/>
+    <tag k="smoothness" v="good"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="476885790" version="8" timestamp="2024-08-27T06:36:58Z" changeset="155813157" uid="19620700" user="jyotikatke">
+    <nd ref="11964440743"/>
+    <nd ref="11964440742"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lane_markings" v="no"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="491889864" version="22" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus">
+    <nd ref="8239947035"/>
+    <nd ref="2509423123"/>
+    <nd ref="11886138314"/>
+    <nd ref="247989227"/>
+    <nd ref="13075406637"/>
+    <nd ref="10095107480"/>
+    <nd ref="247989225"/>
+    <nd ref="9910908314"/>
+    <tag k="dual_carriageway" v="yes"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lanes" v="1"/>
+    <tag k="maxspeed" v="50"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="intermediate"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="491889865" version="17" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus">
+    <nd ref="6518859300"/>
+    <nd ref="2510395005"/>
+    <nd ref="6182653341"/>
+    <nd ref="8239947095"/>
+    <nd ref="494271095"/>
+    <nd ref="247989228"/>
+    <nd ref="13075406631"/>
+    <nd ref="12695683918"/>
+    <nd ref="12695683928"/>
+    <nd ref="307407783"/>
+    <nd ref="2619300318"/>
+    <nd ref="13074467238"/>
+    <nd ref="2509428534"/>
+    <tag k="dual_carriageway" v="yes"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lanes" v="3"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="intermediate"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="519734960" version="12" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus">
+    <nd ref="12040966310"/>
+    <nd ref="5067333246"/>
+    <nd ref="5067333245"/>
+    <nd ref="5067333244"/>
+    <nd ref="5067333243"/>
+    <nd ref="5067333242"/>
+    <nd ref="5067333241"/>
+    <nd ref="5067333240"/>
+    <nd ref="11726543776"/>
+    <nd ref="11726543777"/>
+    <nd ref="5067333239"/>
+    <nd ref="13075406632"/>
+    <nd ref="5067333236"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="check_date" v="2024-07-08"/>
+    <tag k="highway" v="primary"/>
+    <tag k="lanes" v="4"/>
+    <tag k="layer" v="1"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Silkboard Double Decker Flyover"/>
+    <tag k="official_name" v="Silk Board Interchange"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="excellent"/>
+    <tag k="start_date" v="2024-07-17"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="559801783" version="8" timestamp="2026-09-29T15:21:25Z" changeset="189734133" uid="4685130" user="contrapunctus">
+    <nd ref="494271023"/>
+    <nd ref="14232070420"/>
+    <nd ref="1723790725"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lanes" v="3"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="610101763" version="8" timestamp="2026-01-01T16:03:49Z" changeset="176709255" uid="14062769" user="NaanAvanIllai">
+    <nd ref="4105324822"/>
+    <nd ref="10855370147"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lanes" v="3"/>
+    <tag k="maxheight" v="5.5"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="654137560" version="2" timestamp="2022-12-23T19:11:12Z" changeset="130433840" uid="2425805" user="uknown-gryphus">
+    <nd ref="1723795924"/>
+    <nd ref="10282796511"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="oneway" v="yes"/>
+  </way>
+  <way id="654233027" version="6" timestamp="2025-06-09T04:52:12Z" changeset="167378071" uid="16275581" user="ompatekar">
+    <nd ref="1472878464"/>
+    <nd ref="12229219527"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="678335364" version="4" timestamp="2025-11-07T13:54:18Z" changeset="174335452" uid="19294194" user="olasakeeb">
+    <nd ref="306611415"/>
+    <nd ref="306611644"/>
+    <nd ref="306612056"/>
+    <nd ref="306611825"/>
+    <nd ref="306612124"/>
+    <nd ref="306611889"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="name" v="1 A Main Road"/>
+    <tag k="name:kn" v="೧ನೇ ಏ ಮುಖ್ಯ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+  </way>
+  <way id="688824218" version="14" timestamp="2026-07-06T05:00:36Z" changeset="185174743" uid="21731097" user="Aswin Benny">
+    <nd ref="1607769588"/>
+    <nd ref="5389481767"/>
+    <nd ref="494271029"/>
+    <nd ref="6521889001"/>
+    <nd ref="6521889009"/>
+    <nd ref="13272232850"/>
+    <nd ref="3672909298"/>
+    <nd ref="6970652827"/>
+    <nd ref="1472248447"/>
+    <tag k="highway" v="primary"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="both"/>
+    <tag k="smoothness" v="good"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="694563706" version="5" timestamp="2024-12-09T11:20:12Z" changeset="160088078" uid="10626847" user="SK@">
+    <nd ref="494271028"/>
+    <nd ref="1614298009"/>
+    <nd ref="12406990360"/>
+    <nd ref="494271029"/>
+    <tag k="highway" v="tertiary"/>
+  </way>
+  <way id="799578796" version="8" timestamp="2025-11-07T13:54:18Z" changeset="174335452" uid="19294194" user="olasakeeb">
+    <nd ref="306611889"/>
+    <nd ref="12635372070"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="name" v="1 A Main Road"/>
+    <tag k="name:kn" v="೧ನೇ ಏ ಮುಖ್ಯ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+  </way>
+  <way id="799578797" version="9" timestamp="2025-11-07T13:54:18Z" changeset="174335452" uid="19294194" user="olasakeeb">
+    <nd ref="12635372070"/>
+    <nd ref="11374929996"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="disused:highway" v="unclassified"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="layer" v="1"/>
+    <tag k="name" v="1 A Main Road"/>
+    <tag k="name:kn" v="೧ನೇ ಏ ಮುಖ್ಯ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="886153772" version="14" timestamp="2025-12-16T01:01:22Z" changeset="175984050" uid="2742073" user="arjunaraoc">
+    <nd ref="13379577436"/>
+    <nd ref="8239947023"/>
+    <nd ref="8239947022"/>
+    <nd ref="8239947085"/>
+    <nd ref="8239947021"/>
+    <nd ref="8239947020"/>
+    <nd ref="8239947019"/>
+    <nd ref="8239947088"/>
+    <nd ref="8239947018"/>
+    <nd ref="8239947017"/>
+    <nd ref="8239896816"/>
+    <nd ref="8239896815"/>
+    <nd ref="8239947094"/>
+    <nd ref="8239896814"/>
+    <nd ref="8239896813"/>
+    <nd ref="8239896812"/>
+    <nd ref="8239896811"/>
+    <nd ref="8239896810"/>
+    <nd ref="8239896808"/>
+    <nd ref="8239896807"/>
+    <nd ref="12040966323"/>
+    <tag k="bridge" v="viaduct"/>
+    <tag k="check_date" v="2024-07-08"/>
+    <tag k="dual_carriageway" v="yes"/>
+    <tag k="highway" v="primary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="layer" v="1"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxheight" v="4.5"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Ragigudda-Silk Board Integrated Flyover"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="excellent"/>
+    <tag k="source:maxspeed" v="sign"/>
+    <tag k="start_date" v="2024-07-17"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="886153773" version="16" timestamp="2026-04-23T09:16:57Z" changeset="181707704" uid="2425805" user="uknown-gryphus">
+    <nd ref="12969313169"/>
+    <nd ref="8239947036"/>
+    <nd ref="8239947037"/>
+    <nd ref="8239947038"/>
+    <nd ref="8239947039"/>
+    <nd ref="8239947040"/>
+    <nd ref="8239947041"/>
+    <nd ref="8239947042"/>
+    <nd ref="8239947043"/>
+    <nd ref="8239947091"/>
+    <nd ref="8239947044"/>
+    <nd ref="8239947087"/>
+    <nd ref="8239947045"/>
+    <nd ref="8239947084"/>
+    <nd ref="8239947046"/>
+    <nd ref="8239947047"/>
+    <nd ref="13379577435"/>
+    <tag k="bridge" v="viaduct"/>
+    <tag k="check_date" v="2026-04-23"/>
+    <tag k="dual_carriageway" v="yes"/>
+    <tag k="highway" v="primary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="layer" v="1"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="excellent"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="886153775" version="7" timestamp="2026-01-31T16:52:19Z" changeset="177933528" uid="2425805" user="uknown-gryphus">
+    <nd ref="2509423118"/>
+    <nd ref="13070461151"/>
+    <nd ref="494271091"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="name" v="4th Cross Road"/>
+    <tag k="name:kn" v="೪ನೇ ಅಡ್ಡ ರಸ್ತೆ"/>
+  </way>
+  <way id="1042112410" version="2" timestamp="2025-03-17T13:49:44Z" changeset="163733369" uid="19795114" user="kunalchhapre">
+    <nd ref="6196977039"/>
+    <nd ref="9593357279"/>
+    <tag k="highway" v="trunk_link"/>
+  </way>
+  <way id="1073384217" version="12" timestamp="2026-04-21T10:04:12Z" changeset="181619040" uid="19294194" user="olasakeeb">
+    <nd ref="3805003790"/>
+    <nd ref="13748051109"/>
+    <nd ref="1723795929"/>
+    <nd ref="247989232"/>
+    <tag k="alt_name" v="Srinagar - Kanyakumari Highway;Delhi - Chennai Highway"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxheight:signed" v="no"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="official_name" v="KC Reddy Ring Road"/>
+    <tag k="official_name:etymology:wikidata" v="Q6323235"/>
+    <tag k="official_name:kn" v="ಕ್ಚ್ ರೆಡ್ಡಿ ವರ್ತುಲ ರಸ್ತೆನ್ಟ್"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44;NH48"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="ref_1" v="NH48"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="source:official_name" v="https://timesofindia.indiatimes.com/city/bengaluru/kc-reddy-vartula-raste-30km-orr-stretch-named-after-first-mysore-cm/articleshow/107002205.cms"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1090570620" version="1" timestamp="2022-08-30T17:55:01Z" changeset="125581508" uid="2425805" user="uknown-gryphus">
+    <nd ref="1723790753"/>
+    <nd ref="7018332328"/>
+    <nd ref="7018332326"/>
+    <nd ref="6130636339"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1090570628" version="3" timestamp="2026-09-29T15:21:25Z" changeset="189734133" uid="4685130" user="contrapunctus">
+    <nd ref="9968184749"/>
+    <nd ref="10872824023"/>
+    <nd ref="1472878457"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="name" v="Service Road"/>
+    <tag k="oneway" v="yes"/>
+  </way>
+  <way id="1090570629" version="5" timestamp="2025-03-26T03:47:25Z" changeset="164104172" uid="3926189" user="Vonter">
+    <nd ref="247989232"/>
+    <nd ref="6497456137"/>
+    <tag k="alt_name" v="Srinagar - Kanyakumari Highway"/>
+    <tag k="alt_name_1" v="Delhi - Chennai Highway"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="official_name" v="KC Reddy Ring Road"/>
+    <tag k="official_name:etymology:wikidata" v="Q6323235"/>
+    <tag k="official_name:kn" v="ಕ್ಚ್ ರೆಡ್ಡಿ ವರ್ತುಲ ರಸ್ತೆನ್ಟ್"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44;NH48"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="ref_1" v="NH48"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="source:official_name" v="https://timesofindia.indiatimes.com/city/bengaluru/kc-reddy-vartula-raste-30km-orr-stretch-named-after-first-mysore-cm/articleshow/107002205.cms"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1103401541" version="8" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus">
+    <nd ref="307407783"/>
+    <nd ref="10097182473"/>
+    <nd ref="13074467237"/>
+    <nd ref="10097182474"/>
+    <nd ref="10097182475"/>
+    <tag k="frontage_road" v="yes"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1108993651" version="10" timestamp="2026-09-29T15:21:25Z" changeset="189734133" uid="4685130" user="contrapunctus">
+    <nd ref="1123386062"/>
+    <nd ref="14231996131"/>
+    <nd ref="10081538827"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lanes" v="1"/>
+    <tag k="maxspeed" v="50"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="intermediate"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1108993653" version="9" timestamp="2025-03-26T03:28:41Z" changeset="164103880" uid="3926189" user="Vonter">
+    <nd ref="10081538827"/>
+    <nd ref="494271091"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lanes" v="1"/>
+    <tag k="maxspeed" v="50"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="intermediate"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1109948513" version="3" timestamp="2024-07-22T11:55:03Z" changeset="154259355" uid="16275581" user="ompatekar">
+    <nd ref="3805003790"/>
+    <nd ref="4105324822"/>
+    <tag k="alt_name" v="Delhi - Chennai Highway"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxspeed" v="80"/>
+    <tag k="name" v="Srinagar - Kanyakumari Highway"/>
+    <tag k="name:kn" v="ಕನ್ಯಾಕುಮಾರಿ - ಶ್ರೀನಗರ ಹೆದ್ದಾರಿ"/>
+    <tag k="ref" v="NH44;NH48"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="ref_1" v="NH48"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1109948700" version="8" timestamp="2025-01-21T09:50:51Z" changeset="161593126" uid="19294194" user="olasakeeb">
+    <nd ref="4105324822"/>
+    <nd ref="12068001059"/>
+    <nd ref="12196449734"/>
+    <nd ref="12196449736"/>
+    <nd ref="3740373535"/>
+    <tag k="alt_name" v="Delhi - Chennai Highway"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxspeed" v="80"/>
+    <tag k="name" v="Srinagar - Kanyakumari Highway"/>
+    <tag k="name:kn" v="ಕನ್ಯಾಕುಮಾರಿ - ಶ್ರೀನಗರ ಹೆದ್ದಾರಿ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44;NH48"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="ref_1" v="NH48"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1109948890" version="8" timestamp="2026-04-02T13:19:49Z" changeset="180767825" uid="2425805" user="uknown-gryphus">
+    <nd ref="10153960137"/>
+    <nd ref="494271080"/>
+    <nd ref="4105324822"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="noexit" v="yes"/>
+    <tag k="official_name" v="KC Reddy Ring Road"/>
+    <tag k="official_name:etymology:wikidata" v="Q6323235"/>
+    <tag k="official_name:kn" v="ಕ್ಚ್ ರೆಡ್ಡಿ ವರ್ತುಲ ರಸ್ತೆನ್ಟ್"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44;NH48"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="source:official_name" v="https://timesofindia.indiatimes.com/city/bengaluru/kc-reddy-vartula-raste-30km-orr-stretch-named-after-first-mysore-cm/articleshow/107002205.cms"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1109968033" version="8" timestamp="2025-09-07T17:35:41Z" changeset="171597043" uid="10820632" user="hashhar">
+    <nd ref="11964440742"/>
+    <nd ref="10282769895"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="2"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxheight" v="5.5"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="good"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1110164238" version="8" timestamp="2024-09-09T05:16:49Z" changeset="156377166" uid="2425805" user="uknown-gryphus">
+    <nd ref="11374929987"/>
+    <nd ref="307402762"/>
+    <nd ref="3672954241"/>
+    <nd ref="2385133858"/>
+    <nd ref="1123386069"/>
+    <nd ref="1123386064"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1124477399" version="1" timestamp="2022-12-23T19:11:12Z" changeset="130433840" uid="2425805" user="uknown-gryphus">
+    <nd ref="6130636338"/>
+    <nd ref="1472878464"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1148717038" version="6" timestamp="2024-09-09T13:00:51Z" changeset="156393598" uid="19294194" user="olasakeeb">
+    <nd ref="10282769895"/>
+    <nd ref="12165492400"/>
+    <nd ref="12165530408"/>
+    <nd ref="2472135138"/>
+    <nd ref="12141720523"/>
+    <nd ref="5965902017"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="2"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="good"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1155963376" version="4" timestamp="2025-11-28T06:19:09Z" changeset="175224705" uid="19505674" user="alivapanda">
+    <nd ref="9797838896"/>
+    <nd ref="8243174052"/>
+    <nd ref="494271061"/>
+    <nd ref="1617747736"/>
+    <nd ref="13337723222"/>
+    <nd ref="306593854"/>
+    <tag k="alt_name" v="Srinagar - Kanyakumari Highway"/>
+    <tag k="alt_name_1" v="Delhi - Chennai Highway"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="80"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="ref_1" v="NH48"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1166289667" version="6" timestamp="2025-03-24T12:36:27Z" changeset="164030468" uid="21150819" user="olaag">
+    <nd ref="2406851448"/>
+    <nd ref="308875510"/>
+    <nd ref="10153737446"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lane_markings" v="no"/>
+    <tag k="name" v="8th Cross Road"/>
+    <tag k="name:kn" v="೮ನೇ ಅಡ್ಡ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="paving_stones"/>
+  </way>
+  <way id="1167293938" version="5" timestamp="2026-01-01T16:03:48Z" changeset="176709255" uid="14062769" user="NaanAvanIllai">
+    <nd ref="10855370147"/>
+    <nd ref="1723795924"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lanes" v="3"/>
+    <tag k="maxheight" v="5.5"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1167293939" version="3" timestamp="2026-01-01T16:03:50Z" changeset="176709255" uid="14062769" user="NaanAvanIllai">
+    <nd ref="10282796509"/>
+    <nd ref="12068004841"/>
+    <nd ref="10855370145"/>
+    <nd ref="10855370146"/>
+    <nd ref="10855370147"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="maxheight" v="5.5"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1167293940" version="4" timestamp="2024-08-27T06:36:58Z" changeset="155813157" uid="19620700" user="jyotikatke">
+    <nd ref="494271084"/>
+    <nd ref="494271075"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="2"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="good"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1185209422" version="5" timestamp="2026-07-07T13:17:27Z" changeset="185264958" uid="21731097" user="Aswin Benny">
+    <nd ref="307408086"/>
+    <nd ref="2619300333"/>
+    <nd ref="11384916085"/>
+    <nd ref="11011902990"/>
+    <nd ref="307408087"/>
+    <nd ref="307408116"/>
+    <nd ref="2619300320"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="name" v="3rd cross Road"/>
+  </way>
+  <way id="1196514116" version="4" timestamp="2026-08-31T07:08:43Z" changeset="188288333" uid="16531141" user="tusharvalvi">
+    <nd ref="9593357279"/>
+    <nd ref="11810954342"/>
+    <nd ref="11810954339"/>
+    <nd ref="9797838897"/>
+    <nd ref="14136491832"/>
+    <tag k="alt_name" v="Srinagar - Kanyakumari Highway"/>
+    <tag k="alt_name_1" v="Delhi - Chennai Highway"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="80"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="ref_1" v="NH48"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1208112302" version="2" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus">
+    <nd ref="1613147976"/>
+    <nd ref="2472135134"/>
+    <nd ref="1472248429"/>
+    <tag k="alt_name" v="Hosur Road"/>
+    <tag k="embankment" v="yes"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="loc_name" v="Hosur Road"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="maxweight:signed" v="no"/>
+    <tag k="name" v="Silk Board Flyover"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1208112303" version="2" timestamp="2024-06-08T14:07:53Z" changeset="152416273" uid="2425805" user="uknown-gryphus">
+    <nd ref="494271075"/>
+    <nd ref="1613147978"/>
+    <tag k="alt_name" v="Hosur Road"/>
+    <tag k="embankment" v="yes"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="loc_name" v="Hosur Road"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="maxweight:signed" v="no"/>
+    <tag k="name" v="Silk Board Flyover"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1208112310" version="4" timestamp="2024-08-23T07:17:58Z" changeset="155636919" uid="19795114" user="kunalchhapre">
+    <nd ref="2619304351"/>
+    <nd ref="6142782103"/>
+    <nd ref="9857190370"/>
+    <nd ref="1123386059"/>
+    <nd ref="2385133857"/>
+    <nd ref="6162825333"/>
+    <tag k="destination" v="hosur;electonic city;bommasandra"/>
+    <tag k="foot" v="yes"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1226665350" version="5" timestamp="2025-11-07T13:54:18Z" changeset="174335452" uid="19294194" user="olasakeeb">
+    <nd ref="11374929996"/>
+    <nd ref="306611189"/>
+    <tag k="disused:highway" v="unclassified"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="name" v="1 A Main Road"/>
+    <tag k="name:kn" v="೧ನೇ ಏ ಮುಖ್ಯ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1254771465" version="6" timestamp="2026-06-22T16:25:40Z" changeset="184439630" uid="3926189" user="Vonter">
+    <nd ref="12969313170"/>
+    <nd ref="12969313173"/>
+    <nd ref="12969313174"/>
+    <nd ref="12969313175"/>
+    <nd ref="12969313176"/>
+    <nd ref="12969313177"/>
+    <nd ref="12969313178"/>
+    <nd ref="12969313179"/>
+    <nd ref="11664293081"/>
+    <nd ref="11664293083"/>
+    <nd ref="11664293084"/>
+    <nd ref="11664293085"/>
+    <nd ref="11664293086"/>
+    <nd ref="11664293087"/>
+    <nd ref="8239947031"/>
+    <tag k="alt_name" v="Ramp D"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="dual_carriageway" v="yes"/>
+    <tag k="highway" v="primary_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="layer" v="2"/>
+    <tag k="maxheight" v="4.5"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="maxspeed:type" v="sign"/>
+    <tag k="name" v="Silk Board Interchange"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="source:maxheight" v="sign"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1299917512" version="5" timestamp="2024-09-10T06:47:37Z" changeset="156424366" uid="19795114" user="kunalchhapre">
+    <nd ref="5067333236"/>
+    <nd ref="5067333237"/>
+    <nd ref="12040966305"/>
+    <nd ref="11664293092"/>
+    <nd ref="11664293093"/>
+    <nd ref="11664293094"/>
+    <nd ref="12057714071"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="check_date" v="2024-03-01"/>
+    <tag k="highway" v="primary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="layer" v="1"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Silkboard Double Decker Flyover"/>
+    <tag k="official_name" v="Silk Board Interchange"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="excellent"/>
+    <tag k="start_date" v="2024-07-17"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1299917514" version="8" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda">
+    <nd ref="12040966323"/>
+    <nd ref="13354702089"/>
+    <nd ref="12040966320"/>
+    <nd ref="12040966319"/>
+    <nd ref="12040966317"/>
+    <nd ref="12040966322"/>
+    <nd ref="12040966313"/>
+    <nd ref="12040966321"/>
+    <nd ref="12040966311"/>
+    <nd ref="13075406635"/>
+    <nd ref="14136491826"/>
+    <nd ref="12040966309"/>
+    <nd ref="11726718192"/>
+    <nd ref="13075406636"/>
+    <nd ref="14136491824"/>
+    <nd ref="12040966310"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="check_date" v="2024-07-08"/>
+    <tag k="highway" v="primary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="layer" v="1"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Ramp A"/>
+    <tag k="official_name" v="Silk Board Interchange"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="excellent"/>
+    <tag k="start_date" v="2024-07-17"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1299917517" version="9" timestamp="2025-08-30T09:09:35Z" changeset="171217093" uid="2425805" user="uknown-gryphus">
+    <nd ref="5067333236"/>
+    <nd ref="5067333235"/>
+    <nd ref="13075406633"/>
+    <nd ref="11726543775"/>
+    <nd ref="5067333234"/>
+    <nd ref="11726543774"/>
+    <nd ref="5067333233"/>
+    <nd ref="11726543772"/>
+    <nd ref="11726543773"/>
+    <nd ref="11726543771"/>
+    <nd ref="5067333232"/>
+    <nd ref="11726543770"/>
+    <nd ref="11726543769"/>
+    <nd ref="12041127735"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="check_date" v="2024-03-01"/>
+    <tag k="destination" v="HSR;Marathahalli"/>
+    <tag k="highway" v="primary_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="layer" v="1"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Silkboard Double Decker Flyover"/>
+    <tag k="official_name" v="Silk Board Interchange"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="excellent"/>
+    <tag k="start_date" v="2024-07-17"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1299932382" version="10" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda">
+    <nd ref="12041127738"/>
+    <nd ref="12041127739"/>
+    <nd ref="12041127740"/>
+    <nd ref="13075406634"/>
+    <nd ref="14136491825"/>
+    <nd ref="12041127742"/>
+    <nd ref="12041127743"/>
+    <nd ref="12041127744"/>
+    <nd ref="14136491823"/>
+    <nd ref="12040966310"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="check_date" v="2024-07-08"/>
+    <tag k="destination" v="HSR Layout"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="primary_link"/>
+    <tag k="lane_markings" v="no"/>
+    <tag k="lanes" v="2"/>
+    <tag k="layer" v="1"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Silkboard Double Decker Flyover"/>
+    <tag k="official_name" v="Silk Board Interchange"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="excellent"/>
+    <tag k="start_date" v="2024-07-17"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1301808818" version="5" timestamp="2025-08-30T09:09:35Z" changeset="171217093" uid="2425805" user="uknown-gryphus">
+    <nd ref="12041127735"/>
+    <nd ref="12969313164"/>
+    <nd ref="12167530150"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="check_date" v="2024-03-01"/>
+    <tag k="highway" v="primary_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="layer" v="1"/>
+    <tag k="name" v="Silkboard Double Decker Flyover"/>
+    <tag k="official_name" v="Silk Board Interchange"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="excellent"/>
+    <tag k="start_date" v="2024-07-17"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1301808819" version="3" timestamp="2024-09-10T06:47:37Z" changeset="156424366" uid="19795114" user="kunalchhapre">
+    <nd ref="12057714071"/>
+    <nd ref="11664293095"/>
+    <nd ref="11664293096"/>
+    <tag k="check_date" v="2024-03-01"/>
+    <tag k="highway" v="primary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Silkboard Double Decker Flyover"/>
+    <tag k="official_name" v="Silk Board Interchange"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="excellent"/>
+    <tag k="start_date" v="2024-07-17"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1301808820" version="9" timestamp="2026-08-31T07:06:20Z" changeset="188288247" uid="19505674" user="alivapanda">
+    <nd ref="14136491822"/>
+    <nd ref="12041127738"/>
+    <tag k="check_date" v="2024-07-08"/>
+    <tag k="destination" v="HSR Layout"/>
+    <tag k="highway" v="primary_link"/>
+    <tag k="lane_markings" v="no"/>
+    <tag k="lanes" v="2"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Ramp to Hosur road joining Ragigudda Silkboard Double Decker Flyover"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="excellent"/>
+    <tag k="start_date" v="2024-07-17"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1303068639" version="3" timestamp="2026-01-01T16:03:47Z" changeset="176709255" uid="14062769" user="NaanAvanIllai">
+    <nd ref="2509423121"/>
+    <nd ref="1123386070"/>
+    <nd ref="3805003786"/>
+    <nd ref="3805003789"/>
+    <nd ref="12068001056"/>
+    <nd ref="3805003788"/>
+    <nd ref="12068001057"/>
+    <nd ref="3805003787"/>
+    <nd ref="12068001058"/>
+    <tag k="alt_name" v="Delhi - Chennai Highway"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxheight" v="5.5"/>
+    <tag k="maxspeed" v="80"/>
+    <tag k="name" v="Srinagar - Kanyakumari Highway"/>
+    <tag k="name:kn" v="ಕನ್ಯಾಕುಮಾರಿ - ಶ್ರೀನಗರ ಹೆದ್ದಾರಿ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44;NH48"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="ref_1" v="NH48"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1305577667" version="2" timestamp="2024-08-23T07:17:58Z" changeset="155636919" uid="19795114" user="kunalchhapre">
+    <nd ref="306611189"/>
+    <nd ref="11664293080"/>
+    <nd ref="11374929987"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1310034044" version="3" timestamp="2024-09-17T05:01:33Z" changeset="156712886" uid="21150819" user="olaag">
+    <nd ref="2385133858"/>
+    <nd ref="12181383755"/>
+    <nd ref="12129307874"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="oneway" v="yes"/>
+  </way>
+  <way id="1314562830" version="3" timestamp="2025-08-30T09:09:35Z" changeset="171217093" uid="2425805" user="uknown-gryphus">
+    <nd ref="12167530150"/>
+    <nd ref="494271063"/>
+    <nd ref="12822455068"/>
+    <tag k="check_date" v="2024-03-01"/>
+    <tag k="highway" v="primary_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="name" v="Silkboard Double Decker Flyover"/>
+    <tag k="official_name" v="Silk Board Interchange"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="excellent"/>
+    <tag k="start_date" v="2024-07-17"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1317811589" version="1" timestamp="2024-09-24T07:08:58Z" changeset="157024583" uid="21150819" user="olaag">
+    <nd ref="2385133857"/>
+    <nd ref="12196449734"/>
+    <nd ref="12196449735"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="oneway" v="yes"/>
+  </way>
+  <way id="1321561536" version="3" timestamp="2025-06-09T04:52:12Z" changeset="167378071" uid="16275581" user="ompatekar">
+    <nd ref="12229219527"/>
+    <nd ref="6130636339"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1326496636" version="1" timestamp="2024-10-21T12:20:08Z" changeset="158167304" uid="19831062" user="olaritam">
+    <nd ref="12273334034"/>
+    <nd ref="12273334035"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="oneway" v="yes"/>
+  </way>
+  <way id="1331247892" version="5" timestamp="2026-07-08T15:02:50Z" changeset="185347132" uid="21731097" user="Aswin Benny">
+    <nd ref="10775075568"/>
+    <nd ref="11964440743"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxheight" v="5.5"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="left"/>
+    <tag k="smoothness" v="good"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1351994264" version="3" timestamp="2026-04-23T09:16:57Z" changeset="181707704" uid="2425805" user="uknown-gryphus">
+    <nd ref="8239947031"/>
+    <nd ref="12041127736"/>
+    <nd ref="8239947032"/>
+    <nd ref="8239947033"/>
+    <nd ref="12969313169"/>
+    <tag k="bridge" v="viaduct"/>
+    <tag k="check_date" v="2024-07-08"/>
+    <tag k="dual_carriageway" v="yes"/>
+    <tag k="highway" v="primary_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="layer" v="1"/>
+    <tag k="name" v="Ragigudda-Silk Board Integrated Flyover (u/c)"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="excellent"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1351994265" version="3" timestamp="2025-07-02T10:51:48Z" changeset="168392325" uid="2425805" user="uknown-gryphus">
+    <nd ref="494271091"/>
+    <nd ref="12273334034"/>
+    <nd ref="9927375271"/>
+    <nd ref="8239947097"/>
+    <nd ref="8239947035"/>
+    <tag k="dual_carriageway" v="yes"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lanes" v="1"/>
+    <tag k="maxspeed" v="50"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="smoothness" v="intermediate"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1362809474" version="1" timestamp="2025-02-25T09:41:24Z" changeset="162924042" uid="16275581" user="ompatekar">
+    <nd ref="10282769895"/>
+    <nd ref="10775075568"/>
+    <tag k="highway" v="primary"/>
+    <tag k="oneway" v="yes"/>
+  </way>
+  <way id="1362809475" version="2" timestamp="2025-06-09T08:58:56Z" changeset="167385281" uid="19505674" user="alivapanda">
+    <nd ref="12617824683"/>
+    <nd ref="1837005115"/>
+    <tag k="highway" v="primary"/>
+    <tag k="lane_markings" v="no"/>
+    <tag k="lit" v="yes"/>
+    <tag k="name" v="Madiwala Sarjapura Road"/>
+    <tag k="name:kn" v="ಮಡಿವಾಳ ಸರ್ಜಾಪುರ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk:left" v="yes"/>
+    <tag k="sidewalk:left:surface" v="paving_stones"/>
+    <tag k="surface" v="concrete"/>
+  </way>
+  <way id="1384907601" version="2" timestamp="2025-09-06T10:46:50Z" changeset="171536077" uid="19294160" user="manojkiccha">
+    <nd ref="1472878457"/>
+    <nd ref="1472878456"/>
+    <nd ref="1472878453"/>
+    <nd ref="3804943924"/>
+    <nd ref="12196409792"/>
+    <nd ref="12196409775"/>
+    <nd ref="1472878461"/>
+    <nd ref="12456109869"/>
+    <nd ref="6887379346"/>
+    <nd ref="12822455068"/>
+    <tag k="frontage_road" v="yes"/>
+    <tag k="highway" v="trunk_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxspeed" v="30"/>
+    <tag k="name" v="Service Road"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="separate"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1393438377" version="1" timestamp="2025-06-09T04:52:12Z" changeset="167378071" uid="16275581" user="ompatekar">
+    <nd ref="1472878464"/>
+    <nd ref="10282769905"/>
+    <tag k="highway" v="trunk_link"/>
+  </way>
+  <way id="1393474724" version="2" timestamp="2025-09-07T17:35:41Z" changeset="171597043" uid="10820632" user="hashhar">
+    <nd ref="1837005115"/>
+    <nd ref="494271106"/>
+    <nd ref="10685050552"/>
+    <nd ref="10282769895"/>
+    <tag k="highway" v="primary"/>
+    <tag k="lane_markings" v="no"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxheight" v="5.5"/>
+    <tag k="name" v="Madiwala Sarjapura Road"/>
+    <tag k="name:kn" v="ಮಡಿವಾಳ ಸರ್ಜಾಪುರ ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk:left" v="yes"/>
+    <tag k="sidewalk:left:surface" v="paving_stones"/>
+    <tag k="surface" v="concrete"/>
+  </way>
+  <way id="1411430413" version="3" timestamp="2026-04-24T05:19:15Z" changeset="181746276" uid="2425805" user="uknown-gryphus">
+    <nd ref="12969313171"/>
+    <nd ref="13757865467"/>
+    <nd ref="13757865468"/>
+    <nd ref="12969313170"/>
+    <tag k="destination" v="BTM Layout; Ragigudda"/>
+    <tag k="dual_carriageway" v="yes"/>
+    <tag k="embankment" v="yes"/>
+    <tag k="highway" v="primary_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxheight" v="4.5"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="maxspeed:type" v="sign"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="source:maxheight" v="sign"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1411430414" version="3" timestamp="2026-04-24T05:19:15Z" changeset="181746276" uid="2425805" user="uknown-gryphus">
+    <nd ref="306611194"/>
+    <nd ref="13757865469"/>
+    <nd ref="12969313171"/>
+    <tag k="destination" v="BTM Layout; Ragigudda"/>
+    <tag k="dual_carriageway" v="yes"/>
+    <tag k="highway" v="primary_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxheight" v="4.5"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="maxspeed:type" v="sign"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="source:maxheight" v="sign"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1416769967" version="1" timestamp="2025-07-23T14:57:27Z" changeset="169349601" uid="3926189" user="Vonter">
+    <nd ref="11664293096"/>
+    <nd ref="494271073"/>
+    <tag k="foot" v="no"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="80"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1421955575" version="2" timestamp="2025-08-17T05:23:49Z" changeset="170548703" uid="2425805" user="uknown-gryphus">
+    <nd ref="6497456137"/>
+    <nd ref="3804943925"/>
+    <nd ref="12041127734"/>
+    <nd ref="494271065"/>
+    <nd ref="247989234"/>
+    <nd ref="6887379345"/>
+    <nd ref="417298239"/>
+    <nd ref="247989237"/>
+    <nd ref="1723812907"/>
+    <nd ref="2471287780"/>
+    <tag k="dual_carriageway" v="yes"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Outer Ring Road"/>
+    <tag k="name:kn" v="ಹೊರ ವರ್ತುಲ ರಸ್ತೆ"/>
+    <tag k="official_name" v="KC Reddy Ring Road"/>
+    <tag k="official_name:etymology:wikidata" v="Q6323235"/>
+    <tag k="official_name:kn" v="ಕ್ಚ್ ರೆಡ್ಡಿ ವರ್ತುಲ ರಸ್ತೆನ್ಟ್"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44;NH48"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="short_name" v="ORR"/>
+    <tag k="sidewalk" v="separate"/>
+    <tag k="source:official_name" v="https://timesofindia.indiatimes.com/city/bengaluru/kc-reddy-vartula-raste-30km-orr-stretch-named-after-first-mysore-cm/articleshow/107002205.cms"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1421955576" version="1" timestamp="2025-08-13T05:26:52Z" changeset="170369503" uid="3926189" user="Vonter">
+    <nd ref="12822455068"/>
+    <nd ref="1472878462"/>
+    <nd ref="1473350074"/>
+    <nd ref="1472878459"/>
+    <nd ref="2471287779"/>
+    <tag k="frontage_road" v="yes"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxspeed" v="30"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="separate"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1422778328" version="2" timestamp="2026-04-23T09:16:57Z" changeset="181707704" uid="2425805" user="uknown-gryphus">
+    <nd ref="13075406638"/>
+    <nd ref="13075406637"/>
+    <tag k="highway" v="primary_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="maxspeed:type" v="sign"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1422778329" version="2" timestamp="2026-04-23T09:16:57Z" changeset="181707704" uid="2425805" user="uknown-gryphus">
+    <nd ref="13075406639"/>
+    <nd ref="13075406638"/>
+    <tag k="embankment" v="yes"/>
+    <tag k="highway" v="primary_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="maxspeed:type" v="sign"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1422778330" version="2" timestamp="2026-04-23T09:16:57Z" changeset="181707704" uid="2425805" user="uknown-gryphus">
+    <nd ref="12969313169"/>
+    <nd ref="13075406640"/>
+    <nd ref="13075406639"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="highway" v="primary_link"/>
+    <tag k="lanes" v="2"/>
+    <tag k="layer" v="1"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="maxspeed:type" v="sign"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1453814098" version="3" timestamp="2026-07-06T05:08:56Z" changeset="185174743" uid="21731097" user="Aswin Benny">
+    <nd ref="11964440743"/>
+    <nd ref="10282769901"/>
+    <nd ref="1607769588"/>
+    <tag k="highway" v="primary"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="3"/>
+    <tag k="lit" v="yes"/>
+    <tag k="maxspeed" v="60"/>
+    <tag k="name" v="Hosur Road"/>
+    <tag k="name:etymology:wikidata" v="Q297967"/>
+    <tag k="name:kn" v="ಹೊಸೂರು ರಸ್ತೆ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="left"/>
+    <tag k="smoothness" v="good"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1453821325" version="1" timestamp="2025-11-26T06:28:13Z" changeset="175138967" uid="16275581" user="ompatekar">
+    <nd ref="12068001058"/>
+    <nd ref="12068001060"/>
+    <nd ref="4105324822"/>
+    <tag k="alt_name" v="Delhi - Chennai Highway"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="int_ref" v="AH43"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxspeed" v="80"/>
+    <tag k="name" v="Srinagar - Kanyakumari Highway"/>
+    <tag k="name:kn" v="ಕನ್ಯಾಕುಮಾರಿ - ಶ್ರೀನಗರ ಹೆದ್ದಾರಿ"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="ref" v="NH44;NH48"/>
+    <tag k="ref:old" v="NH7"/>
+    <tag k="ref_1" v="NH48"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1454345481" version="1" timestamp="2025-11-28T06:19:09Z" changeset="175224705" uid="19505674" user="alivapanda">
+    <nd ref="13337723223"/>
+    <nd ref="1617747730"/>
+    <tag k="frontage_road" v="yes"/>
+    <tag k="highway" v="trunk"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="name" v="Service Road"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+  <way id="1501709575" version="1" timestamp="2026-04-21T10:04:12Z" changeset="181619040" uid="19294194" user="olasakeeb">
+    <nd ref="13748051108"/>
+    <nd ref="13748051109"/>
+    <tag k="highway" v="trunk_link"/>
+  </way>
+  <way id="1553783842" version="1" timestamp="2026-08-31T07:08:43Z" changeset="188288333" uid="16531141" user="tusharvalvi">
+    <nd ref="494271078"/>
+    <nd ref="13633880270"/>
+    <nd ref="1617747733"/>
+    <nd ref="12464229061"/>
+    <nd ref="13633880281"/>
+    <nd ref="10301629533"/>
+    <nd ref="1417443722"/>
+    <nd ref="12774260876"/>
+    <nd ref="6196977039"/>
+    <nd ref="9719835309"/>
+    <nd ref="11927297367"/>
+    <nd ref="1723812884"/>
+    <nd ref="13063288939"/>
+    <nd ref="2389119238"/>
+    <nd ref="10081671384"/>
+    <nd ref="1723812967"/>
+    <nd ref="6528148981"/>
+    <nd ref="1723812983"/>
+    <nd ref="13633949214"/>
+    <nd ref="13633949224"/>
+    <nd ref="13982856019"/>
+    <nd ref="13633977470"/>
+    <nd ref="3672940764"/>
+    <nd ref="13633977480"/>
+    <tag k="frontage_road" v="yes"/>
+    <tag k="highway" v="tertiary"/>
+    <tag k="lanes" v="2"/>
+    <tag k="maxspeed" v="40"/>
+    <tag k="oneway" v="yes"/>
+    <tag k="sidewalk" v="no"/>
+    <tag k="surface" v="asphalt"/>
+  </way>
+
+</osm>

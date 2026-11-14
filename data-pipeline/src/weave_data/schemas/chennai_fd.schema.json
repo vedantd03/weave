@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Local schema for apps/web/public/data/chennai_fd.json. There is no emitted zod schema for this file yet (docs/schema has network/classes/scenario only); the main agent may promote this to packages/engine/src/schema.",
+  "type": "object",
+  "required": ["version", "source", "method", "branch", "coverage", "region", "speedRangeKmh", "points"],
+  "properties": {
+    "version": {"const": 1},
+    "source": {"type": "string"},
+    "method": {"type": "string"},
+    "branch": {"const": "free-flow"},
+    "coverage": {"type": "string", "pattern": "FREE-FLOW BRANCH ONLY"},
+    "region": {
+      "type": "object",
+      "required": ["xFromM", "xToM", "lengthM", "roadWidthM"],
+      "properties": {
+        "xFromM": {"type": "number"}, "xToM": {"type": "number"},
+        "lengthM": {"type": "number", "exclusiveMinimum": 0},
+        "roadWidthM": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "speedRangeKmh": {"type": "array", "prefixItems": [{"type": "number"}, {"type": "number"}], "minItems": 2, "maxItems": 2, "items": false},
+    "points": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["file", "minute", "tStartS", "flowVph", "densityVpkm", "speedKmh"],
+        "properties": {
+          "file": {"type": "string"},
+          "minute": {"type": "integer", "minimum": 0},
+          "tStartS": {"type": "number"},
+          "flowVph": {"type": "number", "minimum": 0},
+          "densityVpkm": {"type": "number", "minimum": 0},
+          "speedKmh": {"type": "number", "minimum": 0}
+        }
+      }
+    }
+  }
+}

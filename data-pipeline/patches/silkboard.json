@@ -1,0 +1,91 @@
+{
+  "comment": "Hand fixes for the Silk Board import. Every entry needs a reason. join_junctions is applied before netconvert by fusing the OSM nodes at their centroid in the clipped extract; other ops are applied to the converted JSON.",
+  "patches": [
+    {
+      "op": "join_junctions",
+      "nodes": [
+        "10282769905",
+        "1472878464"
+      ],
+      "reason": "the 8.0 m trunk_link way 1393438377 joining these nodes lies inside their overlapping junction shapes, so netconvert shortened it to a 0.18 m link (and did not join the junctions itself); fusing the nodes at their centroid removes the degenerate link"
+    },
+    {
+      "op": "join_junctions",
+      "nodes": [
+        "12129307874",
+        "12181383755",
+        "2385133858"
+      ],
+      "keep": "12129307874",
+      "reason": "the 20 m slip trunk_link 1310034044 lies inside the joined junction's shape and netconvert shrank it to a 0.19 m link (it refused to join, \"parallel incoming\"); fusing its three nodes at the trunk node removes the slip and the tertiary connects directly to the trunk"
+    },
+    {
+      "op": "join_junctions",
+      "nodes": [
+        "6196977039",
+        "9593357279"
+      ],
+      "reason": "the 12.5 m trunk_link way 1042112410 joining these nodes lies inside their overlapping junction shapes, so netconvert shortened it to a 0.20 m link (and did not join the junctions itself); fusing the nodes at their centroid removes the degenerate link"
+    },
+    {
+      "op": "join_junctions",
+      "nodes": [
+        "13337723222",
+        "13337723223"
+      ],
+      "reason": "the 21.6 m flyover trunk way 380707240 (Srinagar - Kanyakumari Highway, layer 1) joining these nodes lies inside their overlapping junction shapes, so netconvert shortened it to a 0.32 m link (and did not join the junctions itself); fusing the nodes at their centroid removes the degenerate link"
+    },
+    {
+      "op": "join_junctions",
+      "nodes": [
+        "494271084",
+        "494271075"
+      ],
+      "reason": "the 20.9 m Hosur Road trunk way 1167293940 (flyover, layer 1) joining these nodes lies inside their overlapping junction shapes, so netconvert shortened it to a 0.56 m link (and did not join the junctions itself); fusing the nodes at their centroid removes the degenerate link"
+    },
+    {
+      "op": "join_junctions",
+      "nodes": [
+        "13748051108",
+        "13748051109"
+      ],
+      "reason": "the 13.2 m trunk_link way 1501709575 joining these nodes lies inside their overlapping junction shapes, so netconvert shortened it to a 0.8 m link (and did not join the junctions itself); fusing the nodes at their centroid removes the degenerate link"
+    },
+    {
+      "op": "join_junctions",
+      "nodes": [
+        "6521888739",
+        "8243174052"
+      ],
+      "reason": "the 17.3 m piece of Tank Bund Road (secondary way 229976708) joining these nodes lies inside their overlapping junction shapes, so netconvert shortened it to a 0.84 m link (and did not join the junctions itself); fusing the nodes at their centroid removes the degenerate link"
+    },
+    {
+      "op": "join_junctions",
+      "nodes": [
+        "307408088",
+        "2619300315"
+      ],
+      "keep": "307408088",
+      "reason": "the 5.5 m tertiary way 256258848 between the junction at 307408088 and the drain bridge 256258847 lies inside the junction shape; netconvert shortened it to a 0.2 m two-way link (it is no longer merged away because edges next to bridges are protected from --geometry.remove). Fusing at the junction node removes it; the bridge meets the junction directly"
+    },
+    {
+      "op": "join_junctions",
+      "nodes": [
+        "306611189",
+        "11374929996"
+      ],
+      "keep": "306611189",
+      "reason": "the 7.8 m tertiary way 1226665350 between the junction at 306611189 and the drain bridge 799578797 (1 A Main Road) lies inside the junction shape; netconvert shortened it to a 0.71 m link. Fusing at the junction node removes it"
+    },
+    {
+      "op": "remove_link",
+      "id": "886153775",
+      "reason": "7 m stub of 4th Cross Road that no movement feeds: its only upstream link is its own reverse (-886153775), and U-turns are disabled (--no-turnarounds); the residential continuation is outside the downloaded road classes. Unreachable from every entry zone."
+    },
+    {
+      "op": "remove_link",
+      "id": "1301808820",
+      "reason": "\"Ramp to Hosur road joining Ragigudda Silkboard Double Decker Flyover\": its upstream end is a dead end inside the box (the approach is a lower-class road outside the extract), so it would be an entry zone in mid-air. Removed with its zone; links that become unreachable are pruned automatically. Known simplification: this approach to the double-decker is not modelled."
+    }
+  ]
+}

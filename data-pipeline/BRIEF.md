@@ -93,6 +93,15 @@ provenance and a note.
     |Δv|): `T = (s·√(1 − (v/v0)⁴) − s0)/v`, then take the per-class median.
   - **Label:** conditional on the assumed s0 and the proxy v0.
   - **Sensitivity:** a table of T under s0 ± 1 m and v0 ± 10%.
+- **T, high-speed samples (added by the user):** when v approaches or exceeds v0,
+  `1 − (v/v0)⁴` goes ≤ 0, the square root returns NaN, and pandas silently drops NaN from the
+  median. Exclude samples with `v > 0.9·v0` *explicitly, before* inverting. Report how many were
+  dropped per class, in absolute numbers and as a share. No NaN may reach a median.
+- **a and b, smoothing sensitivity (added by the user):** at 0.5 s sampling, the tails of a
+  second derivative are mostly noise. Report a (p95) and b (−p5) per class for several
+  Savitzky–Golay windows (at least 5, 7, 9, 11 and 15 points) and say how much the
+  percentiles move. Pick the window with a stated reason. Put the table in the report and in
+  the VALIDATION draft.
 - **Leaders:** use exactly the engine rule in docs/MODEL.md §1.5–1.6: strips that tile the road,
   occupancy `[floor(left/w), ceil(right/w) − 1]` with width + 2c, and the nearest *rear end*
   among overlapping vehicles ahead. D7 must reproduce `docs/fixtures/leader_cases.json`.
