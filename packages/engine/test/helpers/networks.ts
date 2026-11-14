@@ -1,8 +1,7 @@
 /**
  * Hand-built networks (validated by the zod Network schema) for demand and routing tests.
  * They are passed to createSim through its `network` argument with a scenario whose network
- * source is { kind: 'file', id: 'silkboard' } (the only file id the schema allows; MODEL.md §1.7
- * createSim takes the Network object explicitly).
+ * source is { kind: 'custom', id } (networks given directly to createSim).
  */
 import { Network } from '../../src/schema/index.ts';
 import type { ScenarioInput } from '../../src/schema/index.ts';
@@ -93,7 +92,7 @@ export function fileScenario(o: {
     version: 1,
     id: 'test-file-net',
     name: 'test file network',
-    network: { kind: 'file', id: 'silkboard' },
+    network: { kind: 'custom', id: 'test-net' },
     od: o.od,
     composition: o.composition,
     mode: o.mode ?? 'lane',

@@ -32,8 +32,8 @@ function scene(vehicles: SceneVehicle[], W = W7): Scene {
   return s;
 }
 function expectMatchesReference(s: Scene) {
-  s.refVehicles.forEach((rv, k) => {
-    const v = s.view(k);
+  s.refVehicles.forEach((rv) => {
+    const v = s.view(rv.id); // ref id = placement index
     expect(Math.abs(v.a - s.ref.acc.get(rv.id)!)).toBeLessThanOrEqual(1e-9);
     expect(v.targetY).toBeCloseTo(s.ref.target.get(rv.id)!, 9);
   });
@@ -182,3 +182,32 @@ describe('strip-mode commit order', () => {
   });
 });
 
+
+describe('strip-mode self-safety (ADR-014)', () => {
+  // A motorcycle at 9 m/s is blocked by a slow motorcycle overlapping only its rightmost strip
+  // (a_c = −9). Moving left escapes it but puts it behind a car at 4.5 m/s in strips 2..9.
+  const sceneG = (g: number) =>
+    scene([
+      { cls: 'motorcycle', front: 500, y: yForLo(10, 0.8, 0.15, w7), v: 9 },
+      { cls: 'motorcycle', front: 506, y: yForLo(14, 0.8, 0.15, w7), v: 1 },
+      { cls: 'car', front: 500 + g + 4.5, y: yForLo(2, 1.8, 0.2, w7), v: 4.5 },
+    ]);
+
+  it('gap 12 m to the car: Δ ≈ 2.7 > threshold but ã_c ≈ −6.3 < −B_SAFE → stays', () => {
+    const s = sceneG(12);
+    const left = s.ref.candidates.get(0)!.filter((c) => c.j < 0);
+    for (const c of left) {
+      expect(c.delta).toBeGreaterThan(0.1 + 1);
+      expect(c.aTildeC).toBeLessThan(-4 - 1);
+    }
+    expectMatchesReference(s);
+    expect(s.view(0).targetY).toBeCloseTo(s.refVehicles[0]!.y, 9);
+  });
+
+  it('control, gap 20 m: ã_c ≈ −1.3 ≥ −B_SAFE → moves one strip left', () => {
+    const s = sceneG(20);
+    expect(s.ref.candidates.get(0)!.find((c) => c.j === -1)!.aTildeC).toBeGreaterThan(-4 + 1);
+    expectMatchesReference(s);
+    expect(s.view(0).targetY).toBeCloseTo(s.refVehicles[0]!.y - w7, 9);
+  });
+});

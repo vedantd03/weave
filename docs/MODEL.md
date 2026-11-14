@@ -269,7 +269,13 @@ export function defaultClasses(): ClassSet                          // provision
   Initial vehicles (§1.7) use the same order with destination and lateral preference omitted.
 - **Driver substream** `(driver, id)`: the multipliers for v0, T, s0, a, b, in that order.
 - **Route:** the shortest path from the origin zone's link to the destination zone's link.
-  - **Cost:** cost = Σ segment length / segment speed limit.
+  - **Cost:** cost = Σ over segments of (length / speed limit + junction penalty). The penalty
+    is **15 s** for a movement with control `signal`, **5 s** for `minor`, and 0 otherwise.
+    - **Status:** the penalty values are an assumption, standing for expected junction delay.
+    - **Why it exists:** without it, a flyover route (ramp R + deck + ramp R) and the at-grade
+      route (R + 20 + box + R + 20) both measure 2R + 2r0 + 40 m in plan, so the deck would
+      win only on a tie-break. Lengths are 2D polyline lengths; ramps are not measured in
+      3D.
   - **Search:** Dijkstra over segments, where links lead to their movements and movements to
     their toLink. Ties go to the smaller segment index, then to the shorter path in segments.
   - **Caching:** routes are computed once per OD pair.
@@ -327,6 +333,16 @@ at its target (`y = targetY`).
 **Band keeping:** a candidate that would take the body out of the next movement's band when it
 is currently inside (`dist(y) = 0 < dist(y′)`) is not a candidate. Discretionary overtaking
 never leaves the side a vehicle needs.
+
+**Followers across segment starts:** when i's rear reaches back past the start of its link,
+vehicles on the link's predecessor segments (the movements leading into it) whose fronts lie
+within `length_i + maxLength` of the segment start also count.
+- **Position:** their front is taken as `s_j − length(pred)`, which is negative in i's
+  coordinates.
+- **Lateral span:** their y and targetY are mapped into i's link with the movement's
+  toLateral band, and the span is computed in i's layout.
+- **Use:** they are candidates for N and O, after own-link candidates, and they are included
+  in the side-clash check.
 
 **Quantities for each candidate**, with `span_t` the occupancy at y' (§1.5) and
 `span_s = sweptStrips(y, y')`:
@@ -443,7 +459,7 @@ are single lanes, and Δ is the standard MOBIL incentive with politeness p and t
   - **Signature:** `addVehicle({ classId, link, s, y, v }): number` places a vehicle with its
     class's base parameters (no driver draws) and `targetY = y`.
   - **Ids and routes:** ids are `0x50000000 + k`. The route comes from the default route rule
-    of §1.7.
+    of §2.8. `link` may also be a movement id, which places the vehicle on that movement path.
 - **`VehicleView`** gains `targetY`. On a movement path, `link` is the movement id.
 
 ### 2.8 Clarifications (binding)
@@ -505,11 +521,13 @@ export function signalState(plan: SignalPlan, movementId: string, t: number): 0 
 - **During `[start_i, start_i + green_i)`:** movements in `protected_i` are GREEN and those in
   `permissive_i` are PERMISSIVE.
 - **During the inter-green after phase i:**
-  - **Amber window** `[start_i + green_i, + amber)`: movements green in phase i are AMBER,
-    unless they are also green or permissive in phase i+1 (cyclically), in which case they
-    keep their phase-i state.
-  - **All-red window** `[…, + allRed)`: movements green in phase i are RED unless they are
-    green in phase i+1, in which case they keep their state.
+  - **Amber window** `[start_i + green_i, + amber)`: movements that were protected **or
+    permissive** in phase i are AMBER, unless they are also protected or permissive in phase
+    i+1 (cyclically), in which case they keep their phase-i state. Permissive-only movements
+    get an amber too: going straight to red would be unsafe.
+  - **All-red window** `[…, + allRed)`: movements that were protected or permissive in phase
+    i are RED, unless they are protected or permissive in phase i+1, in which case they keep
+    their phase-i state.
 - **Otherwise RED.** A movement listed as protected in one phase and permissive in another
   takes the state of the phase that is running.
 - **Overrides:** `scenario.signalOverrides` replace the plans for their nodes.
@@ -523,7 +541,8 @@ export function saturatedDischarge(majorArrivals: readonly number[], tc: number,
 - **Discharge model:** `saturatedDischarge` returns the entry times of an always-present minor
   queue. Each entry happens at the earliest instant ≥ the previous entry + tf (or ≥ 0 for the
   first) at which the time to the next major arrival is ≥ tc. Entries may happen exactly at
-  major arrival instants, after the major vehicle has passed. Entries stop at `horizon`.
+  major arrival instants, after the major vehicle has passed. Only entries at
+  `t < horizon` are returned (the horizon is exclusive).
 - **Theory (T14):** with Poisson major arrivals at rate q, the long-run entry rate is
   **Harders' capacity** `q·e^{−q·tc} / (1 − e^{−q·tf})` (Harders 1968; the stepwise gap-acceptance capacity used for HCM two-way-stop control).
 - **Driver parameters:** `tc` and `tf` per driver are `criticalS · (1 + spread·u₁)` and
@@ -565,17 +584,29 @@ one is a standing obstacle with rear at the stop line, or at the conflict entry,
      projected onto m as leader candidates. Merging uses the distance remaining to the end of
      each path; diverging uses the distance from the start. The overlap test uses the
      movements' lateral bands.
-5. **Don't block the box:** a vehicle may cross its stop line into m only if the space on m's
+5. **Don't block the box** (all movement controls, including `free`). `boxCompliance`
+   defaults to **1.0**. Lower values are an editable **assumption**, since no source is
+   available for Indian junctions: a vehicle may cross its stop line into m only if the space on m's
    toLink, `min_j(s_j − length_j)` over its occupants (or the toLink length if empty), is
    `≥ length_i + s0_i`. This check is skipped for drivers whose `u₃ ≥ boxCompliance`.
-6. **Gridlock detector:** gridlock is reported as `{ detected: true, sinceS }` when, for
-   ≥ 300 s of simulated time:
-   - no vehicle on the network has speed > 0.1 m/s;
-   - nothing was inserted or exited;
-   - `onNetwork > 0`.
-
-   The window is longer than any signal cycle. Vehicles are never teleported. The result is
-   exposed as `sim.gridlock()` and in `series()` rows.
+6. **Gridlock detector, per junction:** a **junction** is a node with at least two
+   movements. Its **region** is the vehicles on its movements plus the vehicles whose fronts
+   are within 50 m of the end of any of its incoming links.
+   - **Locked:** a junction is locked when, for ≥ 300 s of simulated time, its region is
+     non-empty, no vehicle in the region has speed > 0.1 m/s, and no vehicle entered or left
+     any of its movements.
+   - **Whole network:** separately, the network as a whole counts as locked when, for ≥ 300 s,
+     no vehicle on the network has speed > 0.1 m/s, nothing was inserted or exited, and
+     `onNetwork > 0`.
+   - **Result:** `sim.gridlock()` returns
+     `{ detected, sinceS, junctions: [{ node, sinceS }] }`, or null when nothing is locked.
+     - `detected` is true when any junction is locked or the whole network is.
+     - `sinceS` is the earliest time a stalled condition began.
+     - `junctions` lists the locked nodes, each with the time its stall began.
+   - **Why per junction:** one junction can lock while the rest of the network keeps moving
+     (Silk Board).
+   - **Other rules:** the 300 s window is longer than any signal cycle. Vehicles are never
+     teleported. `series()` rows carry the count of locked junctions.
 
 ### 3.5 Junction generator (`generator: 'junction'`), left-hand traffic
 - **Arms:** arm k has outward unit vector `e_k = (cos θ_k, sin θ_k)` (θ in degrees,
@@ -613,10 +644,12 @@ one is a standing obstacle with rear at the stop line, or at the conflict entry,
     - `arm{X}_in` (far part, from the arm end to the split node `dX`, where the zone stays);
     - at-grade `arm{X}_in_near` (width `landingWidthM`, from dX to r0);
     - `fly{X}{Y}_up` (layer 1, width `rampWidthM`, z 0 → heightM, from dX towards the
-      centre, ending at r0 + 10 m);
-    - `fly{X}{Y}_deck` (layer 1, width `deckWidthM`, z = heightM, straight across the box);
-    - `fly{X}{Y}_down` (layer 1, width `rampWidthM`, z heightM → 0, ending at merge node `mY`
-      at distance `r0 + rampLengthM + 20 m` along arm Y).
+      centre, ending at distance r0 + 20 m, so its length is exactly `rampLengthM`);
+    - `fly{X}{Y}_deck` (layer 1, width `deckWidthM`, z = heightM, straight across the box
+      from r0 + 20 m on arm X to r0 + 20 m on arm Y);
+    - `fly{X}{Y}_down` (layer 1, width `rampWidthM`, z heightM → 0, from r0 + 20 m on arm Y
+      to merge node `mY` at distance `r0 + rampLengthM + 20 m`, so its length is
+      `rampLengthM`).
   - **Exit split:** arm Y's outbound is split into `arm{Y}_out_near` (width `landingWidthM`,
     from r0 to mY) and `arm{Y}_out` (far part, where the zone stays).
   - **Nodes:** the split and merge nodes are at layer 0. The deck nodes are at layer 1.

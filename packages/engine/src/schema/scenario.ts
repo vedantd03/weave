@@ -110,6 +110,8 @@ export type MergeParams = z.infer<typeof MergeParams>;
 export const NetworkSource = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('generator'), params: GeneratorParams }),
   z.object({ kind: z.literal('file'), id: z.enum(['silkboard']) }),
+  /** A network supplied directly to createSim (tests, imported files). */
+  z.object({ kind: z.literal('custom'), id: Id }),
 ]);
 export type NetworkSource = z.infer<typeof NetworkSource>;
 

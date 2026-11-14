@@ -1,7 +1,10 @@
 /**
- * Test-local reference of the lateral decision rule of docs/MODEL.md §2.4 (generalised MOBIL)
- * for vehicles on ONE link with no next route element (corridor with change 'none'), so the
- * route bias, lane-band obstacle and threshold waiver are all inactive (bias = 0, dist = 0).
+ * Test-local reference of the lateral decision rule of docs/MODEL.md §2.4 (generalised MOBIL,
+ * as amended by ADR-014/016) for vehicles on ONE link. Optionally the link's next route element
+ * is a movement with band [b0, b1] (`road.band`, with `road.linkLength` giving d = L − front):
+ * then the lane-band obstacle (§2.2), band keeping, route bias β = min(1, 200/max(d, 1)) and the
+ * 30 m threshold waiver apply. Without `band` all of those are inactive (bias = 0, dist = 0).
+ * Includes mover self-safety (ã_c ≥ −B_SAFE) and the pairwise B_SAFE commit re-check.
  * Written from the spec text; the engine's code is never consulted.
  */
 import { idmRef, type Idm } from './idm-theory.ts';
@@ -24,6 +27,10 @@ export interface RefRoad {
   stripW: number;
   lanes: number;
   speedLimit: number;
+  /** fromLateral band of the next movement, if the link has one */
+  band?: [number, number];
+  /** link length (needed with `band`) */
+  linkLength?: number;
 }
 
 export interface CandidateInfo {
@@ -36,6 +43,8 @@ export interface CandidateInfo {
   gN: number | null;
   newLeaderGap: number | null;
   longitudinalClash: boolean;
+  selfSafe: boolean;
+  bias: number;
 }
 
 export interface RefResult {
@@ -66,10 +75,20 @@ export function referenceDecisions(vs: readonly RefVehicle[], r: RefRoad): RefRe
   const span = vs.map((x) => spanAt(r, L, x, x.y));
   const rear = (k: number) => vs[k]!.front - vs[k]!.cls.length;
 
-  /** §1.6 leader over a span, with look-ahead cap D; returns index or -1 and the gap. */
-  function leader(i: number, sp: [number, number], exclude: number): { k: number; gap: number } {
+  const OBSTACLE = -2;
+  /** body distance outside the next movement's band (0 without a band) */
+  function dist(veh: RefVehicle, y: number): number {
+    if (!r.band) return 0;
+    return Math.max(0, r.band[0] - (y - veh.cls.width / 2)) + Math.max(0, y + veh.cls.width / 2 - r.band[1]);
+  }
+  /** §1.6 leader over a span, with look-ahead cap D and the lane-band obstacle at body position y. */
+  function leader(i: number, sp: [number, number], exclude: number, y = vs[i]!.y): { k: number; gap: number } {
     let best = -1;
     let bestRear = Infinity;
+    if (r.band && dist(vs[i]!, y) > 0) {
+      best = OBSTACLE;
+      bestRear = r.linkLength!;
+    }
     for (let j = 0; j < vs.length; j++) {
       if (j === i || j === exclude) continue;
       if (!overlaps(span[j]!, sp)) continue;
@@ -80,7 +99,7 @@ export function referenceDecisions(vs: readonly RefVehicle[], r: RefRoad): RefRe
         best = j;
       }
     }
-    if (best < 0) return { k: -1, gap: Infinity };
+    if (best === -1) return { k: -1, gap: Infinity };
     const gap = bestRear - vs[i]!.front;
     const me = vs[i]!;
     const D = Math.max(150, (me.v * me.v) / (2 * me.cls.idm.b) + 50);
@@ -89,8 +108,9 @@ export function referenceDecisions(vs: readonly RefVehicle[], r: RefRoad): RefRe
   }
   function accWith(i: number, ld: { k: number; gap: number }): number {
     const me = vs[i]!;
-    if (ld.k < 0) return idmRef(eff(r, me.cls), me.v, Infinity, 0);
-    return idmRef(eff(r, me.cls), me.v, ld.gap, me.v - vs[ld.k]!.v);
+    if (ld.k === -1) return idmRef(eff(r, me.cls), me.v, Infinity, 0);
+    const vL = ld.k === OBSTACLE ? 0 : vs[ld.k]!.v;
+    return idmRef(eff(r, me.cls), me.v, ld.gap, me.v - vL);
   }
   function follower(i: number, sp: [number, number]): number {
     let best = -1;
@@ -133,30 +153,19 @@ export function referenceDecisions(vs: readonly RefVehicle[], r: RefRoad): RefRe
     }
     const O = follower(i, span[i]!);
     const infos: CandidateInfo[] = [];
+    const d = r.band ? r.linkLength! - me.front : Infinity;
+    const beta = Math.min(1, 200 / Math.max(d, 1));
+    const dist0 = dist(me, me.y);
     for (const c of ys) {
+      // band keeping: never leave the band of the next movement when inside it
+      if (dist0 === 0 && dist(me, c.y) > 0) continue;
       const spT = spanAt(r, L, me, c.y);
       const spS: [number, number] = [Math.min(spT[0], span[i]![0]), Math.max(spT[1], span[i]![1])];
-      // new leader (span_t), ahead of i
-      let nl = { k: -1, gap: Infinity };
-      {
-        let best = -1;
-        let bestRear = Infinity;
-        for (let j = 0; j < vs.length; j++) {
-          if (j === i || !overlaps(span[j]!, spT)) continue;
-          const ahead = vs[j]!.front > me.front || (vs[j]!.front === me.front && j > i);
-          if (ahead && rear(j) < bestRear) {
-            bestRear = rear(j);
-            best = j;
-          }
-        }
-        if (best >= 0) {
-          const gap = bestRear - me.front;
-          const D = Math.max(150, (me.v * me.v) / (2 * me.cls.idm.b) + 50);
-          nl = gap > D ? { k: -1, gap: Infinity } : { k: best, gap };
-        }
-      }
+      // new leader (span_t), ahead of i, lane-band obstacle evaluated at y'
+      const nl = leader(i, spT, -1, c.y);
       const aTildeC = accWith(i, nl);
-      let safe = nl.k < 0 || nl.gap > 0;
+      const selfSafe = aTildeC >= -B_SAFE;
+      let safe = (nl.k === -1 || nl.gap > 0) && selfSafe;
       // new follower N
       const N = follower(i, spT);
       let aTildeN: number | null = null;
@@ -178,13 +187,18 @@ export function referenceDecisions(vs: readonly RefVehicle[], r: RefRoad): RefRe
       if (clash) safe = false;
       let termO = 0;
       if (O >= 0) termO = accWith(O, leader(O, span[O]!, i)) - acc[O]!;
-      const delta = aTildeC - acc[i]! + me.cls.p * (termN + termO);
-      infos.push({ j: c.j, y: c.y, safe, delta, aTildeC, aTildeN, gN, newLeaderGap: nl.k < 0 ? null : nl.gap, longitudinalClash: clash });
+      const bias = r.band ? beta * (dist0 - dist(me, c.y)) : 0;
+      const delta = aTildeC - acc[i]! + me.cls.p * (termN + termO) + bias;
+      infos.push({
+        j: c.j, y: c.y, safe, delta, aTildeC, aTildeN, gN,
+        newLeaderGap: nl.k === -1 ? null : nl.gap, longitudinalClash: clash, selfSafe, bias,
+      });
     }
     result.candidates.set(me.id, infos);
     let best: CandidateInfo | null = null;
+    const th = dist0 > 0 && d < 30 ? 0 : me.cls.th; // waiver
     for (const c of infos) {
-      if (!c.safe || !(c.delta > me.cls.th)) continue;
+      if (!c.safe || !(c.delta > th)) continue;
       if (
         !best ||
         c.delta > best.delta ||
@@ -209,7 +223,13 @@ export function referenceDecisions(vs: readonly RefVehicle[], r: RefRoad): RefRe
       const o = vs[k.i]!;
       const lo = o.front - o.cls.length - s0;
       const hi = o.front + s0;
-      return lo <= me.front && me.front - me.cls.length <= hi;
+      if (lo <= me.front && me.front - me.cls.length <= hi) return true;
+      // pairwise B_SAFE criteria (ADR-014); "ahead" by (front, id)
+      const oAhead = o.front > me.front || (o.front === me.front && o.id > me.id);
+      const [lead, foll] = oAhead ? [o, me] : [me, o];
+      const gap = lead.front - lead.cls.length - foll.front;
+      if (!(gap > 0)) return true;
+      return idmRef(eff(r, foll.cls), foll.v, gap, foll.v - lead.v) < -B_SAFE;
     });
     if (!conflict) committed.push(d);
   }

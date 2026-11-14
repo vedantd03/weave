@@ -62,8 +62,9 @@ vehicles move by ballistic integration with the stop condition. The fixed step i
 - **Signals:** movement-specific signal groups (protected and permissive).
 - **Priority:** gap acceptance with commitment. A committed vehicle reserves the conflict area.
 - **Entering the junction:** a vehicle enters only when there is space beyond, with a
-  compliance parameter (`boxCompliance`), because strict box-clearing doesn't describe Indian
-  junctions.
+  compliance parameter (`boxCompliance`, default 1.0). Lower values are an editable
+  assumption labelled as such in the UI. Nothing published supports a specific value such as
+  0.7, so none is assumed.
 - **Gridlock:** gridlock is detected and reported, never resolved by teleporting vehicles.
 - **Layers:** conflicts exist only between movements at the same node, so a flyover never
   conflicts with the junction below it.
