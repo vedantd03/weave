@@ -1,0 +1,25 @@
+[project]
+name = "weave-data"
+version = "0.1.0"
+description = "Offline data preparation for Weave: Chennai trajectory calibration and OSM network conversion."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "numpy",
+  "pandas",
+  "scipy",
+  "openpyxl",
+  "jsonschema",
+  "eclipse-sumo",
+]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.uv]
+# Scripts, not a distributable package: no build backend needed.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+pythonpath = ["src"]

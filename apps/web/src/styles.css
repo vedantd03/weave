@@ -1,0 +1,68 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens. Dark is the default canvas (roads read best on dark); light follows the OS.
+ * Components use only these semantic tokens via Tailwind utilities (bg-surface, text-muted, ...).
+ */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --color-bg: #0b1016;
+  --color-surface: #111821;
+  --color-surface-2: #17212c;
+  --color-border: #233041;
+  --color-text: #e6edf3;
+  --color-muted: #8b9bb0;
+  --color-accent: #f5a524;
+  --color-accent-ink: #1a1204;
+  --color-info: #38bdf8;
+  --color-ok: #34d399;
+  --color-danger: #f87171;
+
+  /* Map canvas palette (read by the renderer from CSS variables). */
+  --color-road: #2a3644;
+  --color-road-edge: #3b4a5c;
+  --color-flyover: #3a4858;
+  --color-ground: #0d141c;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-bg: #f4f6f8;
+    --color-surface: #ffffff;
+    --color-surface-2: #eef2f6;
+    --color-border: #d5dde6;
+    --color-text: #0f1720;
+    --color-muted: #5a6b7f;
+    --color-accent: #d97706;
+    --color-accent-ink: #ffffff;
+    --color-info: #0284c7;
+    --color-ok: #059669;
+    --color-danger: #dc2626;
+    --color-road: #c9d2dc;
+    --color-road-edge: #aab6c3;
+    --color-flyover: #b6c2cf;
+    --color-ground: #e9edf1;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

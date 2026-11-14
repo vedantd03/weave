@@ -1,0 +1,614 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "number",
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string"
+    },
+    "network": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "generator"
+            },
+            "params": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "generator": {
+                      "type": "string",
+                      "const": "ring"
+                    },
+                    "circumferenceM": {
+                      "type": "number",
+                      "minimum": 100,
+                      "maximum": 10000
+                    },
+                    "widthM": {
+                      "type": "number",
+                      "minimum": 2,
+                      "maximum": 25
+                    },
+                    "lanes": {
+                      "default": 1,
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 6
+                    },
+                    "speedLimitMps": {
+                      "default": 22.2,
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "required": [
+                    "generator",
+                    "circumferenceM",
+                    "widthM"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "generator": {
+                      "type": "string",
+                      "const": "corridor"
+                    },
+                    "lengthM": {
+                      "type": "number",
+                      "minimum": 100,
+                      "maximum": 5000
+                    },
+                    "widthM": {
+                      "type": "number",
+                      "minimum": 2,
+                      "maximum": 25
+                    },
+                    "lanes": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 6
+                    },
+                    "speedLimitMps": {
+                      "default": 16.7,
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "change": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "none"
+                            }
+                          },
+                          "required": [
+                            "kind"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "width"
+                            },
+                            "atM": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "toWidthM": {
+                              "type": "number",
+                              "minimum": 2,
+                              "maximum": 25
+                            },
+                            "toLanes": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 6
+                            },
+                            "taperM": {
+                              "default": 30,
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 200
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "atM",
+                            "toWidthM",
+                            "toLanes"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "laneDrop"
+                            },
+                            "atM": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "dropLanes": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 5
+                            },
+                            "taperM": {
+                              "default": 50,
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 200
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "atM",
+                            "dropLanes"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "generator",
+                    "lengthM",
+                    "widthM",
+                    "lanes",
+                    "change"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "generator": {
+                      "type": "string",
+                      "const": "junction"
+                    },
+                    "arms": {
+                      "minItems": 3,
+                      "maxItems": 6,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "angleDeg": {
+                            "type": "number",
+                            "minimum": 0,
+                            "exclusiveMaximum": 360
+                          },
+                          "inWidthM": {
+                            "type": "number",
+                            "minimum": 3,
+                            "maximum": 21
+                          },
+                          "outWidthM": {
+                            "type": "number",
+                            "minimum": 3,
+                            "maximum": 21
+                          },
+                          "inLanes": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 6
+                          },
+                          "outLanes": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 6
+                          },
+                          "lengthM": {
+                            "default": 250,
+                            "type": "number",
+                            "minimum": 50,
+                            "maximum": 1000
+                          }
+                        },
+                        "required": [
+                          "angleDeg",
+                          "inWidthM",
+                          "outWidthM",
+                          "inLanes",
+                          "outLanes"
+                        ]
+                      }
+                    },
+                    "control": {
+                      "type": "string",
+                      "enum": [
+                        "signal",
+                        "priority"
+                      ]
+                    },
+                    "majorArms": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "speedLimitMps": {
+                      "default": 13.9,
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "flyover": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "armA": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "armB": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "deckWidthM": {
+                          "type": "number",
+                          "minimum": 3,
+                          "maximum": 14
+                        },
+                        "rampWidthM": {
+                          "type": "number",
+                          "minimum": 3,
+                          "maximum": 14
+                        },
+                        "landingWidthM": {
+                          "type": "number",
+                          "minimum": 3,
+                          "maximum": 21
+                        },
+                        "rampLengthM": {
+                          "type": "number",
+                          "minimum": 40,
+                          "maximum": 400
+                        },
+                        "heightM": {
+                          "default": 6.5,
+                          "type": "number",
+                          "minimum": 4,
+                          "maximum": 12
+                        }
+                      },
+                      "required": [
+                        "enabled",
+                        "armA",
+                        "armB",
+                        "deckWidthM",
+                        "rampWidthM",
+                        "landingWidthM",
+                        "rampLengthM"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "generator",
+                    "arms",
+                    "control"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "generator": {
+                      "type": "string",
+                      "const": "merge"
+                    },
+                    "mainWidthM": {
+                      "type": "number",
+                      "minimum": 3,
+                      "maximum": 21
+                    },
+                    "mainLanes": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 6
+                    },
+                    "rampWidthM": {
+                      "type": "number",
+                      "minimum": 3,
+                      "maximum": 10
+                    },
+                    "taperM": {
+                      "type": "number",
+                      "minimum": 30,
+                      "maximum": 400
+                    },
+                    "mainLengthM": {
+                      "type": "number",
+                      "minimum": 200,
+                      "maximum": 3000
+                    },
+                    "rampLengthM": {
+                      "type": "number",
+                      "minimum": 50,
+                      "maximum": 1000
+                    },
+                    "angleDeg": {
+                      "default": 15,
+                      "type": "number",
+                      "minimum": 5,
+                      "maximum": 45
+                    },
+                    "speedLimitMps": {
+                      "default": 16.7,
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "required": [
+                    "generator",
+                    "mainWidthM",
+                    "mainLanes",
+                    "rampWidthM",
+                    "taperM",
+                    "mainLengthM",
+                    "rampLengthM"
+                  ]
+                }
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "params"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "file"
+            },
+            "id": {
+              "type": "string",
+              "enum": [
+                "silkboard"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ]
+        }
+      ]
+    },
+    "od": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "origin": {
+            "type": "string",
+            "minLength": 1
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rateVph": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 20000
+          }
+        },
+        "required": [
+          "origin",
+          "destination",
+          "rateVph"
+        ]
+      }
+    },
+    "composition": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "enum": [
+          "motorcycle",
+          "car",
+          "bus",
+          "truck",
+          "lcv",
+          "auto"
+        ]
+      },
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0
+      }
+    },
+    "compositionByOrigin": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "type": "object",
+        "propertyNames": {
+          "type": "string",
+          "enum": [
+            "motorcycle",
+            "car",
+            "bus",
+            "truck",
+            "lcv",
+            "auto"
+          ]
+        },
+        "additionalProperties": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "initialDensityPerKm": {
+      "default": 0,
+      "type": "number",
+      "minimum": 0,
+      "maximum": 400
+    },
+    "initialJitterM": {
+      "default": 0,
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "signalOverrides": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "minLength": 1
+          },
+          "offsetS": {
+            "default": 0,
+            "type": "number",
+            "minimum": 0
+          },
+          "amberS": {
+            "default": 3,
+            "type": "number",
+            "minimum": 0
+          },
+          "allRedS": {
+            "default": 2,
+            "type": "number",
+            "minimum": 0
+          },
+          "phases": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "greenS": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "protected": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "permissive": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "greenS",
+                "protected"
+              ]
+            }
+          }
+        },
+        "required": [
+          "node",
+          "phases"
+        ]
+      }
+    },
+    "mode": {
+      "default": "strip",
+      "type": "string",
+      "enum": [
+        "strip",
+        "lane"
+      ]
+    },
+    "stripWidthM": {
+      "default": 0.3,
+      "type": "number",
+      "minimum": 0.1,
+      "maximum": 1
+    },
+    "dtS": {
+      "default": 0.2,
+      "type": "number",
+      "minimum": 0.05,
+      "maximum": 0.5
+    },
+    "durationS": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 14400
+    },
+    "warmupS": {
+      "default": 300,
+      "type": "number",
+      "minimum": 0
+    },
+    "boxCompliance": {
+      "default": 1,
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "replications": {
+      "default": 10,
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    }
+  },
+  "required": [
+    "version",
+    "id",
+    "name",
+    "network",
+    "composition",
+    "durationS",
+    "seed"
+  ]
+}

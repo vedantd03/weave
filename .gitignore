@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.vercel/
+.DS_Store
+*.log
+coverage/
+playwright-report/
+test-results/
+.vite/
+# Raw Chennai trajectory data is provided locally and never committed
+data/chennai/*
+!data/chennai/README.md
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+data-pipeline/build/

@@ -1,0 +1,614 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "number",
+      "const": 1
+    },
+    "source": {
+      "type": "string"
+    },
+    "classes": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "motorcycle",
+              "car",
+              "bus",
+              "truck",
+              "lcv",
+              "auto"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "lengthM": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "fixed"
+                  },
+                  "value": {
+                    "type": "number"
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "value",
+                  "provenance",
+                  "note"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "quantiles"
+                  },
+                  "q": {
+                    "minItems": 2,
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "q",
+                  "provenance",
+                  "note"
+                ]
+              }
+            ]
+          },
+          "widthM": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "fixed"
+                  },
+                  "value": {
+                    "type": "number"
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "value",
+                  "provenance",
+                  "note"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "quantiles"
+                  },
+                  "q": {
+                    "minItems": 2,
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "q",
+                  "provenance",
+                  "note"
+                ]
+              }
+            ]
+          },
+          "idm": {
+            "type": "object",
+            "properties": {
+              "v0": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "spread": {
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.9
+                  }
+                },
+                "required": [
+                  "value",
+                  "provenance",
+                  "note"
+                ]
+              },
+              "T": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "spread": {
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.9
+                  }
+                },
+                "required": [
+                  "value",
+                  "provenance",
+                  "note"
+                ]
+              },
+              "s0": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "spread": {
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.9
+                  }
+                },
+                "required": [
+                  "value",
+                  "provenance",
+                  "note"
+                ]
+              },
+              "a": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "spread": {
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.9
+                  }
+                },
+                "required": [
+                  "value",
+                  "provenance",
+                  "note"
+                ]
+              },
+              "b": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "spread": {
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.9
+                  }
+                },
+                "required": [
+                  "value",
+                  "provenance",
+                  "note"
+                ]
+              }
+            },
+            "required": [
+              "v0",
+              "T",
+              "s0",
+              "a",
+              "b"
+            ]
+          },
+          "clearance": {
+            "type": "object",
+            "properties": {
+              "c0": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "spread": {
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.9
+                  }
+                },
+                "required": [
+                  "value",
+                  "provenance",
+                  "note"
+                ]
+              },
+              "c1": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "spread": {
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.9
+                  }
+                },
+                "required": [
+                  "value",
+                  "provenance",
+                  "note"
+                ]
+              }
+            },
+            "required": [
+              "c0",
+              "c1"
+            ]
+          },
+          "gap": {
+            "type": "object",
+            "properties": {
+              "criticalS": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "spread": {
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.9
+                  }
+                },
+                "required": [
+                  "value",
+                  "provenance",
+                  "note"
+                ]
+              },
+              "followUpS": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "spread": {
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.9
+                  }
+                },
+                "required": [
+                  "value",
+                  "provenance",
+                  "note"
+                ]
+              }
+            },
+            "required": [
+              "criticalS",
+              "followUpS"
+            ]
+          },
+          "lateral": {
+            "type": "object",
+            "properties": {
+              "maxSpeedMps": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "spread": {
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.9
+                  }
+                },
+                "required": [
+                  "value",
+                  "provenance",
+                  "note"
+                ]
+              },
+              "politeness": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "spread": {
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.9
+                  }
+                },
+                "required": [
+                  "value",
+                  "provenance",
+                  "note"
+                ]
+              },
+              "thresholdMps2": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "provenance": {
+                    "type": "string",
+                    "enum": [
+                      "derived",
+                      "proxy",
+                      "assumption"
+                    ]
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "spread": {
+                    "default": 0,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.9
+                  }
+                },
+                "required": [
+                  "value",
+                  "provenance",
+                  "note"
+                ]
+              }
+            },
+            "required": [
+              "maxSpeedMps",
+              "politeness",
+              "thresholdMps2"
+            ]
+          },
+          "share": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "provenance": {
+                "type": "string",
+                "enum": [
+                  "derived",
+                  "proxy",
+                  "assumption"
+                ]
+              },
+              "note": {
+                "type": "string"
+              },
+              "spread": {
+                "default": 0,
+                "type": "number",
+                "minimum": 0,
+                "maximum": 0.9
+              }
+            },
+            "required": [
+              "value",
+              "provenance",
+              "note"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "lengthM",
+          "widthM",
+          "idm",
+          "clearance",
+          "gap",
+          "lateral",
+          "share"
+        ]
+      }
+    }
+  },
+  "required": [
+    "version",
+    "source",
+    "classes"
+  ]
+}
