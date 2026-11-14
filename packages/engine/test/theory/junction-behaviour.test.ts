@@ -78,23 +78,32 @@ describe('signals in the simulation', () => {
 describe("don't block the box", () => {
   // a (300 m) → m (free, 30 m box) → b (60 m) → m2 (free, band [0, 3.0]) → c (width 3.0).
   // A 3.2 m truck placed on b can never enter m2 (§2.2), so b fills up behind it.
+  // n1 also has a side branch a → mside → side (exit zone out_side, no demand routed to it), so
+  // n1 is a junction (≥ 2 movements) and rule 5 applies to m (§3.4 item 5, junction nodes only).
   type P = [number, number];
   const net = Network.parse({
     version: 1, id: 'box', name: 'box',
     nodes: [
       { id: 'n0', x: 0, y: 0, kind: 'boundary' }, { id: 'n1', x: 300, y: 0, kind: 'plain' },
       { id: 'n2', x: 390, y: 0, kind: 'plain' }, { id: 'n3', x: 600, y: 0, kind: 'boundary' },
+      { id: 'n4', x: 330, y: -60, kind: 'boundary' },
     ],
     links: [
       { id: 'a', from: 'n0', to: 'n1', polyline: [[0, 0], [300, 0]] as P[], widthM: 3.5, lanes: 1, speedLimitMps: 13 },
       { id: 'b', from: 'n1', to: 'n2', polyline: [[330, 0], [390, 0]] as P[], widthM: 3.5, lanes: 1, speedLimitMps: 13 },
       { id: 'c', from: 'n2', to: 'n3', polyline: [[392, 0], [600, 0]] as P[], widthM: 3.0, lanes: 1, speedLimitMps: 13 },
+      { id: 'side', from: 'n1', to: 'n4', polyline: [[310, -10], [330, -60]] as P[], widthM: 3.5, lanes: 1, speedLimitMps: 13 },
     ],
     movements: [
       { id: 'm', node: 'n1', fromLink: 'a', toLink: 'b', path: [[300, 0], [330, 0]] as P[], widthM: 3.5, fromLateral: [0, 3.5] as P, toLateral: [0, 3.5] as P, control: 'free' },
       { id: 'm2', node: 'n2', fromLink: 'b', toLink: 'c', path: [[390, 0], [392, 0]] as P[], widthM: 3.0, fromLateral: [0, 3.0] as P, toLateral: [0, 3.0] as P, control: 'free' },
+      { id: 'mside', node: 'n1', fromLink: 'a', toLink: 'side', path: [[300, 0], [310, -10]] as P[], widthM: 3.5, fromLateral: [0, 3.5] as P, toLateral: [0, 3.5] as P, control: 'free' },
     ],
-    zones: [{ id: 'in', link: 'a', role: 'in' }, { id: 'out', link: 'c', role: 'out' }],
+    zones: [
+      { id: 'in', link: 'a', role: 'in' },
+      { id: 'out', link: 'c', role: 'out' },
+      { id: 'out_side', link: 'side', role: 'out' },
+    ],
   });
 
   function run(boxCompliance: number) {

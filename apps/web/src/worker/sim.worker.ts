@@ -39,6 +39,7 @@ function metrics(s: Sim): MetricsDelta {
     exited: c.exited,
     meanSpeedMps: vs.length ? sum / vs.length : 0,
     ...s.diagnostics(),
+    gridlock: s.gridlock(),
   };
 }
 
@@ -53,8 +54,7 @@ function sendFrame(withMetrics: boolean): void {
   const n = sim.vehicleCount();
   const data = new Float32Array(Math.max(n, 1) * FRAME_STRIDE);
   const count = sim.writeFrame(data);
-  const signals = new Uint8Array(sim.network.movements.length);
-  signals.fill(255);
+  const signals = new Uint8Array(sim.signalCodes());
   post(
     {
       type: 'frame',

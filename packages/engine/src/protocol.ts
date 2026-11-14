@@ -64,6 +64,13 @@ export const MetricsDelta = z.object({
   /** Collision-guard activations and vehicle-steps so far (ADR-015). */
   guardActivations: z.number().int().min(0).default(0),
   vehicleSteps: z.number().int().min(0).default(0),
+  /** Why vehicles were held at junctions (counts), MODEL.md §3.4. */
+  holds: z.record(z.string(), z.number()).default({}),
+  /** Gridlock report (§3.4 item 6) or null. */
+  gridlock: z
+    .object({ detected: z.boolean(), sinceS: z.number(), junctions: z.array(z.object({ node: z.string(), sinceS: z.number() })) })
+    .nullable()
+    .default(null),
 });
 export type MetricsDelta = z.infer<typeof MetricsDelta>;
 
@@ -95,6 +102,7 @@ export const SeriesRowSchema = z.object({
   densityPerKm: z.number(),
   entryQueue: z.number(),
   onNetwork: z.number(),
+  lockedJunctions: z.number().default(0),
 });
 /** Completed 60 s aggregation windows, appended in order (MODEL.md §2.7). */
 export const SeriesMsg = z.object({ type: z.literal('series'), fromIndex: z.number().int().min(0), rows: z.array(SeriesRowSchema) });

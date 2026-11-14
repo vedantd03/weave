@@ -78,8 +78,12 @@ export const JunctionParams = z
     const n = p.arms.length;
     const bad = (message: string) => ctx.addIssue({ code: 'custom', message });
     if (p.flyover?.enabled) {
-      const { armA, armB } = p.flyover;
+      const { armA, armB, rampLengthM } = p.flyover;
       if (armA >= n || armB >= n || armA === armB) bad('flyover arms must be two distinct arms');
+      for (const k of [armA, armB]) {
+        const arm = p.arms[k];
+        if (arm && arm.lengthM < rampLengthM + 30) bad(`arm ${k + 1} must be at least ramp length + 30 m long for the flyover`);
+      }
     }
     if (p.majorArms) {
       const [a, b] = p.majorArms;

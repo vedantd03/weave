@@ -306,6 +306,12 @@ export function defaultClasses(): ClassSet                          // provision
   counted in `exited` and its trip is recorded.
 
 ### 2.2 Lane-band rule
+
+**Effective band:** a movement's band is `[b0, min(b1, b0 + widthM)]`, so a band can never be wider
+than the movement it feeds. Imported data can carry wider bands, for example a 3.5 m lane
+feeding a 3.0 m movement. A vehicle that ends up wider than its road anyway may make any lateral
+move that reduces its overflow beyond the road edges (§2.4 candidates).
+
 When the next route element after a link is a movement with band `fromLateral = [b0, b1]`, a
 vehicle may continue only if its body `[y − width/2, y + width/2]` lies inside `[b0, b1]`.
 Otherwise the end of the link counts as a **standing obstacle** in the leader search: a
@@ -358,6 +364,23 @@ at its target (`y = targetY`).
   `J = max(1, floor(maxLatSpeed · τ / Δ))` and τ = 1 s. A candidate must keep body plus
   clearance inside the road: `y' − h ≥ 0` and `y' + h ≤ W`.
 - **Lane mode:** `y' = y ± laneWidth`, inside the road.
+
+**Clearance used by decisions:** candidate, target and swept spans are computed with
+`c(v_now)`, which is the clearance that becomes frozen (`c_occ`) when the move is committed. The
+span checked for safety is therefore exactly the span occupied afterwards. With c1 > 0 a stale
+`c_occ` could otherwise widen a committed span into a neighbour (found on Silk Board).
+
+**Standing obstacles:** when the new leader at y′ is a standing obstacle (a link end under the
+lane-band rule, or a held stop line) rather than a vehicle, the new-leader gap floor and the
+self-safety criterion do not apply. The obstacle does not move, so edging sideways in front of
+it at standstill is safe. Without this, a vehicle that reached the end of an acceleration lane
+could never make the partial lateral moves it needs.
+
+**Band-seeking moves:** a candidate that reduces the distance to the next movement's band needs
+only the body inside the road (`y′ ± width/2` within `[0, W]`), not the edge clearance. Otherwise
+a wide vehicle whose next movement is narrow can face a contradiction: edge clearance forbids
+every in-band position, and it waits forever. Silk Board has a 2.69 m bus, a 3.5 m link and a
+3.0 m movement. Other candidates keep the full edge-clearance rule.
 
 **Band keeping:** a candidate that would take the body out of the next movement's band when it
 is currently inside (`dist(y) = 0 < dist(y′)`) is not a candidate. Discretionary overtaking
@@ -622,11 +645,26 @@ one is a standing obstacle with rear at the stop line, or at the conflict entry,
      projected onto m as leader candidates. Merging uses the distance remaining to the end of
      each path; diverging uses the distance from the start. The overlap test uses the
      movements' lateral bands.
-5. **Don't block the box** (all movement controls, including `free`). `boxCompliance`
+   - **Approaching vehicles at a merge:** vehicles still on m′'s approach link (within 60 m of
+     its end) are projected too, but only if they will actually enter. That means m′ is not
+     red or amber, m′ does not yield to m, and the vehicle is moving at more than 0.5 m/s.
+     Otherwise a vehicle waiting at a red light on another arm would block m (found in the
+     4-arm preset).
+5. **Don't block the box** (all movement controls, including `free`, at **junction nodes**:
+   nodes with at least two movements, the same definition as item 6; a ring's self-loop node
+   or a corridor taper is not a junction). `boxCompliance`
    defaults to **1.0**. Lower values are an editable **assumption**, since no source is
-   available for Indian junctions: a vehicle may cross its stop line into m only if the space on m's
-   toLink, `min_j(s_j − length_j)` over its occupants (or the toLink length if empty), is
-   `≥ length_i + s0_i`. This check is skipped for drivers whose `u₃ ≥ boxCompliance`.
+   available for Indian junctions: a vehicle may cross its stop line into m only if the space beyond
+   the box is `≥ length_i + s0_i`.
+   - **Measuring the space:** along the vehicle's route from the start of m's toLink up to the
+     nearest **standing-queue** vehicle's rear (speed < 2 m/s), continuing across segments while
+     none is found.
+   - **Why only slow vehicles:** moving traffic beyond the box is handled by car-following.
+     Counting it as blocking throttled free-flowing merges, because each vehicle waited until
+     its predecessor was length + s0 past the stop line.
+   - **Why not the toLink alone:** short exit links are common in OSM networks (Silk Board has
+     a 7 m one). Measuring space on the toLink alone could never be satisfied there and
+     blocked the junction permanently. This check is skipped for drivers whose `u₃ ≥ boxCompliance`.
 6. **Gridlock detector, per junction:** a **junction** is a node with at least two
    movements. Its **region** is the vehicles on its movements plus the vehicles whose fronts
    are within 50 m of the end of any of its incoming links.

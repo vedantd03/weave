@@ -124,7 +124,7 @@ c0 = 0.050 m and c1 = 0.0245 s, giving c = 0.30 m at 10 m/s.
 their clearance edges. So the smallest allowed body gap lies in `[c_A + c_B, c_A + c_B + Δ)`. It
 is never a full strip per side, because the two vehicles share the boundary. In the engine test
 (`packages/engine/test/unit/clearance.test.ts`) the measured minimum exceeds c_A + c_B by
-0–0.12 m.
+0–0.15 m on the 0.25 m grid.
 
 ## 6. Simulated road vs Chennai: free-flow branch only
 
@@ -161,12 +161,17 @@ IDM is collision-free only while every leader brakes within its limits. After in
 kinematic guard stops a front from passing its leader's new rear. The engine counts every
 activation, and the app shows the count with a per-10k-vehicle-steps rate in the results panel.
 
-| Scenario (1,000 m, 30 min) | Activations |
-|---|---|
-| Any corridor, lane mode | 0 |
-| Plain 7 m and lane-drop corridor at 6,000 veh/h, strip mode, after the grid fix | 0 |
-| 11.2 m straight road at 6,000 veh/h, strip mode | 0 |
-| Before the grid fix, 7.2 → 7.0 m narrowing | 1,644–3,057 (the defect the node-saturation test found) |
+| Scenario | Activations | Per 10k vehicle-steps |
+|---|---|---|
+| Corridors (1 km, 30 min, 2,000 and 4,000 veh/h), strip and lane mode | 0 | 0 |
+| 4-arm signalised junction preset, 15 min | 9 | ≈ 0.2 |
+| 4-arm junction with flyover, 15 min | 13 | ≈ 0.3 |
+| On-ramp merge, 15 min | 2 | ≈ 0.05 |
+| Silk Board, 1 h, 1,800–3,000 veh/h | 48–211 | 0.07–0.27 |
+
+**Correction.** Earlier reports of 80–740 activations on corridors came from a counting artifact:
+a stopped vehicle whose allowed displacement was slightly negative was counted although nothing
+changed. The counter now counts only real reductions. The guard's behaviour itself is unchanged.
 
 ## 8. Known simplifications
 
@@ -181,3 +186,34 @@ activation, and the app shows the count with a per-10k-vehicle-steps rate in the
   since there is no source for Indian junctions.
 - **Demand inputs:** Silk Board demand is not observed. Scenarios use plausible, editable OD
   rates.
+- **Merging capacity:** on-ramp merges and lane changes before a split use the calibrated lateral
+  speeds (p95 of |lateral speed| on a straight section: 0.37–0.57 m/s). Crossing a 3.5 m lane
+  therefore takes about 7–10 s, so the merge preset uses a 300 m acceleration lane and moderate
+  demand (2,000 + 500 veh/h). At higher ramp demand, ramp vehicles queue at the end of the
+  acceleration lane.
+
+## 9. Silk Board (imported network)
+
+The network comes from OSM through netconvert (`data/osm/README.md`). It has 117 links and 154
+movements across three levels: ground, the Silk Board flyovers, and the Ragigudda–Silk Board
+double-decker. Signal timings are netconvert's defaults (90 s cycles; 16–85 s of green per
+movement).
+
+- **Demand is not observed.** The preset's OD gives each entry 125 veh/h per lane, split over
+  reachable exits by lane count, about 2,950 veh/h in total. It is editable.
+- **Performance:** one simulated hour runs in about 5–9 s per seed.
+- **Gridlock:** at 1,800–3,000 veh/h, some junctions **lock within the hour** (2–5 of them in
+  test runs, non-monotonic in demand). The per-junction gridlock detector reports them, and the
+  app shows the locked count. Vehicles are never removed. In the cases traced, the lock is a
+  downstream queue spilling back through the don't-block-the-box rule.
+- **Engine defects that Silk Board exposed, now fixed** (ADR-022):
+  1. Box space measured only on 7 m exit links.
+  2. Bands wider than their movements.
+  3. Wide vehicles unable to reach a narrow band because of edge clearance.
+  4. Merge projections of vehicles waiting at a red light.
+  5. Free-flowing traffic counted as box-blocking.
+- **Likely remaining contributors:** short inter-junction links with lane-specific bands from
+  netconvert, default signal timings, and the lane-drop/merge simplification (§8). The Silk Board
+  results show the network's behaviour **in this model**. They are not a prediction of real
+  Silk Board delays.
+

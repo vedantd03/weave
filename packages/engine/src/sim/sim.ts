@@ -9,6 +9,10 @@ import type { Dist } from '../schema/common.ts';
 import type { Network } from '../schema/network.ts';
 import { Scenario, type ScenarioInput } from '../schema/scenario.ts';
 import { generateNetwork } from '../scenarios/generators/index.ts';
+import { computeConflicts } from '../network/conflicts.ts';
+import { SIG, signalState } from '../junction/signals.ts';
+import { acceptGap } from '../junction/gap.ts';
+import type { MovementControl, SignalPlan } from '../schema/network.ts';
 
 /* ---------------- public types (docs/MODEL.md §1.7, §2.7, §2.8) ---------------- */
 
@@ -79,6 +83,8 @@ export interface SeriesRow {
   densityPerKm: number;
   entryQueue: number;
   onNetwork: number;
+  /** Junctions locked at the end of the window (§3.4 item 6). */
+  lockedJunctions: number;
 }
 
 export interface AddVehicleSpec {
@@ -105,7 +111,17 @@ export interface Sim {
   series(): SeriesRow[];
   addVehicle(spec: AddVehicleSpec): number;
   writeFrame(out: Float32Array): number;
-  diagnostics(): { guardActivations: number; vehicleSteps: number };
+  diagnostics(): { guardActivations: number; vehicleSteps: number; holds: Record<string, number> };
+  /** Gridlock report (MODEL.md §3.4 item 6), or null when nothing is locked. */
+  gridlock(): GridlockReport | null;
+  /** Signal colour per network movement (index order), SIG codes; 255 = uncontrolled. */
+  signalCodes(): Uint8Array;
+}
+
+export interface GridlockReport {
+  detected: boolean;
+  sinceS: number;
+  junctions: { node: string; sinceS: number }[];
 }
 
 export interface SimInput {
@@ -123,6 +139,20 @@ const WAIVER_M = 30;
 const SERIES_WINDOW_S = 60;
 const EPS = 1e-9;
 const GUARD_GAP_M = 1e-6;
+/** Route-cost junction penalty (§2.1, assumption): expected delay per controlled movement. */
+const PENALTY_SIGNAL_S = 15;
+const PENALTY_MINOR_S = 5;
+const GRIDLOCK_S = 300;
+/** Vehicles slower than this beyond the box count as a standing queue for the box rule. */
+const BOX_QUEUE_SPEED = 2;
+const REGION_M = 50;
+
+/** A movement's band cannot be wider than the movement itself (§2.2). */
+function effBand(m: Segment): [number, number] {
+  const b0 = m.fromLateral[0];
+  const b1 = Math.min(m.fromLateral[1], b0 + m.widthM);
+  return [b0, b1];
+}
 
 const INIT_ID_BASE = 0x40000000;
 const ADDED_ID_BASE = 0x50000000;
@@ -209,6 +239,10 @@ class Store {
   lead = new Int32Array(0);
   leadGap = new Float64Array(0);
   ds = new Float64Array(0);
+  /** Gap acceptance per driver (§3.3) and "don't block the box" compliance. */
+  tc = new Float64Array(0);
+  tf = new Float64Array(0);
+  comply = new Uint8Array(0);
 
   constructor(cap: number) {
     this.grow(cap);
@@ -272,6 +306,21 @@ class SimImpl implements Sim {
   private exited = 0;
   private addedCount = 0;
   private guardHits = 0;
+  private guardBySeg: Record<number, number> = {};
+  /** Why vehicles were held at junctions (counts of leader-search evaluations). */
+  private holds = { red: 0, amber: 0, gap: 0, box: 0, occupied: 0 };
+  /** Junction data per segment (movements only). */
+  private conf: { other: number; type: 'crossing' | 'merging' | 'diverging'; self: [number, number]; oth: [number, number] }[][] = [];
+  private ctrl: (MovementControl | null)[] = [];
+  private plan: (SignalPlan | null)[] = [];
+  private sigNow: Uint8Array = new Uint8Array(0);
+  private lastEntry: Float64Array = new Float64Array(0);
+  private isJunctionMove: Uint8Array = new Uint8Array(0);
+  private junctions: { node: string; moves: number[]; inLinks: number[]; lastActive: number; lastCount: number }[] = [];
+  private netLastActive = 0;
+  private genSeen = 0;
+  private insertedTotal = 0;
+  private activeThisStep = false;
   private vehicleSteps = 0;
   private stats: LinkStats[];
   private tripLog: TripRecord[] = [];
@@ -292,6 +341,7 @@ class SimImpl implements Sim {
     this.net = buildNetwork(network, this.sc.mode, this.sc.stripWidthM);
     this.segs = this.net.segments;
     this.occ = this.segs.map(() => []);
+    this.setupJunctions();
     this.preds = this.segs.map(() => []);
     for (const seg of this.segs) for (const nx of seg.next) this.preds[nx]!.push(seg.index);
     this.stats = this.segs.map(() => ({ entered: 0, exited: 0, vehicleSeconds: 0, travelTimeSum: 0, travelTimeCount: 0 }));
@@ -304,6 +354,43 @@ class SimImpl implements Sim {
   }
 
   /* ================= set-up ================= */
+
+  /** Conflicts, signal plans (with scenario overrides) and junction regions (§3). */
+  private setupJunctions(): void {
+    const n = this.segs.length;
+    this.conf = this.segs.map(() => []);
+    this.ctrl = new Array(n).fill(null);
+    this.plan = new Array(n).fill(null);
+    this.sigNow = new Uint8Array(n).fill(SIG.NONE);
+    this.lastEntry = new Float64Array(n).fill(-Infinity);
+    this.isJunctionMove = new Uint8Array(n);
+    const plans = new Map<string, SignalPlan>();
+    for (const p of this.network.signals) plans.set(p.node, p);
+    for (const p of this.sc.signalOverrides) plans.set(p.node, p);
+    const segOfMove = new Map<string, number>();
+    for (const seg of this.segs) if (seg.kind === 'movement') segOfMove.set(seg.id, seg.index);
+    const conflicts = computeConflicts(this.network);
+    const movesByNode = new Map<string, number[]>();
+    this.network.movements.forEach((m, mi) => {
+      const g = this.net.nLinks + mi;
+      this.ctrl[g] = m.control;
+      const pl = plans.get(m.node);
+      if (m.control === 'signal' && pl) this.plan[g] = pl;
+      for (const c of conflicts.get(m.id) ?? []) {
+        const o = segOfMove.get(c.movement);
+        if (o !== undefined) this.conf[g]!.push({ other: o, type: c.type, self: [c.self[0], c.self[1]], oth: [c.other[0], c.other[1]] });
+      }
+      const list = movesByNode.get(m.node) ?? [];
+      list.push(g);
+      movesByNode.set(m.node, list);
+    });
+    for (const [node, moves] of movesByNode) {
+      if (moves.length < 2) continue;
+      for (const g of moves) this.isJunctionMove[g] = 1;
+      const inLinks = [...new Set(moves.map((g) => this.net.segByLinkId.get(this.network.movements[g - this.net.nLinks]!.fromLink)!))];
+      this.junctions.push({ node, moves, inLinks, lastActive: 0, lastCount: 0 });
+    }
+  }
 
   private setupDemand(): void {
     const zones = this.network.zones;
@@ -375,7 +462,9 @@ class SimImpl implements Sim {
       done[u] = 1;
       for (const w of this.segs[u]!.next) {
         const seg = this.segs[w]!;
-        const c = cost[u]! + seg.length / seg.speedLimitMps;
+        const ctl = this.ctrl[w];
+        const penalty = ctl === 'signal' ? PENALTY_SIGNAL_S : ctl === 'minor' ? PENALTY_MINOR_S : 0;
+        const c = cost[u]! + seg.length / seg.speedLimitMps + penalty;
         if (c < cost[w]! || (c === cost[w] && hops[u]! + 1 < hops[w]!)) {
           cost[w] = c;
           hops[w] = hops[u]! + 1;
@@ -460,6 +549,11 @@ class SimImpl implements Sim {
     st.tGen[k] = this.t;
     st.tIns[k] = this.t;
     st.tSeg[k] = this.t;
+    const cls = this.classes[ci]!;
+    const gs = substream(this.sc.seed, Purpose.gap, id);
+    st.tc[k] = cls.gap.criticalS.value * (1 + cls.gap.criticalS.spread * gs.uniform(-1, 1));
+    st.tf[k] = cls.gap.followUpS.value * (1 + cls.gap.followUpS.spread * gs.uniform(-1, 1));
+    st.comply[k] = gs.next() < this.sc.boxCompliance ? 1 : 0;
     if (length > this.maxLen) this.maxLen = length;
     this.insertOcc(seg, k);
     this.stats[seg]!.entered++;
@@ -577,6 +671,14 @@ class SimImpl implements Sim {
     let bestId = Infinity;
     let vl = 0;
     let slot = -1;
+    const upd = (rear: number, v: number, j: number, id: number) => {
+      if (rear < bestRear || (rear === bestRear && id < bestId)) {
+        bestRear = rear;
+        bestId = id;
+        vl = v;
+        slot = j;
+      }
+    };
     const own = this.occ[seg0.index]!;
     // First own-segment occupant ahead of (s, selfId): binary search on the sorted list.
     let a = 0;
@@ -601,6 +703,7 @@ class SimImpl implements Sim {
         slot = j;
       }
     }
+    if (seg0.kind === 'movement') this.junctionCands(self, skip, seg0, -s, y, width, c, selfId, upd);
     let seg = seg0;
     let rpos = rpos0;
     let off = seg.length - s;
@@ -611,8 +714,18 @@ class SimImpl implements Sim {
       const nseg = this.segs[nx.seg]!;
       if (seg.kind === 'link' && nseg.kind === 'movement') {
         const half = width / 2;
-        if (yy - half < nseg.fromLateral[0] - EPS || yy + half > nseg.fromLateral[1] + EPS) {
+        const band = effBand(nseg);
+        if (yy - half < band[0] - EPS || yy + half > band[1] + EPS) {
           // Lane-band rule: the link end is a standing obstacle.
+          if (off < bestRear) {
+            bestRear = off;
+            vl = 0;
+            slot = -1;
+          }
+          break;
+        }
+        // Junction stop line: signal, gap acceptance, don't block the box (§3.4).
+        if (self >= 0 && this.stopBlocked(self, nseg, off)) {
           if (off < bestRear) {
             bestRear = off;
             vl = 0;
@@ -638,12 +751,182 @@ class SimImpl implements Sim {
           slot = j;
         }
       }
+      if (nseg.kind === 'movement') this.junctionCands(self, skip, nseg, off, yy, width, c, selfId, upd);
       off += nseg.length;
       rpos = nx.rpos;
       seg = nseg;
     }
     if (bestRear > D) return { gap: Infinity, vl: 0, slot: -1 };
     return { gap: bestRear, vl, slot };
+  }
+
+  /** Does movement `m` yield to movement `o` right now (§3.4 rule 2)? */
+  private yields(m: number, o: number): boolean {
+    const cm = this.ctrl[m];
+    const co = this.ctrl[o];
+    if (co === 'free' && cm !== 'free') return true;
+    const sm = this.sigNow[m]!;
+    const so = this.sigNow[o]!;
+    if (sm !== SIG.NONE || so !== SIG.NONE) return sm === SIG.PERMISSIVE && so === SIG.GREEN;
+    return cm === 'minor' && co === 'major';
+  }
+
+  private fromLinkOf(movementSeg: number): Segment {
+    return this.segs[this.net.segByLinkId.get(this.network.movements[movementSeg - this.net.nLinks]!.fromLink)!]!;
+  }
+
+  /**
+   * Is vehicle k (front `off` metres before the start of movement m) held at its stop line?
+   * Signal state, gap acceptance against higher-priority streams, don't block the box.
+   */
+  private stopBlocked(k: number, m: Segment, off: number): boolean {
+    const st = this.st;
+    const v = st.v[k]!;
+    const b = st.b[k]!;
+    const sig = this.sigNow[m.index]!;
+    if (sig === SIG.RED) {
+      this.holds.red++;
+      return true;
+    }
+    if (sig === SIG.AMBER && off >= (v * v) / (2 * b)) {
+      this.holds.amber++;
+      return true;
+    }
+    const zone = Math.max((v * v) / (2 * b), 2) + v * this.dt;
+    if (off > zone) return false;
+    // Gap acceptance (§3.3): every yielding crossing/merging conflict must accept.
+    const since = this.t - this.lastEntry[m.index]!;
+    for (const cf of this.conf[m.index]!) {
+      if (cf.type === 'diverging' || !this.yields(m.index, cf.other)) continue;
+      const o = this.segs[cf.other]!;
+      let next = Infinity;
+      for (const j of this.occ[o.index]!) {
+        if (st.s[j]! - st.len[j]! >= cf.oth[1]) continue; // already past the conflict
+        const d = cf.oth[0] - st.s[j]! > 0 ? cf.oth[0] - st.s[j]! : 0;
+        const tj = d / (st.v[j]! > 0.5 ? st.v[j]! : 0.5);
+        if (tj < next) next = tj;
+      }
+      const from = this.fromLinkOf(o.index);
+      const list = this.occ[from.index]!;
+      for (let q = list.length - 1; q >= 0; q--) {
+        const j = list[q]!;
+        const toEnd = from.length - st.s[j]!;
+        if (toEnd > 150) break;
+        const nx = this.nextSeg(this.routes[st.route[j]!]!, st.rpos[j]!);
+        if (!nx || nx.seg !== o.index) continue;
+        const tj = (toEnd + cf.oth[0]) / (st.v[j]! > 0.5 ? st.v[j]! : 0.5);
+        if (tj < next) next = tj;
+      }
+      if (!acceptGap(next, since, st.tc[k]!, st.tf[k]!)) {
+        this.holds.gap++;
+        return true;
+      }
+    }
+    // Don't block the box (junction nodes only).
+    if (this.isJunctionMove[m.index] && st.comply[k]) {
+      // Space beyond the box, measured along k's route from the start of m's toLink and
+      // continuing across short segments (OSM networks have exit links shorter than a car).
+      const need = st.len[k]! + st.s0[k]!;
+      const route = this.routes[st.route[k]!]!;
+      let rp = st.rpos[k]! + 1; // m
+      let acc = 0;
+      let space = Infinity;
+      for (;;) {
+        const nx = this.nextSeg(route, rp);
+        if (!nx) break;
+        rp = nx.rpos;
+        const seg = this.segs[nx.seg]!;
+        let nearest = Infinity;
+        for (const j of this.occ[seg.index]!) {
+          if (st.v[j]! >= BOX_QUEUE_SPEED) continue; // moving traffic is car-following's job
+          const r = st.s[j]! - st.len[j]!;
+          if (r < nearest) nearest = r;
+        }
+        if (nearest !== Infinity) {
+          space = acc + nearest;
+          break;
+        }
+        acc += seg.length;
+        if (acc >= need) break;
+      }
+      if (space < need) {
+        this.holds.box++;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Junction candidates on movement m for a vehicle whose front is `off` before m's start:
+   * occupied crossing areas become standing obstacles; vehicles on merging movements are
+   * projected by distance to the end, on diverging movements by distance from the start.
+   */
+  private junctionCands(
+    self: number,
+    skip: number,
+    m: Segment,
+    off: number,
+    ym: number,
+    width: number,
+    c: number,
+    selfId: number,
+    upd: (rear: number, v: number, j: number, id: number) => void,
+  ): void {
+    const st = this.st;
+    const myPos = -off;
+    for (const cf of this.conf[m.index]!) {
+      const o = this.segs[cf.other]!;
+      if (cf.type === 'crossing') {
+        if (myPos >= cf.self[0] - EPS) continue; // already in the area: committed
+        for (const j of this.occ[o.index]!) {
+          if (j === self || j === skip) continue;
+          if (st.s[j]! >= cf.oth[0] && st.s[j]! - st.len[j]! <= cf.oth[1]) {
+            upd(off + cf.self[0], 0, -1, -1);
+            this.holds.occupied++;
+            break;
+          }
+        }
+      } else if (cf.type === 'merging') {
+        const to = this.segs[m.next[0]!]!;
+        const [lo, hi] = this.spanAt(width, c, to, mapLateral(m, to, ym));
+        const consider = (j: number, distToEnd: number, yTo: number) => {
+          if (j === self || j === skip) return;
+          const front = off + m.length - distToEnd;
+          if (!(front > 0 || (front === 0 && st.id[j]! < selfId))) return;
+          const [jl, jh] = this.spanAt(st.wid[j]!, st.cOcc[j]!, to, yTo);
+          if (jl > hi || lo > jh) return;
+          upd(front - st.len[j]!, st.v[j]!, j, st.id[j]!);
+        };
+        for (const j of this.occ[o.index]!) consider(j, o.length - st.s[j]!, mapLateral(o, to, st.y[j]!));
+        // Vehicles still approaching m′ count only if they will actually enter it: m′ not held
+        // by a red/amber signal, m′ not yielding to m, and the vehicle moving.
+        const so = this.sigNow[o.index]!;
+        const willEnter = so !== SIG.RED && so !== SIG.AMBER && !this.yields(o.index, m.index);
+        const fromO = this.fromLinkOf(o.index);
+        const list = willEnter ? this.occ[fromO.index]! : [];
+        for (let q = list.length - 1; q >= 0; q--) {
+          const j = list[q]!;
+          const toEnd = fromO.length - st.s[j]!;
+          if (toEnd > 60) break;
+          const nx = this.nextSeg(this.routes[st.route[j]!]!, st.rpos[j]!);
+          if (!nx || nx.seg !== o.index || st.v[j]! <= 0.5) continue;
+          consider(j, toEnd + o.length, mapLateral(o, to, mapLateral(fromO, o, st.y[j]!)));
+        }
+      } else {
+        const from = this.fromLinkOf(m.index);
+        const [lo, hi] = this.spanAt(width, c, from, ym + m.fromLateral[0]);
+        for (const j of this.occ[o.index]!) {
+          if (j === self || j === skip) continue;
+          if (st.s[j]! - st.len[j]! >= cf.oth[1]) continue;
+          const front = off + st.s[j]!;
+          if (!(front > 0)) continue;
+          const [jl, jh] = this.spanAt(st.wid[j]!, st.cOcc[j]!, from, st.y[j]! + o.fromLateral[0]);
+          if (jl > hi || lo > jh) continue;
+          upd(front - st.len[j]!, st.v[j]!, j, st.id[j]!);
+        }
+      }
+    }
   }
 
   private lookahead(v: number, b: number): number {
@@ -697,7 +980,7 @@ class SimImpl implements Sim {
     const nx = this.nextSeg(this.routes[st.route[k]!]!, st.rpos[k]!);
     if (!nx) return null;
     const ns = this.segs[nx.seg]!;
-    return ns.kind === 'movement' ? ns.fromLateral : null;
+    return ns.kind === 'movement' ? effBand(ns) : null;
   }
 
   /* ================= lateral decisions (§2.4) ================= */
@@ -768,10 +1051,21 @@ class SimImpl implements Sim {
     } else {
       const w = seg.layout.w;
       const J = Math.max(1, Math.floor((cls.lateral.maxSpeedMps.value * TAU_REACH_S) / w));
+      // A vehicle that does not fit its road (e.g. after entering a narrower segment) may make
+      // any move that reduces the overflow, even if the result still does not fully fit (§2.4).
+      const over = (yy: number) => Math.max(0, h - yy) + Math.max(0, yy + h - W);
+      const overNow = over(y);
+      // Band-seeking moves (towards the next movement's band) need only the body inside the
+      // road: edge clearance yields when the band requires it (wide vehicle, narrow movement).
+      const nb = this.nextBand(k);
+      const bandDist = (yy: number) => (nb ? Math.max(0, nb[0] - (yy - width / 2)) + Math.max(0, yy + width / 2 - nb[1]) : 0);
+      const dNow = bandDist(y);
       for (let j = -J; j <= J; j++) {
         if (j === 0) continue;
         const yc = y + j * w;
-        if (yc - h >= -EPS && yc + h <= W + EPS) cands.push(yc);
+        const fits = yc - h >= -EPS && yc + h <= W + EPS;
+        const seeksBand = dNow > 0 && bandDist(yc) < dNow - EPS && yc - width / 2 >= -EPS && yc + width / 2 <= W + EPS;
+        if (fits || seeksBand || over(yc) < overNow - EPS) cands.push(yc);
       }
     }
     if (cands.length === 0) return null;
@@ -779,7 +1073,7 @@ class SimImpl implements Sim {
     // Route bias (band of the next movement).
     const route = this.routes[st.route[k]!]!;
     const nx = this.nextSeg(route, st.rpos[k]!);
-    const band = nx && this.segs[nx.seg]!.kind === 'movement' ? this.segs[nx.seg]!.fromLateral : null;
+    const band = nx && this.segs[nx.seg]!.kind === 'movement' ? effBand(this.segs[nx.seg]!) : null;
     const dEnd = seg.length - st.s[k]!;
     const dist = (yy: number) =>
       band ? Math.max(0, band[0] - (yy - width / 2)) + Math.max(0, yy + width / 2 - band[1]) : 0;
@@ -815,10 +1109,10 @@ class SimImpl implements Sim {
     const list = this.occ[seg.index]!;
     for (const yc of cands) {
       if (distNow === 0 && dist(yc) > 0) continue; // band keeping (§2.4)
-      const [tlo, thi] = this.spanAt(width, this.lane ? 0 : st.cOcc[k]!, seg, yc);
+      const [tlo, thi] = this.spanAt(width, this.lane ? 0 : cNow, seg, yc);
       const sw = this.lane
         ? ([Math.min(st.lo[k]!, tlo), Math.max(st.hi[k]!, thi)] as [number, number])
-        : sweptStrips(y, yc, width, st.cOcc[k]!, seg.layout);
+        : sweptStrips(y, yc, width, cNow, seg.layout);
       // Safety 3: nothing overlapping the swept span overlaps k longitudinally.
       let clash = false;
       // List is sorted by front: scan forward until no rear can reach `front`, back until fronts
@@ -840,11 +1134,14 @@ class SimImpl implements Sim {
         if (u.front > rear && !(u.lo > sw[1] || sw[0] > u.hi)) clash = true;
       }
       if (clash) continue;
-      const L = this.leader(k, -1, seg, front, st.id[k]!, yc, tlo, thi, width, st.cOcc[k]!, route, st.rpos[k]!, this.lookahead(v, st.b[k]!));
-      if (!(L.gap > 0 && L.gap >= this.gapFloor(k))) continue; // kinematic gap floor (§2.4)
+      const L = this.leader(k, -1, seg, front, st.id[k]!, yc, tlo, thi, width, cNow, route, st.rpos[k]!, this.lookahead(v, st.b[k]!));
+      // A standing obstacle (link end, stop line) does not move: edging sideways in front of it
+      // is safe, so the vehicle-oriented checks below apply only to vehicle leaders (§2.4).
+      const obstacle = L.slot < 0 && L.gap !== Infinity;
+      if (!obstacle && !(L.gap > 0 && L.gap >= this.gapFloor(k))) continue; // kinematic gap floor
       const aTilde = this.idm(k, v, L.gap, L.vl);
       // Self-safety (MODEL.md §2.4): the mover must not need to brake harder than B_SAFE.
-      if (aTilde < -B_SAFE) continue;
+      if (!obstacle && aTilde < -B_SAFE) continue;
       let N = this.follower(k, pos, tlo, thi);
       let nFront = N >= 0 ? st.s[N]! : 0;
       if (N < 0) {
@@ -921,6 +1218,11 @@ class SimImpl implements Sim {
   private stepOnce(): void {
     const st = this.st;
     const dt = this.dt;
+    for (let g = this.net.nLinks; g < this.segs.length; g++) {
+      const pl = this.plan[g];
+      this.sigNow[g] = pl ? signalState(pl, this.segs[g]!.id, this.t) : SIG.NONE;
+    }
+    this.activeThisStep = false;
     // 1. Snapshot accelerations.
     for (const list of this.occ) {
       for (let m = 0; m < list.length; m++) {
@@ -1008,6 +1310,11 @@ class SimImpl implements Sim {
           st.rpos[k] = nx.rpos;
           st.tSeg[k] = tNew;
           this.stats[nx.seg]!.entered++;
+          if (nseg.kind === 'movement') {
+            this.lastEntry[nx.seg] = tNew;
+            if (this.isJunctionMove[nx.seg]) this.activeThisStep = true;
+          }
+          if (seg.kind === 'movement' && this.isJunctionMove[seg.index]) this.activeThisStep = true;
           seg = nseg;
         }
         if (gone) this.exit(k, tNew);
@@ -1024,6 +1331,7 @@ class SimImpl implements Sim {
     this.insertQueued();
     // Metrics after the step.
     for (let g = 0; g < this.occ.length; g++) this.stats[g]!.vehicleSeconds += this.occ[g]!.length * dt;
+    this.trackGridlock(tNew);
     this.sampleSeries();
   }
 
@@ -1045,11 +1353,13 @@ class SimImpl implements Sim {
           if (gap === Infinity) continue;
           const j = st.lead[k]!;
           const allowed = j >= 0 ? gap + st.ds[j]! - GUARD_GAP_M : gap - GUARD_GAP_M;
-          if (st.ds[k]! <= allowed) continue;
-          st.ds[k] = allowed > 0 ? allowed : 0;
+          const capped = allowed > 0 ? allowed : 0;
+          if (st.ds[k]! <= capped + 1e-12) continue; // no real reduction: not an activation
+          st.ds[k] = capped;
           const vCap = j >= 0 ? st.v[j]! : 0;
           if (st.v[k]! > vCap) st.v[k] = vCap;
           this.guardHits++;
+          this.guardBySeg[st.seg[k]!] = (this.guardBySeg[st.seg[k]!] ?? 0) + 1;
           changed = true;
         }
       }
@@ -1058,8 +1368,64 @@ class SimImpl implements Sim {
   }
 
   /** Engine diagnostics: how often the collision guard had to bind, out of all vehicle-steps. */
-  diagnostics(): { guardActivations: number; vehicleSteps: number } {
-    return { guardActivations: this.guardHits, vehicleSteps: this.vehicleSteps };
+  diagnostics(): { guardActivations: number; vehicleSteps: number; holds: Record<string, number> } {
+    return { guardActivations: this.guardHits, vehicleSteps: this.vehicleSteps, holds: { ...this.holds } };
+  }
+
+  /** Update stall clocks (§3.4 item 6): per junction region and for the whole network. */
+  private trackGridlock(t: number): void {
+    const st = this.st;
+    let moving = st.count === 0;
+    for (let k = 0; k < st.cap && !moving; k++) if (st.alive[k] && st.v[k]! > 0.1) moving = true;
+    const flowed = this.genSeen !== this.exited + this.insertedTotal;
+    this.genSeen = this.exited + this.insertedTotal;
+    if (moving || flowed) this.netLastActive = t;
+    for (const J of this.junctions) {
+      let count = 0;
+      for (const g of J.moves) count += this.stats[g]!.entered + this.stats[g]!.exited;
+      let active = count !== J.lastCount;
+      J.lastCount = count;
+      let occupied = false;
+      if (!active) {
+        for (const g of J.moves) {
+          for (const k of this.occ[g]!) {
+            occupied = true;
+            if (st.v[k]! > 0.1) active = true;
+          }
+        }
+        for (const g of J.inLinks) {
+          const seg = this.segs[g]!;
+          const list = this.occ[g]!;
+          for (let q = list.length - 1; q >= 0; q--) {
+            const k = list[q]!;
+            if (seg.length - st.s[k]! > REGION_M) break;
+            occupied = true;
+            if (st.v[k]! > 0.1) active = true;
+          }
+        }
+      }
+      if (active || !occupied) J.lastActive = t;
+    }
+  }
+
+  gridlock(): GridlockReport | null {
+    const locked = this.junctions
+      .filter((J) => this.t - J.lastActive >= GRIDLOCK_S - EPS)
+      .map((J) => ({ node: J.node, sinceS: J.lastActive }));
+    const net = this.st.count > 0 && this.t - this.netLastActive >= GRIDLOCK_S - EPS;
+    if (!locked.length && !net) return null;
+    const since = Math.min(net ? this.netLastActive : Infinity, ...locked.map((j) => j.sinceS));
+    return { detected: true, sinceS: since, junctions: locked };
+  }
+
+  signalCodes(): Uint8Array {
+    const out = new Uint8Array(this.network.movements.length).fill(SIG.NONE);
+    for (let mi = 0; mi < out.length; mi++) {
+      const g = this.net.nLinks + mi;
+      const pl = this.plan[g];
+      if (pl) out[mi] = signalState(pl, this.segs[g]!.id, this.t);
+    }
+    return out;
   }
 
   private exit(k: number, tNew: number): void {
@@ -1189,7 +1555,7 @@ class SimImpl implements Sim {
     let bestIn = false;
     // Band of the route's next movement: candidates inside it are preferred (§2.3).
     const nx = this.nextSeg(route, 0);
-    const band = nx && this.segs[nx.seg]!.kind === 'movement' ? this.segs[nx.seg]!.fromLateral : null;
+    const band = nx && this.segs[nx.seg]!.kind === 'movement' ? effBand(this.segs[nx.seg]!) : null;
     const inBand = (y: number) =>
       !band || (y - p.width / 2 >= band[0] - EPS && y + p.width / 2 <= band[1] + EPS);
     // If any candidate fits the band, only in-band candidates are allowed (§2.3).
@@ -1237,6 +1603,7 @@ class SimImpl implements Sim {
     st.tGen[k] = p.tGen;
     st.tIns[k] = this.t;
     this.win.inserted++;
+    this.insertedTotal++;
     return true;
   }
 
@@ -1278,6 +1645,7 @@ class SimImpl implements Sim {
         densityPerKm: w.samples ? w.densSum / w.samples : 0,
         entryQueue: this.queueLength(),
         onNetwork: st.count,
+        lockedJunctions: this.gridlock()?.junctions.length ?? 0,
       });
       this.win = { t0: t1, generated: 0, inserted: 0, exited: 0, speedSum: 0, densSum: 0, samples: 0 };
     }
@@ -1379,7 +1747,9 @@ class SimImpl implements Sim {
       out[o + F_CLASS] = st.cls[k]!;
       out[o + F_LENGTH] = st.len[k]!;
       out[o + F_WIDTH] = st.wid[k]!;
-      out[o + F_LAYER] = seg.layer;
+      // Drawing layer: links count as elevated only if they actually rise (z > 0.5 m).
+      const link = seg.kind === 'link' ? this.network.links[seg.index]! : null;
+      out[o + F_LAYER] = link && !(link.zFromM > 0.5 || link.zToM > 0.5) ? 0 : link ? Math.max(1, seg.layer) : seg.layer;
       n++;
     }
     return n;

@@ -1,11 +1,11 @@
 import {
   defaultClasses,
   generateNetwork,
+  Network,
   GeneratorParams,
   PRESETS,
   type ClassSet,
   type MetricsDelta,
-  type Network,
   type ScenarioInput,
   type SeriesRow,
 } from '@weave/engine';
@@ -104,8 +104,28 @@ export class SimController {
     return this.loadScenario({ ...preset, seed }, presetId);
   }
 
+  private fileNetworks = new Map<string, Promise<Network>>();
+  /** Last frame's signal colours per movement (SIG codes). */
+  lastSignals: Uint8Array = new Uint8Array(0);
+
+  /** Fetch (once) and validate a bundled network file such as /data/silkboard.json. */
+  private fileNetwork(id: string): Promise<Network> {
+    let p = this.fileNetworks.get(id);
+    if (!p) {
+      p = fetch(`/data/${id}.json`)
+        .then((r) => {
+          if (!r.ok) throw new Error(`could not load network ${id} (${r.status})`);
+          return r.json();
+        })
+        .then((j: unknown) => Network.parse(j));
+      this.fileNetworks.set(id, p);
+    }
+    return p;
+  }
+
   /** Load any scenario (sim is paused afterwards). */
-  loadScenario(scenario: ScenarioInput, presetId: string | null = this.state.presetId): Promise<void> {
+  async loadScenario(scenario: ScenarioInput, presetId: string | null = this.state.presetId): Promise<void> {
+    const network = scenario.network.kind === 'file' ? await this.fileNetwork(scenario.network.id) : undefined;
     this.frameWaiters = [];
     this.set({
       status: 'loading',
@@ -119,7 +139,7 @@ export class SimController {
       step: 0,
     });
     const ready = this.waitForStep(0);
-    this.client.send({ type: 'init', scenario, classes: this.state.classes });
+    this.client.send({ type: 'init', scenario, classes: this.state.classes, ...(network ? { network } : {}) });
     this.client.send({ type: 'setSpeed', factor: this.state.speed });
     return ready;
   }
@@ -178,7 +198,8 @@ export class SimController {
         this.set({ network: m.network, stateHash: m.stateHash, status: 'ready' });
         break;
       case 'frame': {
-        this.renderer?.setFrame({ data: m.data, count: m.count });
+        this.lastSignals = m.signals;
+        this.renderer?.setFrame({ data: m.data, count: m.count, signals: m.signals });
         const now = performance.now();
         const waiters = this.frameWaiters.filter((w) => w.step <= m.step);
         const force = waiters.length > 0 || m.metrics !== undefined || this.state.status !== 'playing';
@@ -228,6 +249,12 @@ export class SimController {
           : { generated: 0, exited: 0, onNetwork: 0, entryQueue: 0 };
       },
       series: async () => this.state.series,
+      signals: async () => Array.from(this.lastSignals),
+      gridlock: async () => this.state.metrics?.gridlock ?? null,
+      diagnostics: async () => {
+        const m = this.state.metrics;
+        return m ? { guardActivations: m.guardActivations, vehicleSteps: m.vehicleSteps, holds: m.holds } : null;
+      },
     };
   }
 }

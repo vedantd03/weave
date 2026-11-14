@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Scenario, type ScenarioInput } from '@weave/engine';
+import { generateNetwork, GeneratorParams, Scenario, type JunctionParams, type MergeParams, type Network, type ScenarioInput, type SignalPlan } from '@weave/engine';
+import { defaultArms, JunctionFields, junctionOd, MergeFields, Num, OdEditor, SignalEditor } from './JunctionFields.tsx';
 import type { SimController } from '../state/controller.ts';
 
 /**
@@ -72,7 +73,7 @@ function SelectField<T extends string>(props: {
 
 type Params = Extract<ScenarioInput['network'], { kind: 'generator' }>['params'];
 
-export function ScenarioForm({ ctrl, scenario }: { ctrl: SimController; scenario: ScenarioInput }) {
+export function ScenarioForm({ ctrl, scenario, network }: { ctrl: SimController; scenario: ScenarioInput; network: Network | null }) {
   const [draft, setDraft] = useState<Draft>(scenario);
   const [error, setError] = useState<string | null>(null);
   const [issues, setIssues] = useState<string[]>([]);
@@ -83,12 +84,28 @@ export function ScenarioForm({ ctrl, scenario }: { ctrl: SimController; scenario
 
   const params: Params | null = draft.network.kind === 'generator' ? draft.network.params : null;
 
-  const setParams = (patch: Record<string, unknown>) => {
+  const setParams = (patch: Record<string, unknown>, extra: Partial<Draft> = {}) => {
     if (!params) return;
     const next = { ...params, ...patch } as Params;
-    setDraft({ ...draft, network: { kind: 'generator', params: next } });
+    // Geometry edits invalidate signal overrides (movement ids may change).
+    setDraft({ ...draft, ...extra, network: { kind: 'generator', params: next }, signalOverrides: [] });
     setError(ctrl.preview(next));
   };
+
+  // Signal plan shown in the editor: the override if any, else the network's first plan.
+  const basePlan = useMemo<SignalPlan | null>(() => {
+    if (params) {
+      const g = GeneratorParams.safeParse(params);
+      if (!g.success) return null;
+      try {
+        return generateNetwork(g.data).signals[0] ?? null;
+      } catch {
+        return null;
+      }
+    }
+    return network?.signals[0] ?? null;
+  }, [params, network]);
+  const plan = (draft.signalOverrides?.[0] as SignalPlan | undefined) ?? basePlan;
 
   const od = draft.od ?? [];
   const demand = useMemo(() => od.reduce((a, r) => a + r.rateVph, 0), [od]);
@@ -189,6 +206,26 @@ export function ScenarioForm({ ctrl, scenario }: { ctrl: SimController; scenario
         </fieldset>
       )}
 
+      {params?.generator === 'junction' && (
+        <JunctionFields
+          p={params as JunctionParams}
+          set={(patch) => setParams(patch)}
+          onArmsChange={(n) => {
+            const fly = params.flyover;
+            setParams(
+              {
+                arms: defaultArms(n),
+                majorArms: params.majorArms ? [0, Math.min(2, n - 1)] : undefined,
+                flyover: fly ? { ...fly, armA: Math.min(fly.armA, n - 1), armB: Math.min(fly.armB, n - 1) === Math.min(fly.armA, n - 1) ? (Math.min(fly.armA, n - 1) + 1) % n : Math.min(fly.armB, n - 1) } : undefined,
+              },
+              { od: junctionOd(n) },
+            );
+          }}
+        />
+      )}
+
+      {params?.generator === 'merge' && <MergeFields p={params as MergeParams} set={(patch) => setParams(patch)} />}
+
       {params?.generator === 'ring' && (
         <fieldset className="grid grid-cols-3 gap-2">
           <legend className="mb-1 text-xs font-medium text-text">Road</legend>
@@ -233,6 +270,22 @@ export function ScenarioForm({ ctrl, scenario }: { ctrl: SimController; scenario
           </ul>
         </div>
       )}
+      {od.length > 1 && <OdEditor od={od} onChange={(next) => setDraft({ ...draft, od: next })} />}
+
+      {plan && (
+        <SignalEditor plan={plan} onChange={(p) => setDraft({ ...draft, signalOverrides: [p] })} />
+      )}
+
+      <div title="Probability that a driver respects 'don't block the box'. No source exists for Indian junctions: an assumption.">
+        <Num
+          id="f-box"
+          label="Box compliance (assumption, 0–1)"
+          value={draft.boxCompliance ?? 1}
+          min={0}
+          onChange={(v) => setDraft({ ...draft, boxCompliance: Math.min(1, Math.max(0, v)) })}
+        />
+      </div>
+
       {error && (
         <p role="alert" className="text-xs text-danger">
           {error}

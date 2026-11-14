@@ -1,6 +1,8 @@
 import { dcos, dsin, DPI } from '../../core/dmath.ts';
 import { Network } from '../../schema/network.ts';
 import type { CorridorParams, GeneratorParams, RingParams } from '../../schema/scenario.ts';
+import { junction } from './junction.ts';
+import { merge } from './merge.ts';
 
 /**
  * Parametric network generators (ADR-012). Geometry uses dsin/dcos so generated coordinates —
@@ -12,8 +14,12 @@ export function generateNetwork(params: GeneratorParams): Network {
       return ring(params);
     case 'corridor':
       return corridor(params);
+    case 'junction':
+      return Network.parse(junction(params));
+    case 'merge':
+      return Network.parse(merge(params));
     default:
-      throw new Error(`generator '${params.generator}' is not available yet`);
+      throw new Error(`unknown generator '${(params as { generator: string }).generator}'`);
   }
 }
 

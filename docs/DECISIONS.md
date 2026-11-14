@@ -150,8 +150,8 @@ with lateral cut-ins can break that by centimetres. SUMO addresses the same prob
 safe-speed models.
 
 **Consequences:** the guard does not change `VehicleView.a`, and it never binds in the theory
-regimes (T3–T5). Measured on a 1 km lane-drop corridor: 0 activations in lane mode, and
-80–740 per 9,000 steps in strip mode (about 0.01–0.1% of vehicle-steps).
+regimes (T3–T5). After the M3 counting fix (only real reductions count), it never binds on
+corridors and binds 0.05–0.3 times per 10k vehicle-steps at junctions (VALIDATION.md §7).
 
 ## ADR-016 Route-band rules (M2)
 **Decision:**
@@ -215,3 +215,28 @@ new leader and from the new follower, including in the same-step commit re-check
 the move was visible to it.
 
 **Why not s0:** a floor of s0 blocked zipper-like squeezes at standstill.
+
+## ADR-022 Junction rule refinements (M3, found on generated presets and Silk Board)
+**Decision:** each of these fixes a deadlock or a capacity collapse that was traced to its root
+cause.
+1. **Don't block the box applies at junction nodes only** (≥ 2 movements). Otherwise it held
+   vehicles at a ring's seam and at corridor tapers.
+2. **Box space is measured along the route** across short segments. Silk Board has 7 m exit
+   links that could never hold length + s0.
+3. **The box rule counts only a standing queue** (speed < 2 m/s). Moving traffic is
+   car-following's job; counting it throttled free merges.
+4. **A band is never wider than its movement**, and vehicles wider than their road may make any
+   move that reduces the overflow.
+5. **Band-seeking moves need only the body inside the road.** Edge clearance otherwise made a
+   2.69 m bus unable to reach a 3.0 m movement.
+6. **Merge projections include approaching vehicles only if they will enter.** That excludes
+   vehicles at a red or amber, yielding, or stopped.
+7. **Standing obstacles are exempt from the mover's gap floor and self-safety checks.** A vehicle
+   at the end of an acceleration lane could otherwise never edge across.
+8. **Lateral decisions evaluate spans with the clearance they will freeze at commit** (c1 > 0).
+
+**Why:** each rule was traced to a specific defect.
+
+**Consequences:** the 247 engine tests still pass. The generated junction presets flow; for
+example, the 4-arm preset now exits 679 of 738 vehicles in 15 min, against 63 before.
+

@@ -146,7 +146,7 @@ export default function App() {
                     </p>
                   )}
                 </div>
-                <ScenarioForm ctrl={ctrl} scenario={st.scenario} />
+                <ScenarioForm ctrl={ctrl} scenario={st.scenario} network={st.network} />
               </div>
             ) : (
               <p className="text-sm text-muted">Choose a scenario from the menu above.</p>
@@ -209,6 +209,17 @@ export default function App() {
               />
               <StatTile label="Exited" value={st.metrics ? String(st.metrics.exited) : '—'} />
             </div>
+            {st.metrics?.gridlock && (
+              <div role="status" data-testid="gridlock" className="mt-2 rounded-md border border-danger/40 bg-danger/10 p-2 text-xs text-danger">
+                <p className="font-medium">
+                  Gridlock: {st.metrics.gridlock.junctions.length} junction{st.metrics.gridlock.junctions.length === 1 ? '' : 's'} locked
+                </p>
+                <p className="mt-0.5 text-muted">
+                  No vehicle in a junction's area has moved for 5 minutes (since t = {Math.round(st.metrics.gridlock.sinceS)} s). Vehicles are
+                  never removed to clear it.
+                </p>
+              </div>
+            )}
             {st.metrics && (
               <p className="mt-2 text-xs text-muted" data-testid="guard-rate" title="How often the kinematic collision guard had to cap a vehicle's movement (ADR-015). It is a rare safety net; see VALIDATION.md.">
                 Collision guard: {st.metrics.guardActivations} activations

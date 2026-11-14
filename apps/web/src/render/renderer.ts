@@ -21,6 +21,15 @@ interface Camera {
 export interface FrameView {
   data: Float32Array;
   count: number;
+  /** Signal colour per network movement (SIG codes; 255 = uncontrolled). */
+  signals?: Uint8Array;
+}
+
+interface SignalHead {
+  movement: number;
+  x: number;
+  y: number;
+  layer: number;
 }
 
 /**
@@ -32,6 +41,7 @@ export interface FrameView {
 export class Renderer {
   private ctx: CanvasRenderingContext2D;
   private roads: RoadShape[] = [];
+  private heads: SignalHead[] = [];
   private layers: number[] = [0];
   private bounds: Bounds | null = null;
   private cam: Camera = { cx: 0, cy: 0, scale: 1 };
@@ -82,9 +92,20 @@ export class Renderer {
     this.classIds = classIds;
     const layerOfNode = new Map(net.nodes.map((n) => [n.id, n.layer]));
     this.roads = [];
+    // Elevation drives the drawing order: a link is drawn as elevated only if it actually
+    // rises (z > 0.5 m), so at-grade bridges over drains are not styled as flyovers.
     for (const l of net.links) {
-      this.roads.push(this.buildRoad(l.polyline as Pt[], l.widthM, l.lanes, l.layer));
+      const elevated = l.zFromM > 0.5 || l.zToM > 0.5;
+      this.roads.push(this.buildRoad(l.polyline as Pt[], l.widthM, l.lanes, elevated ? Math.max(1, l.layer) : 0));
     }
+    // One signal head per signal-controlled movement, at the start of its path.
+    const signalNodes = new Set(net.signals.map((p) => p.node));
+    this.heads = [];
+    net.movements.forEach((m, i) => {
+      if (m.control !== 'signal' || !signalNodes.has(m.node)) return;
+      const p = m.path[0]!;
+      this.heads.push({ movement: i, x: p[0], y: p[1], layer: layerOfNode.get(m.node) ?? 0 });
+    });
     for (const m of net.movements) {
       const layer = layerOfNode.get(m.node) ?? 0;
       this.roads.push(this.buildRoad(m.path as Pt[], m.widthM, 1, layer, false));
@@ -195,6 +216,27 @@ export class Renderer {
         ctx.setLineDash([]);
       }
       this.drawVehicles(layer, px);
+      this.drawSignals(layer, px);
+    }
+  }
+
+  private drawSignals(layer: number, px: number): void {
+    const sig = this.frame?.signals;
+    if (!sig || this.heads.length === 0) return;
+    const { ctx } = this;
+    const r = Math.max(0.9, 3 * px);
+    const colours: Record<number, string> = { 0: '#ef4444', 1: '#f59e0b', 2: '#22c55e', 3: '#38bdf8' };
+    for (const h of this.heads) {
+      if (h.layer !== layer) continue;
+      const c = colours[sig[h.movement] ?? 255];
+      if (!c) continue;
+      ctx.beginPath();
+      ctx.arc(h.x, h.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = c;
+      ctx.fill();
+      ctx.lineWidth = Math.max(0.15, px);
+      ctx.strokeStyle = this.theme.dark ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.9)';
+      ctx.stroke();
     }
   }
 
