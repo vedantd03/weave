@@ -11,7 +11,7 @@ import pandas as pd
 from . import calibrate as cal
 from . import chennai_io as cio
 from . import d6
-from .kinematics import add_kinematics, check_summary, fit_rows
+from .kinematics import A_WINDOW, add_kinematics, check_summary, fit_rows
 
 SOURCE = ("Kanagaraj V., Asaithambi G., Toledo T., Lee T.-C. (2015), Trajectory data and flow "
           "characteristics of mixed traffic, Transportation Research Record 2491, 1-11. "
@@ -80,6 +80,10 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
     rep["following"] = {"follower_samples": int(len(fs)), "steady_samples": int(len(st)),
                         "steady_by_class": {k: int(v) for k, v in st["cls"].value_counts().items()}}
 
+    # ---- smoothing-window sensitivity of a and b
+    win = accel_window_analysis(dfs)
+    rep["accel_windows"] = win
+
     # ---- v0, a, b, lateral
     spots = cal.spot_speeds(all_df, x_mid)
     classes = []
@@ -107,7 +111,10 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
         s_c = st[st["cls"] == c]
         Tm, n_used, n_no = cal.T_median(s_c["gap"], s_c["v"], v0, cal.S0_ASSUMED)
         sens = cal.T_sensitivity(s_c["gap"], s_c["v"], v0, cal.S0_ASSUMED)
-        T_rep[c] = {"T": Tm, "n_used": n_used, "n_no_equilibrium": n_no, "sensitivity": sens}
+        share_no = n_no / len(s_c) if len(s_c) else math.nan
+        T_rep[c] = {"T": Tm, "steady_samples": int(len(s_c)), "n_used": n_used,
+                    "n_dropped_v_gt_0.9v0": n_no, "share_dropped": share_no,
+                    "v0": v0, "sensitivity": sens}
         Ts = [r["T"] for r in sens if np.isfinite(r["T"])]
         if n_used >= MIN_T_SAMPLES and np.isfinite(Tm):
             T_param = cal.p(Tm, "derived",
@@ -115,14 +122,16 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
                             f"samples (|a|<{cal.STEADY_MAX_ABS_A} m/s², |Δv|<{cal.STEADY_MAX_ABS_DV} m/s, "
                             f"v≥{cal.STEADY_MIN_V} m/s, gap≤{cal.STEADY_MAX_GAP:g} m; leader by the engine rule). "
                             f"CONDITIONAL on the assumed s0={cal.S0_ASSUMED:g} m and the proxy v0={v0:.2f} m/s: "
-                            f"T ranges {min(Ts):.2f}-{max(Ts):.2f} s under s0±1 m, v0±10% "
-                            f"({n_no} samples with v≥v0 have no equilibrium and are excluded).")
+                            f"T ranges {min(Ts):.2f}-{max(Ts):.2f} s under s0±1 m, v0±10%. "
+                            f"{n_no} of {len(s_c)} steady samples ({100 * share_no:.1f}%) with "
+                            f"v > 0.9·v0 were excluded before inverting.")
             if c == "car":
                 car_T = Tm
         else:
             fb = car_T if car_T is not None else 1.5
             T_param = cal.p(fb, "assumption",
-                            f"Only {n_used} steady-following samples (< {MIN_T_SAMPLES}); car value used.")
+                            f"Only {n_used} usable steady-following samples (< {MIN_T_SAMPLES}; "
+                            f"{n_no} dropped with v > 0.9·v0); the car value is used.")
         size_l, size_w = _sizes(veh[veh["cls"] == c], c)
         gA, gF = cal.GAP_ACCEPTANCE[c]
         heavy = c in ("bus", "truck", "lcv")
@@ -133,9 +142,13 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
             "lengthM": size_l, "widthM": size_w,
             "idm": {
                 "v0": cal.p(v0, "proxy",
-                            f"85th percentile of position-derived spot speeds at x={x_mid:.1f} m "
-                            f"({len(sp)} vehicles). Traffic is near capacity (~41 km/h), so free-flow "
-                            "vehicles are rare: a proxy for the desired speed, likely an underestimate."),
+                            (f"85th percentile of position-derived spot speeds at x={x_mid:.1f} m "
+                             f"({len(sp)} vehicles)." if enough else
+                             f"85th percentile of position-derived speed samples ({len(fr)} clean samples; "
+                             f"only {len(sp)} vehicles crossed x={x_mid:.1f} m cleanly, < {MIN_VEHICLES} "
+                             "for a spot-speed percentile).")
+                            + " Traffic is near capacity (~41 km/h), so free-flow vehicles are rare: a "
+                            "proxy for the desired speed, likely an underestimate."),
                 "T": T_param,
                 "s0": cal.p(cal.S0_ASSUMED, "assumption",
                             "Literature default: Treiber & Kesting (2013), Traffic Flow Dynamics, "
@@ -143,14 +156,17 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
                             "stopped following, so s0 is not identifiable."),
                 "a": cal.p(a_val, "derived",
                            f"95th percentile of position-derived longitudinal acceleration "
-                           f"({len(fr)} clean samples; Savitzky–Golay, 4 s quadratic window). "
-                           "Never the dataset's acceleration column."),
+                           f"({len(fr)} clean samples; Savitzky–Golay quadratic, 9 points = 4 s). "
+                           "Window-dependent: " + _win_range(win, c, "a") + ". Never the dataset's "
+                           "acceleration column."),
                 "b": cal.p(b_val, "derived",
                            "Minus the 5th percentile of position-derived longitudinal acceleration "
-                           f"({len(fr)} clean samples). Never the dataset's acceleration column."),
+                           f"({len(fr)} clean samples; 9-point window). Window-dependent: "
+                           + _win_range(win, c, "b") + ". Never the dataset's acceleration column."),
             },
             "clearance": {
-                "c0": cal.p(cl0, "derived",
+                "c0": cal.p(cl0, "derived", _c1_c0_note(crep), nd=3) if crep.get("c1_fit", {}).get("identified")
+                else cal.p(cl0, "derived",
                             f"p10 of accepted lateral gaps to side-by-side neighbours, halved (c = gap/2: "
                             f"the engine adds c on both sides). {crep.get('n', 0)} gap samples involving this "
                             f"class; c at p5/p10/p15 = " + "/".join(
@@ -159,7 +175,11 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
                             + (f" Raw estimate {crep['c0_raw']:.3f} m < 0 (overlapping measured bodies), "
                                "clamped to 0." if crep and crep["c0_raw"] < 0 else "")
                             if crep else "no gap samples", nd=3),
-                "c1": (cal.p(cl1, "derived", "Slope of the per-speed-bin p10 gap, halved.", nd=4)
+                "c1": (cal.p(cl1, "derived",
+                             "Slope of the per-speed-bin (2 m/s bins, ≥ 200 samples) p10 gap vs pair speed, "
+                             f"halved: gap slope {crep['c1_fit']['slope_gap']:.4f} ± {crep['c1_fit']['slope_se']:.4f} "
+                             f"(SE) s over a {crep['c1_fit']['speed_span']:g} m/s span. Identified by the "
+                             "pre-set rule (span ≥ 6 m/s, |slope| > 2 SE), but borderline.", nd=4)
                        if crep.get("c1_fit", {}).get("identified") else
                        cal.p(0.0, "assumption",
                              "Speed slope not identified (" + crep.get("c1_fit", {}).get("reason", "no data")
@@ -213,6 +233,120 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
     return classes_json, fd, rep
 
 
+WINDOWS = (5, 7, 9, 11, 15)
+
+
+def _sg2_weights(n: int, dt: float = 0.5) -> np.ndarray:
+    h = n // 2
+    tau = np.arange(-h, h + 1) * dt
+    return 2.0 * np.linalg.pinv(np.vander(tau, 3, increasing=True))[2]
+
+
+def position_noise(dfs: dict[str, pd.DataFrame]) -> dict:
+    """White position-noise level from the flat high-frequency floor of the pooled spectrum of
+    position residuals (cubic fit removed; flag-free trajectories of ≥ 32 samples; Welch,
+    32-sample segments). σ_x² = floor · fs/2, floor = median PSD at f ≥ 0.8 Hz."""
+    from scipy.signal import welch
+    P, n, f = None, 0, None
+    for df in dfs.values():
+        for _, g in df.groupby("key"):
+            x = g["x"].to_numpy(float)
+            if len(x) < 32 or (g["flag"].to_numpy() != 0).any():
+                continue
+            k = np.arange(len(x))
+            r = x - np.polyval(np.polyfit(k, x, 3), k)
+            f, p = welch(r, fs=2.0, nperseg=32)
+            P = p if P is None else P + p
+            n += 1
+    P = P / n
+    floor = float(np.median(P[f >= 0.8]))
+    return {"trajectories": n, "psd_floor_m2_per_hz": floor, "sigma_x_m": math.sqrt(floor * 1.0),
+            "psd": [[float(a), float(b)] for a, b in zip(f, P)]}
+
+
+def accel_window_analysis(dfs: dict[str, pd.DataFrame]) -> dict:
+    """a (p95) and b (−p5) per class for quadratic Savitzky–Golay windows of 5..15 points, on
+    one common sample set (flag-free within ±7 rows, so every window sees the same rows), plus
+    each window's white-noise sd of a and its gain on sinusoidal accelerations of given period."""
+    from .kinematics import sg
+    rows_cls, est = [], {n: [] for n in WINDOWS}
+    h = max(WINDOWS) // 2
+    for df in dfs.values():
+        for _, g in df.groupby("key"):
+            x = g["x"].to_numpy(float)
+            fl = (g["flag"].to_numpy() != 0).astype(float)
+            ok = np.convolve(np.pad(fl, h), np.ones(2 * h + 1), "valid") == 0
+            ests = {n: sg(x, n, 2) for n in WINDOWS}
+            for n in WINDOWS:
+                ok &= np.isfinite(ests[n])
+            if not ok.any():
+                continue
+            rows_cls.append(g["cls"].to_numpy()[ok])
+            for n in WINDOWS:
+                est[n].append(ests[n][ok])
+    cls = np.concatenate(rows_cls)
+    A = {n: np.concatenate(est[n]) for n in WINDOWS}
+    noise = position_noise(dfs)
+    table = {}
+    for c in CLASS_ORDER:
+        m = cls == c
+        if not m.any():
+            continue
+        table[c] = {"n": int(m.sum()), **{str(n): {"a_p95": float(np.quantile(A[n][m], 0.95)),
+                                                  "b_m_p5": float(-np.quantile(A[n][m], 0.05))}
+                                         for n in WINDOWS}}
+    filt = {}
+    for n in WINDOWS:
+        c2 = _sg2_weights(n)
+        k = np.arange(-(n // 2), n // 2 + 1)
+        gains = {}
+        for T in (8.0, 4.0, 3.0, 2.0, 1.0):
+            w = 2 * math.pi / T
+            gains[f"{T:g}s"] = float(abs(np.sum(c2 * -np.cos(w * k * 0.5))) / w**2)
+        filt[str(n)] = {"span_s": (n - 1) * 0.5, "noise_sd_a": noise["sigma_x_m"] * float(np.linalg.norm(c2)),
+                        "gain": gains}
+    g = {n: filt[str(n)]["gain"] for n in WINDOWS}
+    nsd = {n: filt[str(n)]["noise_sd_a"] for n in WINDOWS}
+    bus5 = table.get("bus", {}).get("5", {}).get("a_p95", math.nan)
+    moto5 = table.get("motorcycle", {}).get("5", {}).get("a_p95", math.nan)
+    reason = (
+        f"9 points (4 s). White position noise (σ_x = {noise['sigma_x_m']:.3f} m from the flat spectral "
+        f"floor) adds an a-noise sd of {nsd[5]:.2f}/{nsd[7]:.2f}/{nsd[9]:.3f}/{nsd[11]:.3f}/{nsd[15]:.3f} "
+        f"m/s² at 5/7/9/11/15 points. The large drop of the percentiles with window length comes from "
+        f"the 2-3 s band, whose magnitude is the same for buses as for motorcycles (p95 at 5 points: "
+        f"bus {bus5:.2f}, motorcycle {moto5:.2f} m/s²), which is implausible as vehicle dynamics and is "
+        f"treated as tracking wobble. 9 points is the shortest window passing ≤ {100 * g[9]['3s']:.0f} % "
+        f"of a 3 s oscillation (7 points: {100 * g[7]['3s']:.0f} %) while still passing "
+        f"{100 * g[9]['8s']:.0f} % of an 8 s manoeuvre and {100 * g[9]['4s']:.0f} % of a 4 s one "
+        f"(11 points: {100 * g[11]['4s']:.0f} %, 15 points: {100 * g[15]['4s']:.0f} % at 4 s). a and b "
+        f"remain window-dependent; the table is the honest uncertainty.")
+    return {"windows": list(WINDOWS), "samples": int(len(cls)), "table": table, "filter": filt,
+            "position_noise": {k: v for k, v in noise.items() if k != "psd"}, "psd": noise["psd"],
+            "chosen": A_WINDOW, "reason": reason}
+
+
+CLASS_ORDER = ["motorcycle", "car", "auto", "bus", "truck", "lcv"]
+
+
+def _win_range(win: dict, c: str, key: str) -> str:
+    t = win["table"].get(c)
+    if not t:
+        return "n/a"
+    k = "a_p95" if key == "a" else "b_m_p5"
+    vals = ", ".join(f"{n} pts {t[str(n)][k]:.2f}" for n in win["windows"])
+    return f"{vals} m/s² (see VALIDATION.md)"
+
+
+def _c1_c0_note(crep: dict) -> str:
+    f = crep["c1_fit"]
+    pc = crep["c_by_percentile"]
+    return (f"Intercept of c(v) = c0 + c1·v: per-speed-bin p10 of accepted lateral gaps to side-by-side "
+            f"neighbours, fitted linearly in pair speed and halved (c = gap/2: the engine adds c on both "
+            f"sides); gap intercept {f['intercept_gap']:.3f} m. {crep['n']} gap samples; pooled "
+            f"c at p5/p10/p15 = {pc['p5']:.3f}/{pc['p10']:.3f}/{pc['p15']:.3f} m (not used because c1 is "
+            f"identified); median gap {crep['median_gap']:.2f} m (not used).")
+
+
 def _sizes(v: pd.DataFrame, c: str) -> tuple[dict, dict]:
     out = []
     for col in ("length", "width"):
@@ -225,5 +359,8 @@ def _sizes(v: pd.DataFrame, c: str) -> tuple[dict, dict]:
             out.append({"kind": "fixed", "value": round(mode, 3), "provenance": "assumption", "note": note})
         else:
             out.append({"kind": "quantiles", "q": cal.size_quantiles(vals), "provenance": "derived",
-                        "note": f"Quantiles 0,5,...,100% of per-vehicle {col} over {len(vals)} vehicles."})
+                        "note": f"Quantiles 0,5,...,100% of per-vehicle {col} over {len(vals)} vehicles."
+                        + (f" {int((vals > 2.6).sum())} vehicles are measured wider than the 2.6 m legal "
+                           "limit (video measurement, mirrors); kept as measured."
+                           if col == "width" and (vals > 2.6).any() else "")})
     return out[0], out[1]

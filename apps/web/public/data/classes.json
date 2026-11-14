@@ -1,0 +1,716 @@
+{
+ "version": 1,
+ "source": "Kanagaraj V., Asaithambi G., Toledo T., Lee T.-C. (2015), Trajectory data and flow characteristics of mixed traffic, Transportation Research Record 2491, 1-11. Chennai, 2:45-3:15 PM, 0.5 s sampling. Processed by weave_data (positions only).",
+ "classes": [
+  {
+   "id": "motorcycle",
+   "label": "Motorcycle",
+   "lengthM": {
+    "kind": "fixed",
+    "value": 1.8,
+    "provenance": "assumption",
+    "note": "Constant in the dataset (1 distinct value(s) over 1695 vehicles; mode 1.8 m): a fixed size assigned by the data producers, not a measurement."
+   },
+   "widthM": {
+    "kind": "fixed",
+    "value": 0.6,
+    "provenance": "assumption",
+    "note": "Constant in the dataset (1 distinct value(s) over 1695 vehicles; mode 0.6 m): a fixed size assigned by the data producers, not a measurement."
+   },
+   "idm": {
+    "v0": {
+     "value": 14.619,
+     "provenance": "proxy",
+     "note": "85th percentile of position-derived spot speeds at x=138.1 m (1491 vehicles). Traffic is near capacity (~41 km/h), so free-flow vehicles are rare: a proxy for the desired speed, likely an underestimate."
+    },
+    "T": {
+     "value": 0.641,
+     "provenance": "derived",
+     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 2262 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=14.62 m/s: T ranges 0.51-0.80 s under s0±1 m, v0±10%. 309 of 2571 steady samples (12.0%) with v > 0.9·v0 were excluded before inverting."
+    },
+    "s0": {
+     "value": 2.0,
+     "provenance": "assumption",
+     "note": "Literature default: Treiber & Kesting (2013), Traffic Flow Dynamics, Table 11.2, IDM s0 = 2 m (city traffic). The data has almost no slow or stopped following, so s0 is not identifiable."
+    },
+    "a": {
+     "value": 1.272,
+     "provenance": "derived",
+     "note": "95th percentile of position-derived longitudinal acceleration (54470 clean samples; Savitzky–Golay quadratic, 9 points = 4 s). Window-dependent: 5 pts 3.73, 7 pts 2.03, 9 pts 1.25, 11 pts 0.87, 15 pts 0.50 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+    },
+    "b": {
+     "value": 1.355,
+     "provenance": "derived",
+     "note": "Minus the 5th percentile of position-derived longitudinal acceleration (54470 clean samples; 9-point window). Window-dependent: 5 pts 3.80, 7 pts 2.09, 9 pts 1.33, 11 pts 0.96, 15 pts 0.58 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+    }
+   },
+   "clearance": {
+    "c0": {
+     "value": 0.333,
+     "provenance": "derived",
+     "note": "p10 of accepted lateral gaps to side-by-side neighbours, halved (c = gap/2: the engine adds c on both sides). 24768 gap samples involving this class; c at p5/p10/p15 = 0.226/0.333/0.412 m; median gap 1.98 m (not used)."
+    },
+    "c1": {
+     "value": 0.0,
+     "provenance": "assumption",
+     "note": "Speed slope not identified (slope not distinguishable from 0 (|b| ≤ 2 SE)); set to 0."
+    }
+   },
+   "gap": {
+    "criticalS": {
+     "value": 4.1,
+     "provenance": "assumption",
+     "note": "Not identified by the Chennai data (mid-block section, no priority conflicts). HCM 2016 (TRB) two-way-stop base values 4.1 s critical / 2.2 s follow-up; two-wheelers/autos in Indian traffic are reported to accept shorter gaps; not quantified here. Editable assumption."
+    },
+    "followUpS": {
+     "value": 2.2,
+     "provenance": "assumption",
+     "note": "See criticalS."
+    }
+   },
+   "lateral": {
+    "maxSpeedMps": {
+     "value": 0.566,
+     "provenance": "derived",
+     "note": "95th percentile of |position-derived lateral speed| (2 s quadratic Savitzky–Golay), clean samples."
+    },
+    "politeness": {
+     "value": 0.2,
+     "provenance": "assumption",
+     "note": "MOBIL politeness, lower end of the typical range in Kesting, Treiber & Helbing (2007), Transp. Res. Rec. 1999."
+    },
+    "thresholdMps2": {
+     "value": 0.1,
+     "provenance": "assumption",
+     "note": "MOBIL switching threshold 0.1 m/s² (Kesting, Treiber & Helbing 2007)."
+    }
+   },
+   "share": {
+    "value": 0.5641,
+    "provenance": "derived",
+    "note": "1695 of 3005 vehicles in both files."
+   }
+  },
+  {
+   "id": "car",
+   "label": "Car",
+   "lengthM": {
+    "kind": "quantiles",
+    "q": [
+     1.98,
+     3.85,
+     4.029,
+     4.15,
+     4.2,
+     4.26,
+     4.34,
+     4.42,
+     4.47,
+     4.53,
+     4.605,
+     4.7,
+     4.75,
+     4.82,
+     4.91,
+     5.0,
+     5.12,
+     5.272,
+     5.45,
+     5.691,
+     6.97
+    ],
+    "provenance": "derived",
+    "note": "Quantiles 0,5,...,100% of per-vehicle length over 800 vehicles."
+   },
+   "widthM": {
+    "kind": "quantiles",
+    "q": [
+     0.57,
+     1.31,
+     1.36,
+     1.39,
+     1.42,
+     1.44,
+     1.47,
+     1.5,
+     1.52,
+     1.55,
+     1.58,
+     1.6,
+     1.62,
+     1.65,
+     1.69,
+     1.71,
+     1.75,
+     1.8,
+     1.85,
+     1.97,
+     2.59
+    ],
+    "provenance": "derived",
+    "note": "Quantiles 0,5,...,100% of per-vehicle width over 800 vehicles."
+   },
+   "idm": {
+    "v0": {
+     "value": 14.54,
+     "provenance": "proxy",
+     "note": "85th percentile of position-derived spot speeds at x=138.1 m (745 vehicles). Traffic is near capacity (~41 km/h), so free-flow vehicles are rare: a proxy for the desired speed, likely an underestimate."
+    },
+    "T": {
+     "value": 0.511,
+     "provenance": "derived",
+     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 1573 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=14.54 m/s: T ranges 0.33-0.65 s under s0±1 m, v0±10%. 350 of 1923 steady samples (18.2%) with v > 0.9·v0 were excluded before inverting."
+    },
+    "s0": {
+     "value": 2.0,
+     "provenance": "assumption",
+     "note": "Literature default: Treiber & Kesting (2013), Traffic Flow Dynamics, Table 11.2, IDM s0 = 2 m (city traffic). The data has almost no slow or stopped following, so s0 is not identifiable."
+    },
+    "a": {
+     "value": 1.082,
+     "provenance": "derived",
+     "note": "95th percentile of position-derived longitudinal acceleration (26755 clean samples; Savitzky–Golay quadratic, 9 points = 4 s). Window-dependent: 5 pts 3.15, 7 pts 1.71, 9 pts 1.07, 11 pts 0.75, 15 pts 0.51 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+    },
+    "b": {
+     "value": 1.039,
+     "provenance": "derived",
+     "note": "Minus the 5th percentile of position-derived longitudinal acceleration (26755 clean samples; 9-point window). Window-dependent: 5 pts 3.05, 7 pts 1.63, 9 pts 1.03, 11 pts 0.77, 15 pts 0.54 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+    }
+   },
+   "clearance": {
+    "c0": {
+     "value": 0.393,
+     "provenance": "derived",
+     "note": "p10 of accepted lateral gaps to side-by-side neighbours, halved (c = gap/2: the engine adds c on both sides). 18159 gap samples involving this class; c at p5/p10/p15 = 0.279/0.393/0.482 m; median gap 2.11 m (not used)."
+    },
+    "c1": {
+     "value": 0.0,
+     "provenance": "assumption",
+     "note": "Speed slope not identified (slope not distinguishable from 0 (|b| ≤ 2 SE)); set to 0."
+    }
+   },
+   "gap": {
+    "criticalS": {
+     "value": 4.1,
+     "provenance": "assumption",
+     "note": "Not identified by the Chennai data (mid-block section, no priority conflicts). HCM 2016 (TRB) two-way-stop base values 4.1 s critical / 2.2 s follow-up; car base values. Editable assumption."
+    },
+    "followUpS": {
+     "value": 2.2,
+     "provenance": "assumption",
+     "note": "See criticalS."
+    }
+   },
+   "lateral": {
+    "maxSpeedMps": {
+     "value": 0.46,
+     "provenance": "derived",
+     "note": "95th percentile of |position-derived lateral speed| (2 s quadratic Savitzky–Golay), clean samples."
+    },
+    "politeness": {
+     "value": 0.2,
+     "provenance": "assumption",
+     "note": "MOBIL politeness, lower end of the typical range in Kesting, Treiber & Helbing (2007), Transp. Res. Rec. 1999."
+    },
+    "thresholdMps2": {
+     "value": 0.1,
+     "provenance": "assumption",
+     "note": "MOBIL switching threshold 0.1 m/s² (Kesting, Treiber & Helbing 2007)."
+    }
+   },
+   "share": {
+    "value": 0.2662,
+    "provenance": "derived",
+    "note": "800 of 3005 vehicles in both files."
+   }
+  },
+  {
+   "id": "auto",
+   "label": "Auto-rickshaw",
+   "lengthM": {
+    "kind": "fixed",
+    "value": 2.6,
+    "provenance": "assumption",
+    "note": "Constant in the dataset (1 distinct value(s) over 366 vehicles; mode 2.6 m): a fixed size assigned by the data producers, not a measurement."
+   },
+   "widthM": {
+    "kind": "fixed",
+    "value": 1.4,
+    "provenance": "assumption",
+    "note": "Constant in the dataset (1 distinct value(s) over 366 vehicles; mode 1.4 m): a fixed size assigned by the data producers, not a measurement."
+   },
+   "idm": {
+    "v0": {
+     "value": 12.235,
+     "provenance": "proxy",
+     "note": "85th percentile of position-derived spot speeds at x=138.1 m (341 vehicles). Traffic is near capacity (~41 km/h), so free-flow vehicles are rare: a proxy for the desired speed, likely an underestimate."
+    },
+    "T": {
+     "value": 0.937,
+     "provenance": "derived",
+     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 449 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=12.23 m/s: T ranges 0.83-1.07 s under s0±1 m, v0±10%. 216 of 665 steady samples (32.5%) with v > 0.9·v0 were excluded before inverting."
+    },
+    "s0": {
+     "value": 2.0,
+     "provenance": "assumption",
+     "note": "Literature default: Treiber & Kesting (2013), Traffic Flow Dynamics, Table 11.2, IDM s0 = 2 m (city traffic). The data has almost no slow or stopped following, so s0 is not identifiable."
+    },
+    "a": {
+     "value": 1.091,
+     "provenance": "derived",
+     "note": "95th percentile of position-derived longitudinal acceleration (15054 clean samples; Savitzky–Golay quadratic, 9 points = 4 s). Window-dependent: 5 pts 3.42, 7 pts 1.83, 9 pts 1.08, 11 pts 0.72, 15 pts 0.40 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+    },
+    "b": {
+     "value": 1.025,
+     "provenance": "derived",
+     "note": "Minus the 5th percentile of position-derived longitudinal acceleration (15054 clean samples; 9-point window). Window-dependent: 5 pts 3.37, 7 pts 1.70, 9 pts 1.02, 11 pts 0.68, 15 pts 0.39 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+    }
+   },
+   "clearance": {
+    "c0": {
+     "value": 0.05,
+     "provenance": "derived",
+     "note": "Intercept of c(v) = c0 + c1·v: per-speed-bin p10 of accepted lateral gaps to side-by-side neighbours, fitted linearly in pair speed and halved (c = gap/2: the engine adds c on both sides); gap intercept 0.100 m. 8454 gap samples; pooled c at p5/p10/p15 = 0.211/0.323/0.403 m (not used because c1 is identified); median gap 1.87 m (not used)."
+    },
+    "c1": {
+     "value": 0.0245,
+     "provenance": "derived",
+     "note": "Slope of the per-speed-bin (2 m/s bins, ≥ 200 samples) p10 gap vs pair speed, halved: gap slope 0.0491 ± 0.0183 (SE) s over a 6 m/s span. Identified by the pre-set rule (span ≥ 6 m/s, |slope| > 2 SE), but borderline."
+    }
+   },
+   "gap": {
+    "criticalS": {
+     "value": 4.1,
+     "provenance": "assumption",
+     "note": "Not identified by the Chennai data (mid-block section, no priority conflicts). HCM 2016 (TRB) two-way-stop base values 4.1 s critical / 2.2 s follow-up; two-wheelers/autos in Indian traffic are reported to accept shorter gaps; not quantified here. Editable assumption."
+    },
+    "followUpS": {
+     "value": 2.2,
+     "provenance": "assumption",
+     "note": "See criticalS."
+    }
+   },
+   "lateral": {
+    "maxSpeedMps": {
+     "value": 0.37,
+     "provenance": "derived",
+     "note": "95th percentile of |position-derived lateral speed| (2 s quadratic Savitzky–Golay), clean samples."
+    },
+    "politeness": {
+     "value": 0.2,
+     "provenance": "assumption",
+     "note": "MOBIL politeness, lower end of the typical range in Kesting, Treiber & Helbing (2007), Transp. Res. Rec. 1999."
+    },
+    "thresholdMps2": {
+     "value": 0.1,
+     "provenance": "assumption",
+     "note": "MOBIL switching threshold 0.1 m/s² (Kesting, Treiber & Helbing 2007)."
+    }
+   },
+   "share": {
+    "value": 0.1218,
+    "provenance": "derived",
+    "note": "366 of 3005 vehicles in both files."
+   }
+  },
+  {
+   "id": "bus",
+   "label": "Bus",
+   "lengthM": {
+    "kind": "quantiles",
+    "q": [
+     7.26,
+     10.94,
+     11.1,
+     11.234,
+     11.38,
+     11.515,
+     11.702,
+     11.777,
+     11.856,
+     11.993,
+     12.07,
+     12.124,
+     12.202,
+     12.291,
+     12.452,
+     12.59,
+     12.662,
+     12.776,
+     12.962,
+     13.274,
+     13.94
+    ],
+    "provenance": "derived",
+    "note": "Quantiles 0,5,...,100% of per-vehicle length over 95 vehicles."
+   },
+   "widthM": {
+    "kind": "quantiles",
+    "q": [
+     2.04,
+     2.327,
+     2.38,
+     2.42,
+     2.438,
+     2.47,
+     2.482,
+     2.5,
+     2.546,
+     2.563,
+     2.59,
+     2.63,
+     2.66,
+     2.681,
+     2.718,
+     2.75,
+     2.792,
+     2.848,
+     2.91,
+     3.059,
+     3.27
+    ],
+    "provenance": "derived",
+    "note": "Quantiles 0,5,...,100% of per-vehicle width over 95 vehicles. 44 vehicles are measured wider than the 2.6 m legal limit (video measurement, mirrors); kept as measured."
+   },
+   "idm": {
+    "v0": {
+     "value": 13.115,
+     "provenance": "proxy",
+     "note": "85th percentile of position-derived spot speeds at x=138.1 m (92 vehicles). Traffic is near capacity (~41 km/h), so free-flow vehicles are rare: a proxy for the desired speed, likely an underestimate."
+    },
+    "T": {
+     "value": 0.823,
+     "provenance": "derived",
+     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 132 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=13.12 m/s: T ranges 0.55-0.96 s under s0±1 m, v0±10%. 58 of 190 steady samples (30.5%) with v > 0.9·v0 were excluded before inverting."
+    },
+    "s0": {
+     "value": 2.0,
+     "provenance": "assumption",
+     "note": "Literature default: Treiber & Kesting (2013), Traffic Flow Dynamics, Table 11.2, IDM s0 = 2 m (city traffic). The data has almost no slow or stopped following, so s0 is not identifiable."
+    },
+    "a": {
+     "value": 1.083,
+     "provenance": "derived",
+     "note": "95th percentile of position-derived longitudinal acceleration (3683 clean samples; Savitzky–Golay quadratic, 9 points = 4 s). Window-dependent: 5 pts 3.19, 7 pts 1.71, 9 pts 1.09, 11 pts 0.74, 15 pts 0.46 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+    },
+    "b": {
+     "value": 0.903,
+     "provenance": "derived",
+     "note": "Minus the 5th percentile of position-derived longitudinal acceleration (3683 clean samples; 9-point window). Window-dependent: 5 pts 3.14, 7 pts 1.52, 9 pts 0.90, 11 pts 0.58, 15 pts 0.40 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+    }
+   },
+   "clearance": {
+    "c0": {
+     "value": 0.368,
+     "provenance": "derived",
+     "note": "p10 of accepted lateral gaps to side-by-side neighbours, halved (c = gap/2: the engine adds c on both sides). 4032 gap samples involving this class; c at p5/p10/p15 = 0.264/0.368/0.452 m; median gap 1.64 m (not used)."
+    },
+    "c1": {
+     "value": 0.0,
+     "provenance": "assumption",
+     "note": "Speed slope not identified (speed span too small); set to 0."
+    }
+   },
+   "gap": {
+    "criticalS": {
+     "value": 5.1,
+     "provenance": "assumption",
+     "note": "Not identified by the Chennai data (mid-block section, no priority conflicts). HCM 2016 (TRB) two-way-stop base values 4.1 s critical / 2.2 s follow-up; heavy-vehicle adjustment +1.0 s / +0.9 s applied. Editable assumption."
+    },
+    "followUpS": {
+     "value": 3.1,
+     "provenance": "assumption",
+     "note": "See criticalS."
+    }
+   },
+   "lateral": {
+    "maxSpeedMps": {
+     "value": 0.361,
+     "provenance": "derived",
+     "note": "95th percentile of |position-derived lateral speed| (2 s quadratic Savitzky–Golay), clean samples."
+    },
+    "politeness": {
+     "value": 0.2,
+     "provenance": "assumption",
+     "note": "MOBIL politeness, lower end of the typical range in Kesting, Treiber & Helbing (2007), Transp. Res. Rec. 1999."
+    },
+    "thresholdMps2": {
+     "value": 0.1,
+     "provenance": "assumption",
+     "note": "MOBIL switching threshold 0.1 m/s² (Kesting, Treiber & Helbing 2007)."
+    }
+   },
+   "share": {
+    "value": 0.0316,
+    "provenance": "derived",
+    "note": "95 of 3005 vehicles in both files."
+   }
+  },
+  {
+   "id": "truck",
+   "label": "Truck",
+   "lengthM": {
+    "kind": "quantiles",
+    "q": [
+     7.73,
+     7.758,
+     7.786,
+     7.876,
+     8.028,
+     8.18,
+     8.364,
+     8.548,
+     8.658,
+     8.694,
+     8.73,
+     8.814,
+     8.898,
+     9.054,
+     9.282,
+     9.51,
+     9.722,
+     9.934,
+     10.074,
+     10.142,
+     10.21
+    ],
+    "provenance": "derived",
+    "note": "Quantiles 0,5,...,100% of per-vehicle length over 9 vehicles."
+   },
+   "widthM": {
+    "kind": "quantiles",
+    "q": [
+     1.63,
+     1.694,
+     1.758,
+     1.842,
+     1.946,
+     2.05,
+     2.054,
+     2.058,
+     2.072,
+     2.096,
+     2.12,
+     2.12,
+     2.12,
+     2.138,
+     2.174,
+     2.21,
+     2.278,
+     2.346,
+     2.41,
+     2.47,
+     2.53
+    ],
+    "provenance": "derived",
+    "note": "Quantiles 0,5,...,100% of per-vehicle width over 9 vehicles."
+   },
+   "idm": {
+    "v0": {
+     "value": 12.522,
+     "provenance": "proxy",
+     "note": "85th percentile of position-derived speed samples (373 clean samples; only 8 vehicles crossed x=138.1 m cleanly, < 20 for a spot-speed percentile). Traffic is near capacity (~41 km/h), so free-flow vehicles are rare: a proxy for the desired speed, likely an underestimate."
+    },
+    "T": {
+     "value": 0.511,
+     "provenance": "assumption",
+     "note": "Only 3 usable steady-following samples (< 30; 7 dropped with v > 0.9·v0); the car value is used."
+    },
+    "s0": {
+     "value": 2.0,
+     "provenance": "assumption",
+     "note": "Literature default: Treiber & Kesting (2013), Traffic Flow Dynamics, Table 11.2, IDM s0 = 2 m (city traffic). The data has almost no slow or stopped following, so s0 is not identifiable."
+    },
+    "a": {
+     "value": 0.964,
+     "provenance": "derived",
+     "note": "95th percentile of position-derived longitudinal acceleration (373 clean samples; Savitzky–Golay quadratic, 9 points = 4 s). Window-dependent: 5 pts 3.56, 7 pts 1.76, 9 pts 0.93, 11 pts 0.62, 15 pts 0.40 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+    },
+    "b": {
+     "value": 1.166,
+     "provenance": "derived",
+     "note": "Minus the 5th percentile of position-derived longitudinal acceleration (373 clean samples; 9-point window). Window-dependent: 5 pts 3.58, 7 pts 2.13, 9 pts 1.17, 11 pts 0.96, 15 pts 0.48 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+    }
+   },
+   "clearance": {
+    "c0": {
+     "value": 0.472,
+     "provenance": "derived",
+     "note": "p10 of accepted lateral gaps to side-by-side neighbours, halved (c = gap/2: the engine adds c on both sides). 378 gap samples involving this class; c at p5/p10/p15 = 0.387/0.472/0.514 m; median gap 1.96 m (not used)."
+    },
+    "c1": {
+     "value": 0.0,
+     "provenance": "assumption",
+     "note": "Speed slope not identified (0 populated speed bins); set to 0."
+    }
+   },
+   "gap": {
+    "criticalS": {
+     "value": 5.1,
+     "provenance": "assumption",
+     "note": "Not identified by the Chennai data (mid-block section, no priority conflicts). HCM 2016 (TRB) two-way-stop base values 4.1 s critical / 2.2 s follow-up; heavy-vehicle adjustment +1.0 s / +0.9 s applied. Editable assumption."
+    },
+    "followUpS": {
+     "value": 3.1,
+     "provenance": "assumption",
+     "note": "See criticalS."
+    }
+   },
+   "lateral": {
+    "maxSpeedMps": {
+     "value": 0.413,
+     "provenance": "derived",
+     "note": "95th percentile of |position-derived lateral speed| (2 s quadratic Savitzky–Golay), clean samples."
+    },
+    "politeness": {
+     "value": 0.2,
+     "provenance": "assumption",
+     "note": "MOBIL politeness, lower end of the typical range in Kesting, Treiber & Helbing (2007), Transp. Res. Rec. 1999."
+    },
+    "thresholdMps2": {
+     "value": 0.1,
+     "provenance": "assumption",
+     "note": "MOBIL switching threshold 0.1 m/s² (Kesting, Treiber & Helbing 2007)."
+    }
+   },
+   "share": {
+    "value": 0.003,
+    "provenance": "derived",
+    "note": "9 of 3005 vehicles in both files."
+   }
+  },
+  {
+   "id": "lcv",
+   "label": "Light commercial vehicle",
+   "lengthM": {
+    "kind": "quantiles",
+    "q": [
+     4.84,
+     4.992,
+     5.0,
+     5.425,
+     5.514,
+     5.73,
+     5.877,
+     5.926,
+     5.964,
+     6.002,
+     6.2,
+     6.34,
+     6.398,
+     6.504,
+     6.598,
+     6.768,
+     6.996,
+     7.654,
+     8.44,
+     9.173,
+     10.5
+    ],
+    "provenance": "derived",
+    "note": "Quantiles 0,5,...,100% of per-vehicle length over 40 vehicles."
+   },
+   "widthM": {
+    "kind": "quantiles",
+    "q": [
+     1.45,
+     1.617,
+     1.66,
+     1.668,
+     1.67,
+     1.705,
+     1.727,
+     1.746,
+     1.788,
+     1.86,
+     1.9,
+     1.9,
+     2.016,
+     2.094,
+     2.149,
+     2.228,
+     2.31,
+     2.332,
+     2.381,
+     2.426,
+     2.64
+    ],
+    "provenance": "derived",
+    "note": "Quantiles 0,5,...,100% of per-vehicle width over 40 vehicles. 1 vehicles are measured wider than the 2.6 m legal limit (video measurement, mirrors); kept as measured."
+   },
+   "idm": {
+    "v0": {
+     "value": 13.447,
+     "provenance": "proxy",
+     "note": "85th percentile of position-derived spot speeds at x=138.1 m (39 vehicles). Traffic is near capacity (~41 km/h), so free-flow vehicles are rare: a proxy for the desired speed, likely an underestimate."
+    },
+    "T": {
+     "value": 1.006,
+     "provenance": "derived",
+     "note": "Median of T = (s·sqrt(1-(v/v0)^4) - s0)/v over 66 steady-following samples (|a|<0.25 m/s², |Δv|<0.5 m/s, v≥3.0 m/s, gap≤60 m; leader by the engine rule). CONDITIONAL on the assumed s0=2 m and the proxy v0=13.45 m/s: T ranges 0.91-1.49 s under s0±1 m, v0±10%. 31 of 97 steady samples (32.0%) with v > 0.9·v0 were excluded before inverting."
+    },
+    "s0": {
+     "value": 2.0,
+     "provenance": "assumption",
+     "note": "Literature default: Treiber & Kesting (2013), Traffic Flow Dynamics, Table 11.2, IDM s0 = 2 m (city traffic). The data has almost no slow or stopped following, so s0 is not identifiable."
+    },
+    "a": {
+     "value": 1.269,
+     "provenance": "derived",
+     "note": "95th percentile of position-derived longitudinal acceleration (1439 clean samples; Savitzky–Golay quadratic, 9 points = 4 s). Window-dependent: 5 pts 3.28, 7 pts 1.86, 9 pts 1.24, 11 pts 0.80, 15 pts 0.47 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+    },
+    "b": {
+     "value": 0.916,
+     "provenance": "derived",
+     "note": "Minus the 5th percentile of position-derived longitudinal acceleration (1439 clean samples; 9-point window). Window-dependent: 5 pts 3.34, 7 pts 1.50, 9 pts 0.89, 11 pts 0.64, 15 pts 0.39 m/s² (see VALIDATION.md). Never the dataset's acceleration column."
+    }
+   },
+   "clearance": {
+    "c0": {
+     "value": 0.454,
+     "provenance": "derived",
+     "note": "p10 of accepted lateral gaps to side-by-side neighbours, halved (c = gap/2: the engine adds c on both sides). 1226 gap samples involving this class; c at p5/p10/p15 = 0.332/0.454/0.548 m; median gap 2.07 m (not used)."
+    },
+    "c1": {
+     "value": 0.0,
+     "provenance": "assumption",
+     "note": "Speed slope not identified (speed span too small); set to 0."
+    }
+   },
+   "gap": {
+    "criticalS": {
+     "value": 5.1,
+     "provenance": "assumption",
+     "note": "Not identified by the Chennai data (mid-block section, no priority conflicts). HCM 2016 (TRB) two-way-stop base values 4.1 s critical / 2.2 s follow-up; heavy-vehicle adjustment +1.0 s / +0.9 s applied. Editable assumption."
+    },
+    "followUpS": {
+     "value": 3.1,
+     "provenance": "assumption",
+     "note": "See criticalS."
+    }
+   },
+   "lateral": {
+    "maxSpeedMps": {
+     "value": 0.451,
+     "provenance": "derived",
+     "note": "95th percentile of |position-derived lateral speed| (2 s quadratic Savitzky–Golay), clean samples."
+    },
+    "politeness": {
+     "value": 0.2,
+     "provenance": "assumption",
+     "note": "MOBIL politeness, lower end of the typical range in Kesting, Treiber & Helbing (2007), Transp. Res. Rec. 1999."
+    },
+    "thresholdMps2": {
+     "value": 0.1,
+     "provenance": "assumption",
+     "note": "MOBIL switching threshold 0.1 m/s² (Kesting, Treiber & Helbing 2007)."
+    }
+   },
+   "share": {
+    "value": 0.0133,
+    "provenance": "derived",
+    "note": "40 of 3005 vehicles in both files."
+   }
+  }
+ ]
+}

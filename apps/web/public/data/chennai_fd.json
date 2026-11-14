@@ -1,0 +1,243 @@
+{
+ "version": 1,
+ "source": "Kanagaraj V., Asaithambi G., Toledo T., Lee T.-C. (2015), Trajectory data and flow characteristics of mixed traffic, Transportation Research Record 2491, 1-11. Chennai, 2:45-3:15 PM, 0.5 s sampling. Processed by weave_data (positions only).",
+ "method": "Edie generalised flow, density and space-mean speed per minute over the fully tracked region (front positions, trajectories clipped to the region).",
+ "branch": "free-flow",
+ "coverage": "FREE-FLOW BRANCH ONLY: minute space-mean speeds span 37.2-45.0 km/h. These points do not validate capacity, congested behaviour or the effect of road width.",
+ "region": {
+  "xFromM": 58.23,
+  "xToM": 218.01,
+  "lengthM": 159.78,
+  "roadWidthM": 11.07
+ },
+ "speedRangeKmh": [
+  37.19,
+  44.95
+ ],
+ "points": [
+  {
+   "file": "2.45-3.00",
+   "minute": 0,
+   "tStartS": 24.7,
+   "flowVph": 6928.1,
+   "densityVpkm": 154.14,
+   "speedKmh": 44.95
+  },
+  {
+   "file": "2.45-3.00",
+   "minute": 1,
+   "tStartS": 84.7,
+   "flowVph": 4998.8,
+   "densityVpkm": 118.12,
+   "speedKmh": 42.32
+  },
+  {
+   "file": "2.45-3.00",
+   "minute": 2,
+   "tStartS": 144.7,
+   "flowVph": 7809.5,
+   "densityVpkm": 185.39,
+   "speedKmh": 42.12
+  },
+  {
+   "file": "2.45-3.00",
+   "minute": 3,
+   "tStartS": 204.7,
+   "flowVph": 5173.3,
+   "densityVpkm": 121.82,
+   "speedKmh": 42.47
+  },
+  {
+   "file": "2.45-3.00",
+   "minute": 4,
+   "tStartS": 264.7,
+   "flowVph": 5961.8,
+   "densityVpkm": 146.61,
+   "speedKmh": 40.66
+  },
+  {
+   "file": "2.45-3.00",
+   "minute": 5,
+   "tStartS": 324.7,
+   "flowVph": 5620.6,
+   "densityVpkm": 133.94,
+   "speedKmh": 41.96
+  },
+  {
+   "file": "2.45-3.00",
+   "minute": 6,
+   "tStartS": 384.7,
+   "flowVph": 5363.3,
+   "densityVpkm": 133.05,
+   "speedKmh": 40.31
+  },
+  {
+   "file": "2.45-3.00",
+   "minute": 7,
+   "tStartS": 444.7,
+   "flowVph": 6745.2,
+   "densityVpkm": 181.37,
+   "speedKmh": 37.19
+  },
+  {
+   "file": "2.45-3.00",
+   "minute": 8,
+   "tStartS": 504.7,
+   "flowVph": 7006.9,
+   "densityVpkm": 173.56,
+   "speedKmh": 40.37
+  },
+  {
+   "file": "2.45-3.00",
+   "minute": 9,
+   "tStartS": 564.7,
+   "flowVph": 6918.5,
+   "densityVpkm": 170.29,
+   "speedKmh": 40.63
+  },
+  {
+   "file": "2.45-3.00",
+   "minute": 10,
+   "tStartS": 624.7,
+   "flowVph": 5937.5,
+   "densityVpkm": 136.08,
+   "speedKmh": 43.63
+  },
+  {
+   "file": "2.45-3.00",
+   "minute": 11,
+   "tStartS": 684.7,
+   "flowVph": 6425.9,
+   "densityVpkm": 152.92,
+   "speedKmh": 42.02
+  },
+  {
+   "file": "2.45-3.00",
+   "minute": 12,
+   "tStartS": 744.7,
+   "flowVph": 6663.3,
+   "densityVpkm": 171.3,
+   "speedKmh": 38.9
+  },
+  {
+   "file": "2.45-3.00",
+   "minute": 13,
+   "tStartS": 804.7,
+   "flowVph": 5359.7,
+   "densityVpkm": 126.39,
+   "speedKmh": 42.41
+  },
+  {
+   "file": "3.00-3.15",
+   "minute": 0,
+   "tStartS": 23.45,
+   "flowVph": 6773.6,
+   "densityVpkm": 181.21,
+   "speedKmh": 37.38
+  },
+  {
+   "file": "3.00-3.15",
+   "minute": 1,
+   "tStartS": 83.45,
+   "flowVph": 7992.4,
+   "densityVpkm": 209.95,
+   "speedKmh": 38.07
+  },
+  {
+   "file": "3.00-3.15",
+   "minute": 2,
+   "tStartS": 143.45,
+   "flowVph": 6583.0,
+   "densityVpkm": 162.05,
+   "speedKmh": 40.62
+  },
+  {
+   "file": "3.00-3.15",
+   "minute": 3,
+   "tStartS": 203.45,
+   "flowVph": 5553.0,
+   "densityVpkm": 135.68,
+   "speedKmh": 40.93
+  },
+  {
+   "file": "3.00-3.15",
+   "minute": 4,
+   "tStartS": 263.45,
+   "flowVph": 6606.4,
+   "densityVpkm": 162.67,
+   "speedKmh": 40.61
+  },
+  {
+   "file": "3.00-3.15",
+   "minute": 5,
+   "tStartS": 323.45,
+   "flowVph": 6293.8,
+   "densityVpkm": 151.13,
+   "speedKmh": 41.65
+  },
+  {
+   "file": "3.00-3.15",
+   "minute": 6,
+   "tStartS": 383.45,
+   "flowVph": 4462.5,
+   "densityVpkm": 103.09,
+   "speedKmh": 43.29
+  },
+  {
+   "file": "3.00-3.15",
+   "minute": 7,
+   "tStartS": 443.45,
+   "flowVph": 5735.9,
+   "densityVpkm": 141.33,
+   "speedKmh": 40.59
+  },
+  {
+   "file": "3.00-3.15",
+   "minute": 8,
+   "tStartS": 503.45,
+   "flowVph": 4507.1,
+   "densityVpkm": 110.77,
+   "speedKmh": 40.69
+  },
+  {
+   "file": "3.00-3.15",
+   "minute": 9,
+   "tStartS": 563.45,
+   "flowVph": 5287.8,
+   "densityVpkm": 132.11,
+   "speedKmh": 40.03
+  },
+  {
+   "file": "3.00-3.15",
+   "minute": 10,
+   "tStartS": 623.45,
+   "flowVph": 5055.5,
+   "densityVpkm": 118.08,
+   "speedKmh": 42.81
+  },
+  {
+   "file": "3.00-3.15",
+   "minute": 11,
+   "tStartS": 683.45,
+   "flowVph": 6558.3,
+   "densityVpkm": 157.06,
+   "speedKmh": 41.76
+  },
+  {
+   "file": "3.00-3.15",
+   "minute": 12,
+   "tStartS": 743.45,
+   "flowVph": 5924.8,
+   "densityVpkm": 136.99,
+   "speedKmh": 43.25
+  },
+  {
+   "file": "3.00-3.15",
+   "minute": 13,
+   "tStartS": 803.45,
+   "flowVph": 6418.1,
+   "densityVpkm": 153.71,
+   "speedKmh": 41.75
+  }
+ ]
+}

@@ -142,3 +142,36 @@ def test_end_to_end_T_from_synthetic_platoons():
     Tm, n, nx = cal.T_median(st["gap"], st["v"], v0, s0)
     assert nx == 0 and n == len(st)
     assert Tm == pytest.approx(T, abs=1e-9)
+
+
+def test_T_excludes_high_speed_samples_before_inverting_and_counts_them():
+    """BRIEF (user): samples with v > 0.9·v0 are dropped explicitly before inverting, counted,
+    and no NaN can reach the median."""
+    T, s0, v0 = 1.1, 2.0, 15.0
+    v_ok = np.linspace(4.0, 0.9 * v0, 41)                # all ≤ 0.9·v0: kept (boundary included)
+    v_hi = np.array([0.9 * v0 + 0.01, 0.95 * v0, 0.99 * v0, v0, 1.05 * v0, 1.3 * v0])  # dropped
+    s_ok = s_eq(v_ok, T, s0, v0)
+    s_hi = np.full(len(v_hi), 25.0)                       # at/above v0 these would be NaN
+    s_all = np.r_[s_ok, s_hi]
+    v_all = np.r_[v_ok, v_hi]
+    Tm, n_used, n_drop = cal.T_median(s_all, v_all, v0, s0)
+    assert n_drop == len(v_hi) and n_used == len(v_ok)
+    assert math.isfinite(Tm)
+    # expected: the median of the exact inversion on the kept samples only, from MODEL §1.3
+    kept_T = (s_ok * np.sqrt(1 - (v_ok / v0) ** 4) - s0) / v_ok
+    assert Tm == pytest.approx(float(np.median(kept_T)), abs=1e-12)
+    assert Tm == pytest.approx(T, abs=1e-12)
+    # non-finite inputs are dropped and counted too, never passed to the median
+    Tm2, n2, d2 = cal.T_median(np.r_[s_all, np.nan], np.r_[v_all, 8.0], v0, s0)
+    assert d2 == len(v_hi) + 1 and n2 == len(v_ok) and Tm2 == pytest.approx(T, abs=1e-12)
+
+
+def test_T_sensitivity_reports_drops_per_v0_variant():
+    v0, s0 = 15.0, 2.0
+    v = np.linspace(4.0, 14.9, 100)
+    rows = cal.T_sensitivity(s_eq(v, 1.2, s0, v0), v, v0, s0)
+    for r in rows:
+        expected = int(np.sum(v > 0.9 * r["v0"]))
+        assert r["n_dropped"] == expected and r["n_used"] == len(v) - expected
+        assert r["share_dropped"] == pytest.approx(expected / len(v))
+        assert math.isfinite(r["T"])

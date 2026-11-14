@@ -185,21 +185,40 @@ def invert_T(s, v, v0: float, s0: float) -> np.ndarray:
     return np.where((v > 0) & (free > 0), T, np.nan)
 
 
+T_MAX_V_FRACTION = 0.9  # samples with v > 0.9·v0 are excluded BEFORE inverting (BRIEF, user)
+
+
 def T_median(s, v, v0: float, s0: float) -> tuple[float, int, int]:
-    T = invert_T(s, v, v0, s0)
-    ok = np.isfinite(T)
-    return (float(np.median(T[ok])) if ok.any() else math.nan), int(ok.sum()), int((~ok).sum())
+    """Per-class T: (median, n_used, n_dropped).
+
+    Samples with v > T_MAX_V_FRACTION·v0 are dropped explicitly before inverting: as v → v0 the
+    factor √(1 − (v/v0)⁴) → 0 (and is undefined above v0), so T there is dominated by the
+    proxy v0 rather than by the data. Non-finite inputs are dropped and counted too. The
+    median is taken with numpy over finite values only, and an AssertionError is raised if a
+    NaN would reach it.
+    """
+    s = np.asarray(s, float)
+    v = np.asarray(v, float)
+    keep = np.isfinite(s) & np.isfinite(v) & (v > 0) & (v <= T_MAX_V_FRACTION * v0)
+    T = invert_T(s[keep], v[keep], v0, s0)
+    if not np.isfinite(T).all():
+        raise AssertionError("NaN would reach the T median")
+    n_drop = int((~keep).sum())
+    return (float(np.median(T)) if len(T) else math.nan), int(len(T)), n_drop
 
 
 def T_sensitivity(s, v, v0: float, s0: float) -> list[dict]:
+    """T under s0 ± 1 m and v0 ± 10 %; the v > 0.9·v0 exclusion follows each v0 variant."""
     rows = []
+    n_all = len(np.asarray(s))
     for ds0 in (-1.0, 0.0, 1.0):
         for fv in (0.9, 1.0, 1.1):
             if s0 + ds0 < 0:
                 continue
             T, n, nx = T_median(s, v, v0 * fv, s0 + ds0)
             rows.append({"s0": s0 + ds0, "v0": v0 * fv, "v0_factor": fv, "T": T,
-                         "n_used": n, "n_no_equilibrium": nx})
+                         "n_used": n, "n_dropped": nx,
+                         "share_dropped": (nx / n_all) if n_all else math.nan})
     return rows
 
 

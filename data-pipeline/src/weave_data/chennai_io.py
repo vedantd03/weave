@@ -108,10 +108,11 @@ def normalise(df: pd.DataFrame, file_key: str) -> pd.DataFrame:
 def check_units(df: pd.DataFrame) -> dict:
     """Unit/consistency checks (D2). Raises DataFormatError on violation; returns facts.
 
-    Bounds are physical/regulatory, not taken from a run: Indian Central Motor Vehicles Rules
-    limit vehicle width to 2.6 m and length to 18 m for rigid/articulated road vehicles
-    (we allow 20 m); positions must be non-negative; time steps must be the 0.5 s sampling
-    interval of the dataset.
+    These are unit-plausibility bounds (catching cm-for-m or ms-for-s mistakes), not filters
+    on measurements: no road vehicle is wider than 4 m or longer than 20 m (the Indian Central
+    Motor Vehicles Rules limit width to 2.6 m and length to 18 m; video-measured widths can
+    exceed 2.6 m through mirrors and measurement error, so those vehicles are counted and kept);
+    positions must be non-negative; the time step must be the dataset's 0.5 s.
     """
     facts: dict = {}
     dts = df.groupby("key")["t"].diff().dropna()
@@ -125,8 +126,11 @@ def check_units(df: pd.DataFrame) -> dict:
             raise DataFormatError("non-increasing time within a vehicle")
     if (df["width"] <= 0).any() or (df["length"] <= 0).any():
         raise DataFormatError("non-positive vehicle size")
-    if df["width"].max() > 2.6 + 1e-9:
-        raise DataFormatError(f"vehicle width {df['width'].max()} m > 2.6 m (not metres?)")
+    if df["width"].max() > 4.0:
+        raise DataFormatError(f"vehicle width {df['width'].max()} m > 4 m (not metres?)")
+    wide = df.groupby("key").agg(w=("width", "first"), cls=("cls", "first"))
+    facts["vehicles_wider_than_2p6m"] = {str(k): int(v) for k, v in
+                                         wide[wide["w"] > 2.6]["cls"].value_counts().items()}
     if df["length"].max() > 20.0:
         raise DataFormatError(f"vehicle length {df['length'].max()} m > 20 m (not metres?)")
     if (df["y"] < -1.0).any():
