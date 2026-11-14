@@ -24,9 +24,11 @@ Workers, a React UI, and a static deployment with no server.
   You can compare "flyover off", "flyover on with the same timings" and "flyover on, retimed"
   using **paired** intervals over common random numbers, then export to CSV.
 
-**Example result** (4-arm preset, 5 paired seeds): the flyover cuts mean delay by **14.5 s**
-[−15.0, −14.0]. Webster retiming, which moves green away from the flyover arms, saves another
-**2.4 s** [−4.3, −0.5].
+**Example result** (4-arm preset, 10 paired seeds, 1 h): the flyover cuts mean delay by
+**16.1 s** [−17.5, −14.7]. Webster retiming, which moves green away from the flyover arms,
+saves another **2.9 s** [−4.2, −1.5]. Mean delay counts every generated vehicle, including
+trips still under way or waiting to enter at the end of the run. Runs with a locked junction
+are counted as gridlocked.
 
 ## The model in one paragraph
 Road width is divided into lateral **strips** of 0.25 m, anchored at the kerb. A vehicle
@@ -42,8 +44,9 @@ synchronous ballistic update (dt = 0.2 s).
   spillback and per-junction gridlock detection. Vehicles are never teleported.
 - **Flyovers:** separate layers that meet the ground only through ramps.
 - **Randomness:** every draw comes from a per-entity substream. The same seed gives
-  bit-identical results in every browser and in Node, and changing a signal plan or adding a
-  flyover never changes who arrives when.
+  bit-identical results in Node, Chromium and WebKit (tested; Firefox is untested because
+  Playwright's Firefox would not launch on the development machine). Changing a signal plan or
+  adding a flyover never changes who arrives when.
 
 Full specification: [docs/MODEL.md](docs/MODEL.md). Decisions and their reasons:
 [docs/DECISIONS.md](docs/DECISIONS.md).
@@ -61,11 +64,27 @@ See [docs/VALIDATION.md](docs/VALIDATION.md). In short:
 - **Fundamental diagram:** the Chennai points cover the free-flow branch only. They do not
   validate capacity or the effects of road width.
 - **Simulated vs observed:** a simulated 11.2 m road at 6,000 veh/h runs at 47 km/h and
-  125–133 veh/km, against 41 km/h and 148 veh/km observed. This is documented, not tuned.
-- **Not modelled:** merging at lane drops (vehicles enter pre-sorted); on-ramp merging capacity
-  is limited by the calibrated lateral speeds.
-- **Silk Board:** demand is plausible, not observed. Some junctions lock within the hour at
-  1,800–3,000 veh/h; the detector reports this rather than hiding it.
+  129 veh/km, against 41 km/h and 148 veh/km observed. This is documented, not tuned.
+  - **Likely reasons:** v0 is a p85 proxy, T depends on the assumed s0 and v0, and there is
+    no roadside friction.
+  - **Sensitivity:** cutting v0 by 10% gives 42.1 km/h, which explains 84% of the gap.
+- **Lateral speeds:** taken from deliberate moves, as p85 of the peak lateral speed of moves of
+  at least 1 m. Motorcycle 0.86, car 0.78, auto 0.63 m/s. Heavy vehicles have too few moves and
+  use the pooled value, labelled an assumption.
+- **On-ramp merging:** saturates at about 3,000 veh/h. The preset (2,000 + 500 veh/h) runs 10
+  seeds with no gridlock.
+- **Not modelled:** merging at lane drops. Vehicles enter already sorted into the continuing
+  lanes.
+- **Silk Board:** demand is plausible, not observed.
+  - **Old preset (about 2,950 veh/h):** 10 seeds locked 10.9 ± 3.2 junctions each (5–18).
+    960 trips completed and 1,746 did not. Entry queues were around 590, and speed was around
+    6 km/h.
+  - **Cause:** a swap deadlock at a diverge (now broken by rerouting), then spillback from
+    oversaturated signals.
+  - **New preset:** 1,790 veh/h, the highest tested level with no locks over 10 seeds. Locks
+    start above it, at junctions 10282769907 / 10282769905.
+  - **Diversions:** about 6% of trips are diverted to another exit by the deadlock breaker.
+- **Lighthouse** (deployed, mobile): Performance 95, Accessibility 100, Best Practices 100.
 
 ## Repository
 | Path | Contents |
@@ -97,8 +116,9 @@ pnpm --filter @weave/engine sync-classes
   Harders' gap-acceptance capacity, Webster's effective green, LWR shockwave speed, Little's
   law, conservation at every step, a no-collision property, t-interval coverage and common
   random numbers.
-- **Test counts:** engine 282, data 98, end-to-end 52, on desktop and mobile. The end-to-end
-  tests include checks that browser and Node produce identical state hashes.
+- **Test counts:** engine 292, data 102, end-to-end 60 (desktop and mobile, plus the hash
+  checks in WebKit). The end-to-end tests include checks that the browser and Node produce
+  identical state hashes.
 - **When tests disagreed with the model:** the spec was fixed and the reasons recorded. Tests
   were never weakened; each disagreement went to a human decision. See TESTING.md and ADR-014
   to ADR-022.

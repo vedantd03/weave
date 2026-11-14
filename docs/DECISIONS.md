@@ -240,3 +240,54 @@ cause.
 **Consequences:** the 247 engine tests still pass. The generated junction presets flow; for
 example, the 4-arm preset now exits 679 of 738 vehicles in 15 min, against 63 before.
 
+
+## ADR-023 Deadlock breaker and unchanged-follower rule (M5 revision, traced on Silk Board and the on-ramp)
+**Context:** two deadlocks remained after ADR-022. Each was traced vehicle by vehicle, following
+"who waits for whom":
+1. **Swap deadlock at a diverge** (Silk Board, link 1155963376#1). Vehicles reached the end of a
+   link in the wrong lane band for their next movement and stood side by side. Each blocked the
+   strips the other needed.
+2. **End of an acceleration lane** (on-ramp, 1–2 seeds in 10 at any demand). A stopped car had
+   a motorcycle 0.05 m behind it, overlapping both its current and its target strips. MOBIL
+   treated the motorcycle as a "new follower" and rejected every sideways move on its gap floor.
+
+**Decisions:**
+1. **Deadlock breaker (MODEL.md §2.2):** after 20 s stuck at a lane-band obstacle, a vehicle
+   takes the alternative movement whose band it fits best and is rerouted from there.
+   - **Unreachable destination:** if the destination can no longer be reached, the vehicle
+     goes to the nearest reachable exit and is counted as diverted.
+   - **Reporting:** reroutes and diversions are reported.
+2. **Unchanged follower (MODEL.md §2.4):** if the new follower is the vehicle that already
+   follows the mover (N = O), the move changes nothing for it. Its gap-floor and B_SAFE checks
+   and both politeness terms are skipped. In lane mode, spans of adjacent lanes never overlap,
+   so classic MOBIL is unchanged.
+
+**Rejected:**
+- **Cooperative yielding near diverges:** it made Silk Board lock at most nodes in all seeds.
+- **A "forced merge" that relaxed the gap floor after a long wait:** it did not address the
+  cause, a gap that does not change.
+
+**Consequences:**
+- **On-ramp:** the preset (2,000 + 500 veh/h) went from 5/10 gridlocked runs to 0/10, and the
+  merge section saturates at about 3,000 veh/h.
+- **Silk Board:** locks now start only above 60% of the old demand.
+- **Diversions:** about 6% of Silk Board trips are diverted (VALIDATION.md §9).
+- **Testing:** both rules were implemented during timeboxed investigations, before their
+  tests. The test-author agent then wrote tests for them from the spec. This breaks the usual
+  test-first order, and the commit says so.
+
+## ADR-024 Delay includes unfinished trips (user decision)
+**Context:** the mean delay over completed trips hid gridlock and entry queues. A run where
+half the vehicles never left could look good.
+
+**Decision:** `meanDelayS` covers every generated vehicle.
+- **Unfinished trips:** delay so far is run end − generation time − free-flow time for the
+  distance actually travelled. That is 0 m for vehicles still in the entry queue.
+- **Accounting check:** total delay equals vehicle-seconds in the system minus the free-flow
+  time travelled.
+- **Comparison metric:** `meanDelayCompletedS` keeps the old mean.
+- **Gridlocked runs:** runs with a locked junction at the end are flagged `gridlocked` and
+  counted in the Experiments view.
+
+**Rejected:** subtracting the whole route's free-flow time from unfinished trips. That
+undercounts their delay, and it could even make it negative.

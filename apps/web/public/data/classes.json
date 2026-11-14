@@ -70,9 +70,9 @@
    },
    "lateral": {
     "maxSpeedMps": {
-     "value": 0.566,
+     "value": 0.856,
      "provenance": "derived",
-     "note": "95th percentile of |position-derived lateral speed| (2 s quadratic Savitzky–Golay), clean samples."
+     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s, fully observed only; speed by 3-point central difference (noise sd 0.020 m/s). p85 of 552 episode peaks (p75/p95 = 0.74/1.12 m/s); 3.5 m at this speed takes 4.1 s. Previously 0.57 m/s (p95 over all samples, mostly drift)."
     },
     "politeness": {
      "value": 0.2,
@@ -203,9 +203,9 @@
    },
    "lateral": {
     "maxSpeedMps": {
-     "value": 0.46,
+     "value": 0.775,
      "provenance": "derived",
-     "note": "95th percentile of |position-derived lateral speed| (2 s quadratic Savitzky–Golay), clean samples."
+     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s, fully observed only; speed by 3-point central difference (noise sd 0.020 m/s). p85 of 145 episode peaks (p75/p95 = 0.71/0.99 m/s); 3.5 m at this speed takes 4.5 s. Previously 0.46 m/s (p95 over all samples, mostly drift)."
     },
     "politeness": {
      "value": 0.2,
@@ -292,9 +292,9 @@
    },
    "lateral": {
     "maxSpeedMps": {
-     "value": 0.37,
+     "value": 0.634,
      "provenance": "derived",
-     "note": "95th percentile of |position-derived lateral speed| (2 s quadratic Savitzky–Golay), clean samples."
+     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s, fully observed only; speed by 3-point central difference (noise sd 0.020 m/s). p85 of 81 episode peaks (p75/p95 = 0.57/0.86 m/s); 3.5 m at this speed takes 5.5 s. Previously 0.37 m/s (p95 over all samples, mostly drift)."
     },
     "politeness": {
      "value": 0.2,
@@ -425,9 +425,9 @@
    },
    "lateral": {
     "maxSpeedMps": {
-     "value": 0.361,
-     "provenance": "derived",
-     "note": "95th percentile of |position-derived lateral speed| (2 s quadratic Savitzky–Golay), clean samples."
+     "value": 0.817,
+     "provenance": "assumption",
+     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s, fully observed only; speed by 3-point central difference (noise sd 0.020 m/s). Only 18 episodes for this class (< 30): pooled p85 over all 803 episodes used. Previously 0.36 m/s."
     },
     "politeness": {
      "value": 0.2,
@@ -558,9 +558,9 @@
    },
    "lateral": {
     "maxSpeedMps": {
-     "value": 0.413,
-     "provenance": "derived",
-     "note": "95th percentile of |position-derived lateral speed| (2 s quadratic Savitzky–Golay), clean samples."
+     "value": 0.817,
+     "provenance": "assumption",
+     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s, fully observed only; speed by 3-point central difference (noise sd 0.020 m/s). Only 1 episodes for this class (< 30): pooled p85 over all 803 episodes used. Previously 0.41 m/s."
     },
     "politeness": {
      "value": 0.2,
@@ -691,9 +691,9 @@
    },
    "lateral": {
     "maxSpeedMps": {
-     "value": 0.451,
-     "provenance": "derived",
-     "note": "95th percentile of |position-derived lateral speed| (2 s quadratic Savitzky–Golay), clean samples."
+     "value": 0.817,
+     "provenance": "assumption",
+     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s, fully observed only; speed by 3-point central difference (noise sd 0.020 m/s). Only 6 episodes for this class (< 30): pooled p85 over all 803 episodes used. Previously 0.45 m/s."
     },
     "politeness": {
      "value": 0.2,

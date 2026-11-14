@@ -100,7 +100,19 @@ export function ExperimentPanel({ scenario, network }: { scenario: ScenarioInput
                 </tr>
               </thead>
               <tbody>
-                {METRICS.map((m) => {
+                <tr data-testid="gridlocked-runs" className="border-t border-border">
+                  <td className="py-1 pr-2 text-text">Gridlocked runs</td>
+                  <td className="py-1 pr-2 font-mono">
+                    {outcome.base.filter((r) => r.metrics.gridlocked > 0).length} / {outcome.base.length}
+                  </td>
+                  {outcome.variant && (
+                    <td className="py-1 pr-2 font-mono">
+                      {outcome.variant.filter((r) => r.metrics.gridlocked > 0).length} / {outcome.variant.length}
+                    </td>
+                  )}
+                  {outcome.variant && <td className="py-1" />}
+                </tr>
+                {METRICS.filter((m) => m !== 'gridlocked').map((m) => {
                   const d = outcome.diff?.[m];
                   const sig = d && Number.isFinite(d.lo) && (d.lo > 0 || d.hi < 0);
                   return (
@@ -118,6 +130,16 @@ export function ExperimentPanel({ scenario, network }: { scenario: ScenarioInput
               </tbody>
             </table>
           </div>
+          {(() => {
+            const all = [...outcome.base, ...(outcome.variant ?? [])];
+            const k = all.filter((r) => r.metrics.gridlocked > 0).length;
+            return k > 0 ? (
+              <div role="status" className="rounded-md border border-danger/40 bg-danger/10 p-2 text-xs text-danger">
+                {k} of {all.length} runs ended in gridlock (at least one junction locked). Mean delay includes the delay
+                accumulated so far by trips that never finished.
+              </div>
+            ) : null;
+          })()}
           {outcome.variant && (
             <p className="text-xs text-muted">
               Δ = {outcome.variantLabel} − {outcome.baseLabel}, paired by seed. Highlighted when the 95% interval excludes 0.

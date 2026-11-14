@@ -108,7 +108,7 @@ export const PRESETS: Record<string, ScenarioInput> = {
       kind: 'generator',
       params: { generator: 'merge', mainWidthM: 7, mainLanes: 2, rampWidthM: 3.5, taperM: 300, mainLengthM: 800, rampLengthM: 250, angleDeg: 15, speedLimitMps: 16.7 },
     },
-    // Merging capacity is limited by the calibrated lateral speeds (VALIDATION.md §8).
+    // The merge section saturates at about 3,000 veh/h (VALIDATION.md §8); this runs 10 seeds unlocked.
     od: [
       { origin: 'main_in', destination: 'main_out', rateVph: 2000 },
       { origin: 'ramp_in', destination: 'main_out', rateVph: 500 },

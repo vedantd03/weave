@@ -318,6 +318,27 @@ Otherwise the end of the link counts as a **standing obstacle** in the leader se
 candidate with rear end at offset `L_link − s_i` and speed 0. Vehicles that couldn't move
 across in time stop at the end and keep trying to move laterally.
 
+**Deadlock breaker (rerouting, M5 revision).** Vehicles that reach a link already in the wrong
+band can stop side by side at the end, each needing the other's side, and never move. This swap
+deadlock happens at diverges and was the first junction to lock in 8 of 10 Silk Board seeds.
+- **Trigger:** a vehicle stopped (v < 0.1 m/s) within `s0 + 1 m` of the end of a link, because
+  its body is outside the next movement's band, for **20 s** (`REROUTE_AFTER_S`, an
+  assumption).
+- **Action:** it switches to the movement from that link whose effective band its body
+  overlaps best, and is rerouted from that movement's toLink to its destination (§2.1
+  routing).
+- **Diverted trips:** if the destination is unreachable from there, the vehicle is routed to
+  the nearest reachable exit, and the trip counts as **diverted**.
+- **Reporting:** `diagnostics()` reports `reroutes` and `diversions`. Real drivers resolve this
+  situation the same way, by taking the branch they can reach and turning around later.
+- **Limits (known):**
+  - **Lateral moves are still needed:** the new band is enforced as before, so a vehicle that
+    still fits no band after the switch, and cannot move laterally, stays stuck. This needs a
+    class with lateral speed 0, which no calibrated class has. It is reported by the gridlock
+    detector, not hidden.
+  - **Vehicles added directly** (`addVehicle`, tests only) have no OD destination. Their
+    reroute is never counted as a diversion.
+
 ### 2.3 Insertion from the entry queue
 After generation, each origin in index order tries to insert the head of its queue onto the
 origin link, repeating until an attempt fails.
@@ -375,6 +396,14 @@ lane-band rule, or a held stop line) rather than a vehicle, the new-leader gap f
 self-safety criterion do not apply. The obstacle does not move, so edging sideways in front of
 it at standstill is safe. Without this, a vehicle that reached the end of an acceleration lane
 could never make the partial lateral moves it needs.
+
+**Unchanged follower:** when the new follower N in the target strips is the vehicle that already
+follows the mover in its current span (N = O), the move leaves N's leader and gap unchanged. N's
+gap floor and B_SAFE checks are skipped, and both N's and O's politeness terms are 0. Before
+this rule, a car stopped at the end of an acceleration lane with a motorcycle 0.05 m behind it,
+partly overlapping both spans, could never edge into the main band, and the merge locked
+(on-ramp preset, 1 seed in 10 even at 1,200 + 300 veh/h). In lane mode, spans of adjacent
+lanes never overlap, so N ≠ O and classic MOBIL is unchanged.
 
 **Band-seeking moves:** a candidate that reduces the distance to the next movement's band needs
 only the body inside the road (`y′ ± width/2` within `[0, W]`), not the edge clearance. Otherwise
@@ -522,7 +551,10 @@ are single lanes, and Δ is the standard MOBIL incentive with politeness p and t
     class's base parameters (no driver draws) and `targetY = y`.
   - **Ids and routes:** ids are `0x50000000 + k`. The route comes from the default route rule
     of §2.8. `link` may also be a movement id, which places the vehicle on that movement path.
-- **`VehicleView`** gains `targetY`. On a movement path, `link` is the movement id.
+- **`VehicleView`** gains `targetY` and `freeFlowTravelledS` (§5.2).
+- **Accounting identity:** summed over all generated vehicles, delay so far equals vehicle-seconds
+  spent in the network and the entry queues minus the free-flow time for the distance actually
+  travelled, up to dt-level discretisation. On a movement path, `link` is the movement id.
 
 ### 2.8 Clarifications (binding)
 - **Default route (initial and added vehicles):** follow the first outgoing movement of each
@@ -787,8 +819,15 @@ export function compare(base: ReplicateResult[], variant: ReplicateResult[]): Re
 - **Per-trip metrics** (trips generated in the window):
   - **`meanDelayS`:** the mean over **all** of them, so a gridlocked run cannot look fast.
     - **Completed trips:** delay is `tExit − tGen − freeFlowS`.
-    - **Unfinished trips** (still in an entry queue or on the network at `durationS`): delay is
-      `durationS − tGen − freeFlowS`, a lower bound on their delay.
+    - **Unfinished trips** (still in an entry queue or on the network at `durationS`): delay so
+      far is `durationS − tGen − freeFlowTravelledS`.
+      - `freeFlowTravelledS` is the free-flow time for the distance the vehicle's front has
+        **actually travelled** since insertion, at `min(v0, speed limit)` per segment, added up
+        step by step.
+      - A vehicle still in the entry queue has travelled 0 m, so its delay so far is the full
+        `durationS − tGen`.
+      - Subtracting the whole route's free-flow time instead would credit time never driven and
+        make oversaturated runs look better (user correction).
     - **Both** include entry-queue time.
   - **`meanDelayCompletedS`:** the same mean over completed trips only, the old definition, kept
     for reference.

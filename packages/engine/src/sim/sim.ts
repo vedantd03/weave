@@ -29,6 +29,8 @@ export interface VehicleView {
   lo: number;
   hi: number;
   targetY: number;
+  /** Free-flow time for the distance travelled so far (§5.2). */
+  freeFlowTravelledS: number;
 }
 
 export interface SimCounters {
@@ -70,6 +72,8 @@ export interface GeneratedRecord {
   s0: number;
   a: number;
   b: number;
+  /** Free-flow time of the vehicle's route at its own desired speed (§2.7). */
+  freeFlowS: number;
 }
 
 export interface SeriesRow {
@@ -111,7 +115,7 @@ export interface Sim {
   series(): SeriesRow[];
   addVehicle(spec: AddVehicleSpec): number;
   writeFrame(out: Float32Array): number;
-  diagnostics(): { guardActivations: number; vehicleSteps: number; holds: Record<string, number> };
+  diagnostics(): { guardActivations: number; vehicleSteps: number; holds: Record<string, number>; reroutes: number; diversions: number };
   /** Gridlock report (MODEL.md §3.4 item 6), or null when nothing is locked. */
   gridlock(): GridlockReport | null;
   /** Signal colour per network movement (index order), SIG codes; 255 = uncontrolled. */
@@ -141,6 +145,8 @@ const WAIVER_M = 30;
 const SERIES_WINDOW_S = 60;
 const EPS = 1e-9;
 const GUARD_GAP_M = 1e-6;
+/** A vehicle stuck this long at a lane-band obstacle takes the branch it fits (§2.2). */
+const REROUTE_AFTER_S = 20;
 /** Route-cost junction penalty (§2.1, assumption): expected delay per controlled movement. */
 const PENALTY_SIGNAL_S = 15;
 const PENALTY_MINOR_S = 5;
@@ -245,6 +251,11 @@ class Store {
   tc = new Float64Array(0);
   tf = new Float64Array(0);
   comply = new Uint8Array(0);
+  /** Seconds stopped at a lane-band obstacle (deadlock breaker, §2.2). */
+  stuck = new Float64Array(0);
+  diverted = new Uint8Array(0);
+  /** Free-flow seconds for the distance travelled since insertion (§5.2). */
+  ffTrav = new Float64Array(0);
 
   constructor(cap: number) {
     this.grow(cap);
@@ -308,6 +319,8 @@ class SimImpl implements Sim {
   private exited = 0;
   private addedCount = 0;
   private guardHits = 0;
+  private reroutes = 0;
+  private diversions = 0;
   private guardBySeg: Record<number, number> = {};
   /** Why vehicles were held at junctions (counts of leader-search evaluations). */
   private holds = { red: 0, amber: 0, gap: 0, box: 0, occupied: 0 };
@@ -556,6 +569,9 @@ class SimImpl implements Sim {
     st.tc[k] = cls.gap.criticalS.value * (1 + cls.gap.criticalS.spread * gs.uniform(-1, 1));
     st.tf[k] = cls.gap.followUpS.value * (1 + cls.gap.followUpS.spread * gs.uniform(-1, 1));
     st.comply[k] = gs.next() < this.sc.boxCompliance ? 1 : 0;
+    st.stuck[k] = 0;
+    st.diverted[k] = 0;
+    st.ffTrav[k] = 0;
     if (length > this.maxLen) this.maxLen = length;
     this.insertOcc(seg, k);
     this.stats[seg]!.entered++;
@@ -965,6 +981,85 @@ class SimImpl implements Sim {
     return idmAccel(P, v, gap, v - vl);
   }
 
+  /**
+   * Deadlock breaker (§2.2): a vehicle stopped at the end of a link because its body is outside
+   * the next movement's band, for REROUTE_AFTER_S, takes the movement whose band it fits best and
+   * is rerouted to its destination from there (or, if unreachable, to the nearest exit: a
+   * diverted trip). Swap deadlocks at diverges otherwise never resolve.
+   */
+  private breakBandDeadlocks(): void {
+    const st = this.st;
+    for (let k = 0; k < st.cap; k++) {
+      if (!st.alive[k]) continue;
+      const seg = this.segs[st.seg[k]!]!;
+      const route = this.routes[st.route[k]!]!;
+      const nx = seg.kind === 'link' ? this.nextSeg(route, st.rpos[k]!) : null;
+      const m = nx ? this.segs[nx.seg]! : null;
+      const half = st.wid[k]! / 2;
+      const y = st.y[k]!;
+      const outside = (mv: Segment) => {
+        const b = effBand(mv);
+        return Math.max(0, b[0] - (y - half)) + Math.max(0, y + half - b[1]);
+      };
+      const atEnd = m !== null && m.kind === 'movement' && seg.length - st.s[k]! < st.s0[k]! + 1 && st.v[k]! < 0.1 && outside(m) > EPS;
+      if (!atEnd) {
+        st.stuck[k] = 0;
+        continue;
+      }
+      st.stuck[k] = st.stuck[k]! + this.dt;
+      if (st.stuck[k]! < REROUTE_AFTER_S) continue;
+      // Best-fitting alternative movement from this link.
+      let best = -1;
+      let bestOut = Infinity;
+      for (const g of seg.next) {
+        if (g === m!.index) continue;
+        const o = outside(this.segs[g]!);
+        if (o < bestOut - EPS || (Math.abs(o - bestOut) <= EPS && g < best)) {
+          bestOut = o;
+          best = g;
+        }
+      }
+      if (best < 0 || bestOut >= outside(m!) - EPS) continue;
+      const to = this.segs[best]!.next[0]!;
+      let tail: number[] | null = null;
+      if (st.dest[k]! >= 0) {
+        try {
+          const d = this.destZones[st.dest[k]!]!;
+          tail = this.routes[this.routeFor(to, d.link, '(reroute)', d.zone)]!.segs;
+        } catch {
+          tail = null;
+        }
+      }
+      if (!tail) {
+        // Nearest reachable exit (diverted trip) or, for vehicles without a destination, the default route.
+        let bestCost = Infinity;
+        for (const d of this.destZones) {
+          try {
+            const r = this.routes[this.routeFor(to, d.link, '(reroute)', d.zone)]!.segs;
+            let c = 0;
+            for (const g of r) c += this.segs[g]!.length;
+            if (c < bestCost) {
+              bestCost = c;
+              tail = r;
+            }
+          } catch {
+            /* unreachable exit */
+          }
+        }
+        if (!tail) tail = this.routes[this.defaultRoute(to)]!.segs;
+        if (st.dest[k]! >= 0) {
+          st.diverted[k] = 1;
+          this.diversions++;
+        }
+      }
+      this.routes.push({ segs: [seg.index, best, ...tail], loop: false });
+      st.route[k] = this.routes.length - 1;
+      st.rpos[k] = 0;
+      st.stuck[k] = 0;
+      this.reroutes++;
+    }
+  }
+
   /** Distance vehicle k can cover in one step from the snapshot, plus a 0.1 m margin. */
   private gapFloor(k: number): number {
     const st = this.st;
@@ -1154,14 +1249,17 @@ class SimImpl implements Sim {
         }
       }
       let dN = 0;
-      if (N >= 0) {
+      // A new follower that already follows k in its current span keeps the same leader and gap:
+      // the move changes nothing for it, so neither its safety checks nor its gain apply (§2.4).
+      const sameFollower = N >= 0 && N === O;
+      if (N >= 0 && !sameFollower) {
         const gN = rear - nFront;
         if (!(gN > 0 && gN >= this.gapFloor(N))) continue; // kinematic gap floor (§2.4)
         const aN = this.idm(N, st.v[N]!, gN, v);
         if (aN < -B_SAFE) continue;
         dN = aN - st.a[N]!;
       }
-      const delta = aTilde - aC + p * (dN + (O >= 0 ? dO : 0)) + beta * (distNow - dist(yc));
+      const delta = aTilde - aC + p * (dN + (O >= 0 && !sameFollower ? dO : 0)) + beta * (distNow - dist(yc));
       if (!(delta > threshold)) continue;
       const absJ = Math.abs(yc - y);
       if (delta > bestDelta || (delta === bestDelta && (absJ < bestAbsJ - EPS || (Math.abs(absJ - bestAbsJ) <= EPS && yc < best!.target)))) {
@@ -1225,6 +1323,7 @@ class SimImpl implements Sim {
       this.sigNow[g] = pl ? signalState(pl, this.segs[g]!.id, this.t) : SIG.NONE;
     }
     this.activeThisStep = false;
+    this.breakBandDeadlocks();
     // 1. Snapshot accelerations.
     for (const list of this.occ) {
       for (let m = 0; m < list.length; m++) {
@@ -1276,6 +1375,8 @@ class SimImpl implements Sim {
     for (let k = 0; k < st.cap; k++) {
       if (!st.alive[k]) continue;
       st.s[k] = st.s[k]! + st.ds[k]!;
+      const lim = this.segs[st.seg[k]!]!.speedLimitMps;
+      st.ffTrav[k] = st.ffTrav[k]! + st.ds[k]! / Math.min(st.v0[k]!, lim);
       if (st.dy[k] !== 0) {
         const ny = st.y[k]! + st.dy[k]!;
         st.y[k] = Math.abs(st.ty[k]! - ny) <= EPS ? st.ty[k]! : ny;
@@ -1370,8 +1471,8 @@ class SimImpl implements Sim {
   }
 
   /** Engine diagnostics: how often the collision guard had to bind, out of all vehicle-steps. */
-  diagnostics(): { guardActivations: number; vehicleSteps: number; holds: Record<string, number> } {
-    return { guardActivations: this.guardHits, vehicleSteps: this.vehicleSteps, holds: { ...this.holds } };
+  diagnostics(): { guardActivations: number; vehicleSteps: number; holds: Record<string, number>; reroutes: number; diversions: number } {
+    return { guardActivations: this.guardHits, vehicleSteps: this.vehicleSteps, holds: { ...this.holds }, reroutes: this.reroutes, diversions: this.diversions };
   }
 
   /** Update stall clocks (§3.4 item 6): per junction region and for the whole network. */
@@ -1462,11 +1563,14 @@ class SimImpl implements Sim {
   }
 
   private freeFlow(k: number): number {
-    const st = this.st;
+    return this.freeFlowOf(this.st.route[k]!, this.st.v0[k]!);
+  }
+
+  private freeFlowOf(route: number, v0: number): number {
     let tt = 0;
-    for (const g of this.routes[st.route[k]!]!.segs) {
+    for (const g of this.routes[route]!.segs) {
       const seg = this.segs[g]!;
-      tt += seg.length / Math.min(st.v0[k]!, seg.speedLimitMps);
+      tt += seg.length / Math.min(v0, seg.speedLimitMps);
     }
     return tt;
   }
@@ -1519,6 +1623,7 @@ class SimImpl implements Sim {
           length,
           width,
           ...drv,
+          freeFlowS: this.freeFlowOf(route, drv.v0),
         });
         this.generated++;
         this.win.generated++;
@@ -1694,6 +1799,7 @@ class SimImpl implements Sim {
       lo: st.lo[k]!,
       hi: st.hi[k]!,
       targetY: st.ty[k]!,
+      freeFlowTravelledS: st.ffTrav[k]!,
     }));
   }
 

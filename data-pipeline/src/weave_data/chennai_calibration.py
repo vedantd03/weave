@@ -92,6 +92,20 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
     rep["c1_zero_sensitivity"] = {"classes": ident, "clearance_alt": {c: (clear_rep[c]["c_by_percentile"]["p10"], 0.0) for c in ident},
                                   "clearance_fit": {c: clearance[c] for c in ident}, "T": {}}
 
+    # ---- lateral speed from deliberate moves
+    from . import lateral as lat
+    ny = position_noise(dfs, "y")
+    delta = lat.hysteresis(ny["sigma_x_m"])
+    ep, n_edge = lat.all_episodes(all_df, delta, ny["sigma_x_m"])
+    latsum = lat.summarise(ep, CLASS_ORDER)
+    rep["lateral_episodes"] = {
+        "sigma_y_m": ny["sigma_x_m"], "hysteresis_m": delta,
+        "dwell_speed_mps": lat.dwell_speed(ny["sigma_x_m"]),
+        "sigma_vy_mps": ny["sigma_x_m"] * float(np.linalg.norm(lat.sg_weights(lat.VY_WINDOW, 1))),
+        "peak_gain_by_duration": {f"{d}s": lat.sg_peak_gain(d) for d in (3, 4, 5, 6, 8)},
+        "peak_gain_5pt_by_duration": {f"{d}s": lat.sg_peak_gain(d, 5) for d in (3, 4, 5, 6, 8)},
+        "excluded_not_fully_observed": n_edge, "summary": latsum}
+
     # ---- smoothing-window sensitivity of a and b
     win = accel_window_analysis(dfs)
     rep["accel_windows"] = win
@@ -214,9 +228,7 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
                 "followUpS": cal.p(gF, "assumption", "See criticalS."),
             },
             "lateral": {
-                "maxSpeedMps": cal.p(vy95, "derived",
-                                     "95th percentile of |position-derived lateral speed| (2 s quadratic "
-                                     "Savitzky–Golay), clean samples."),
+                "maxSpeedMps": _lat_param(latsum, rep["lateral_episodes"], c, vy95),
                 "politeness": cal.p(cal.POLITENESS, "assumption",
                                     "MOBIL politeness, lower end of the typical range in Kesting, Treiber & "
                                     "Helbing (2007), Transp. Res. Rec. 1999."),
@@ -275,15 +287,15 @@ def _sg2_weights(n: int, dt: float = 0.5) -> np.ndarray:
     return 2.0 * np.linalg.pinv(np.vander(tau, 3, increasing=True))[2]
 
 
-def position_noise(dfs: dict[str, pd.DataFrame]) -> dict:
+def position_noise(dfs: dict[str, pd.DataFrame], col: str = "x") -> dict:
     """White position-noise level from the flat high-frequency floor of the pooled spectrum of
     position residuals (cubic fit removed; flag-free trajectories of ≥ 32 samples; Welch,
-    32-sample segments). σ_x² = floor · fs/2, floor = median PSD at f ≥ 0.8 Hz."""
+    32-sample segments). σ² = floor · fs/2, floor = median PSD at f ≥ 0.8 Hz."""
     from scipy.signal import welch
     P, n, f = None, 0, None
     for df in dfs.values():
         for _, g in df.groupby("key"):
-            x = g["x"].to_numpy(float)
+            x = g[col].to_numpy(float)
             if len(x) < 32 or (g["flag"].to_numpy() != 0).any():
                 continue
             k = np.arange(len(x))
@@ -368,6 +380,23 @@ def _win_range(win: dict, c: str, key: str) -> str:
     k = "a_p95" if key == "a" else "b_m_p5"
     vals = ", ".join(f"{n} pts {t[str(n)][k]:.2f}" for n in win["windows"])
     return f"{vals} m/s² (see VALIDATION.md)"
+
+
+def _lat_param(latsum: dict, info: dict, c: str, old: float) -> dict:
+    r = latsum[c]
+    common = (f"Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral "
+              f"displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis "
+              f"{info['hysteresis_m']:.3f} m (4·√2·σ_s, σ_y = {info['sigma_y_m']:.3f} m) ignored, split "
+              f"at pauses ≥ 2 s with |vy| < {info['dwell_speed_mps']:.3f} m/s, fully observed only; speed by 3-point central difference (noise sd "
+              f"{info['sigma_vy_mps']:.3f} m/s). ")
+    if r["provenance"] == "derived":
+        txt = (common + f"p85 of {r['n']} episode peaks (p75/p95 = {r['p75']:.2f}/{r['p95']:.2f} m/s); "
+               f"3.5 m at this speed takes {r['time_to_cross_3p5m_s']:.1f} s. Previously "
+               f"{old:.2f} m/s (p95 over all samples, mostly drift).")
+    else:
+        txt = (common + f"Only {r['n']} episodes for this class (< 30): pooled p85 over all "
+               f"{latsum['pooled']['n']} episodes used. Previously {old:.2f} m/s.")
+    return cal.p(r["value"], r["provenance"], txt)
 
 
 def _c1_c0_note(crep: dict) -> str:
