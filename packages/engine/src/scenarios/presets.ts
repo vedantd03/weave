@@ -32,4 +32,27 @@ export const PRESETS: Record<string, ScenarioInput> = {
     warmupS: 0,
     seed: 42,
   },
+  'corridor-lanedrop': {
+    version: 1,
+    id: 'corridor-lanedrop',
+    name: 'Corridor with lane drop',
+    network: {
+      kind: 'generator',
+      params: {
+        generator: 'corridor',
+        lengthM: 1000,
+        widthM: 10.5,
+        lanes: 3,
+        speedLimitMps: 16.7,
+        change: { kind: 'laneDrop', atM: 600, dropLanes: 1, taperM: 50 },
+      },
+    },
+    od: [{ origin: 'in', destination: 'out', rateVph: 3600 }],
+    // Chennai class shares (classes.json, derived from vehicle counts).
+    composition: { motorcycle: 0.564, car: 0.266, auto: 0.122, bus: 0.032, truck: 0.003, lcv: 0.013 },
+    mode: 'strip',
+    durationS: 3600,
+    warmupS: 300,
+    seed: 42,
+  },
 };

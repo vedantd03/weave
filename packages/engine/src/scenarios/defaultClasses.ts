@@ -1,8 +1,16 @@
 import { ClassSet } from '../schema/classes.ts';
+import chennai from '../../data/classes.json' with { type: 'json' };
 
 /**
- * PROVISIONAL vehicle classes, used until the data pipeline produces classes.json from the
- * Chennai trajectories. Every value is an engineering assumption (typical literature ranges
+ * Vehicle classes calibrated from the Chennai trajectories (Kanagaraj et al. 2015) by the data
+ * pipeline. Every value carries its provenance (derived / proxy / assumption).
+ */
+export function defaultClasses(): ClassSet {
+  return ClassSet.parse(chennai);
+}
+
+/**
+ * PROVISIONAL vehicle classes (the pre-calibration engineering defaults), kept for comparison. Every value is an engineering assumption (typical literature ranges
  * for Indian mixed traffic), labelled as such.
  */
 const NOTE = 'provisional engineering default; replaced by Chennai calibration';
@@ -10,7 +18,7 @@ const a = (value: number, spread = 0) => ({ value, provenance: 'assumption' as c
 const fixed = (value: number) => ({ kind: 'fixed' as const, value, provenance: 'assumption' as const, note: NOTE });
 const q = (...values: number[]) => ({ kind: 'quantiles' as const, q: values, provenance: 'assumption' as const, note: NOTE });
 
-export function defaultClasses(): ClassSet {
+export function provisionalClasses(): ClassSet {
   return ClassSet.parse({
     version: 1,
     source: 'provisional defaults (assumptions), pending Chennai calibration',

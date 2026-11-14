@@ -10,8 +10,9 @@
   },
   "scripts": {
     "typecheck": "tsc -p .",
-    "test": "vitest run",
-    "emit-schema": "node scripts/emit-schema.mjs"
+    "test": "node scripts/sync-classes.mjs --check && vitest run",
+    "emit-schema": "node scripts/emit-schema.mjs",
+    "sync-classes": "node scripts/sync-classes.mjs"
   },
   "dependencies": {
     "zod": "4.6.7"

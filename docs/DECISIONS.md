@@ -126,3 +126,55 @@ Silk Board stays a fixed imported network.
 There are no map tiles, since they would be an external service. Frames are transferable
 Float32Arrays with stride 7 (x, y, heading, class, length, width, layer). Length is per vehicle
 because sizes vary within a class.
+
+## ADR-014 Mover self-safety and safety-checked commits (M2)
+**Decision:** a lateral move also requires `ã_c ≥ −B_SAFE` for the vehicle making it. Moves
+committed in the same step are re-checked pairwise against the same B_SAFE criteria, not only
+against an s0-widened overlap.
+
+**Why:** the clearance test found a motorcycle at 8.4 m/s moving in behind a car at 4.5 m/s
+that it could not avoid even at B_MAX. It also found two same-step moves into adjacent space a
+few metres apart.
+
+**Consequences:** lane mode is MOBIL plus a self-safety constraint. That is a stricter
+condition, and no T10 scene is affected.
+
+## ADR-015 Kinematic collision guard (M2)
+**Decision:** after integration, a front never passes its snapshot leader's new rear (or a
+standing obstacle). Speed is capped at the leader's speed when the guard binds. Every
+activation is counted (`sim.diagnostics().guardActivations`) and reported.
+
+**Why:** IDM is collision-free only while leaders brake within their limits. Dense mixed traffic
+with lateral cut-ins can break that by centimetres. SUMO addresses the same problem with
+safe-speed models.
+
+**Consequences:** the guard does not change `VehicleView.a`, and it never binds in the theory
+regimes (T3–T5). Measured on a 1 km lane-drop corridor: 0 activations in lane mode, and
+80–740 per 9,000 steps in strip mode (about 0.01–0.1% of vehicle-steps).
+
+## ADR-016 Route-band rules (M2)
+**Decision:**
+- **Insertion:** if any candidate fits the next movement's band, only in-band candidates are
+  considered. Otherwise the vehicle waits in the queue.
+- **Band keeping:** discretionary moves never take a vehicle out of the band it needs.
+- **Route bias:** `β = min(1, 200/d)`.
+
+**Why:** the diverge test deadlocked. Two vehicles each needed the other's lane, side by side
+and stopped at the split.
+
+**Consequences:** deadlocks of this kind are no longer created by insertion or by discretionary
+moves. A vehicle that arrives in the wrong band from upstream can still be blocked. M3's
+gridlock detector reports that, rather than hiding it.
+
+## ADR-017 Calibrated classes are the default (M2)
+**Decision:** `defaultClasses()` returns the Chennai-calibrated `classes.json`, with provenance
+labels. The pipeline writes it to `apps/web/public/data/`, and `pnpm sync-classes` bundles an
+identical copy in `packages/engine/data/`. The engine test run fails if the two copies differ.
+The pre-calibration defaults remain available as `provisionalClasses()`.
+
+## ADR-018 Occupancy evaluated in specification order (M2)
+**Decision:** `occupiedStrips` computes `y − width/2 − c` exactly as written in the spec.
+
+**Why:** insertion places clearance edges exactly on strip boundaries, where regrouping the
+arithmetic changes the rounded strip index. The engine and every spec-literal implementation
+(the tests, the Python leader rule) must agree to the bit.

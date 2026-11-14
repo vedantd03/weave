@@ -81,9 +81,23 @@ export const FrameMsg = z.object({
   stateHash: z.string(),
   metrics: MetricsDelta.optional(),
 });
+export const SeriesRowSchema = z.object({
+  t0: z.number(),
+  t1: z.number(),
+  generated: z.number(),
+  inserted: z.number(),
+  exited: z.number(),
+  exitFlowVph: z.number(),
+  meanSpeedMps: z.number(),
+  densityPerKm: z.number(),
+  entryQueue: z.number(),
+  onNetwork: z.number(),
+});
+/** Completed 60 s aggregation windows, appended in order (MODEL.md §2.7). */
+export const SeriesMsg = z.object({ type: z.literal('series'), fromIndex: z.number().int().min(0), rows: z.array(SeriesRowSchema) });
 export const PongMsg = z.object({ type: z.literal('pong'), nonce: z.number() });
 export const ErrorMsg = z.object({ type: z.literal('error'), message: z.string() });
 
-export const FromWorker = z.discriminatedUnion('type', [ReadyMsg, FrameMsg, PongMsg, ErrorMsg]);
+export const FromWorker = z.discriminatedUnion('type', [ReadyMsg, FrameMsg, SeriesMsg, PongMsg, ErrorMsg]);
 export type FromWorker = z.infer<typeof FromWorker>;
 export type FrameMsg = z.infer<typeof FrameMsg>;

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 
 import { PRESETS } from '@weave/engine';
 import { SimController } from './state/controller.ts';
 import { CLASS_COLORS } from './render/palette.ts';
+import { ScenarioForm } from './ui/ScenarioForm.tsx';
+import { LiveCharts } from './charts/LiveCharts.tsx';
 
 const SPEEDS = [1, 2, 5, 10, 30, 60];
 
@@ -133,14 +135,18 @@ export default function App() {
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <aside className="order-2 shrink-0 overflow-y-auto border-border bg-surface md:order-1 md:w-80 md:border-r">
           <Panel title="Scenario">
-            {st.presetId && PRESETS[st.presetId] ? (
-              <div className="space-y-1 text-sm">
-                <p className="font-medium text-text">{PRESETS[st.presetId]!.name}</p>
-                {network && (
-                  <p className="text-muted">
-                    {network.links.length} links · {network.movements.length} movements · seed {st.seed}
-                  </p>
-                )}
+            {st.scenario ? (
+              <div className="space-y-3">
+                <div className="text-sm">
+                  <p className="font-medium text-text">{st.scenario.name}</p>
+                  {network && (
+                    <p className="text-muted">
+                      {network.links.length} link{network.links.length === 1 ? '' : 's'} · {network.movements.length} movement
+                      {network.movements.length === 1 ? '' : 's'} · seed {st.seed}
+                    </p>
+                  )}
+                </div>
+                <ScenarioForm ctrl={ctrl} scenario={st.scenario} />
               </div>
             ) : (
               <p className="text-sm text-muted">Choose a scenario from the menu above.</p>
@@ -193,9 +199,19 @@ export default function App() {
             <div className="grid grid-cols-2 gap-2">
               <StatTile label="Time" value={formatTime(st.t)} />
               <StatTile label="Vehicles" value={String(st.vehicles)} testId="stat-vehicles" />
-              <StatTile label="Mean speed" value={meanKmh} unit="km/h" />
-              <StatTile label="Entry queue" value={st.metrics ? String(st.metrics.entryQueue) : '—'} unit="veh" />
+              <StatTile label="Mean speed" value={meanKmh} unit="km/h" testId="stat-mean-speed" />
+              <StatTile label="Entry queue" value={st.metrics ? String(st.metrics.entryQueue) : '—'} unit="veh" testId="stat-entry-queue" />
+              <StatTile
+                label="Throughput"
+                value={st.series.length ? st.series[st.series.length - 1]!.exitFlowVph.toFixed(0) : '—'}
+                unit="veh/h"
+                testId="stat-throughput"
+              />
+              <StatTile label="Exited" value={st.metrics ? String(st.metrics.exited) : '—'} />
             </div>
+          </Panel>
+          <Panel title="Over time (1-minute windows)">
+            <LiveCharts rows={st.series} />
           </Panel>
         </aside>
       </div>

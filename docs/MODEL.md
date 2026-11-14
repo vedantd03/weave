@@ -113,6 +113,16 @@ export function ballistic(x: number, v: number, a: number, dt: number): { x: num
 - **Normal step:** if `v + a·dt ≥ 0`, then `v' = v + a·dt` and `x' = x + v·dt + ½·a·dt²`.
 - **Stopping within the step:** otherwise `a < 0`, so the vehicle stops: `x' = x − v²/(2a)`,
   `v' = 0`. A vehicle never reverses (Treiber & Kanagaraj, 2015).
+- **Collision guard (simulation only, M2):** IDM is collision-free only while every leader
+  brakes within its limits. In dense cut-in traffic a leader braking at B_MAX can leave a
+  follower unable to stop.
+  - **Rule:** after integration, a vehicle's displacement is capped so its front stays
+    1e-6 m behind its snapshot leader's new rear (or behind a standing obstacle). When the
+    cap binds, its speed is limited to the leader's speed (0 for an obstacle). Passes repeat
+    until nothing changes.
+  - **What it leaves alone:** the IDM acceleration (`VehicleView.a`) is unchanged.
+  - **Reporting:** activations are counted by `sim.diagnostics().guardActivations` and
+    reported. They are not hidden.
 
 ### 1.5 Strips: `network/strips.ts`
 
@@ -289,8 +299,14 @@ origin link, repeating until an attempt fails.
   `gap = ∞` and `v_ins = v0_eff`.
 - **Feasible:** a candidate is feasible when `gap ≥ s0 + v_ins·T`, using the driver's
   parameters.
-- **Choice:** the feasible candidate with the largest gap. Ties go to the one closest to the
-  preferred centre `y_pref = h + u_lat·(W − 2h)`, then to the smaller y.
+- **Choice:** if the origin link's next route element is a movement with band `[b0, b1]`, and
+  at least one candidate's body `[y − width/2, y + width/2]` fits inside the band
+  geometrically, only those in-band candidates are considered. If none of them is feasible,
+  the vehicle waits in the queue. Drivers enter on the side they need, which prevents swap
+  deadlocks at diverges. When no candidate fits the band at all (the vehicle is wider than
+  the band), every candidate is considered. Within that set, the candidate with the largest gap wins. Ties go to
+  the one closest to the preferred centre `y_pref = h + u_lat·(W − 2h)`, then to the smaller
+  y.
 - **Initial state:** the vehicle starts at `v = v_ins`, `targetY = y`.
 - **No feasible candidate:** the vehicle stays in the queue, which blocks the queue behind it
   (FIFO). Time spent in the queue counts toward delay.
@@ -308,6 +324,10 @@ at its target (`y = targetY`).
   clearance inside the road: `y' − h ≥ 0` and `y' + h ≤ W`.
 - **Lane mode:** `y' = y ± laneWidth`, inside the road.
 
+**Band keeping:** a candidate that would take the body out of the next movement's band when it
+is currently inside (`dist(y) = 0 < dist(y′)`) is not a candidate. Discretionary overtaking
+never leaves the side a vehicle needs.
+
 **Quantities for each candidate**, with `span_t` the occupancy at y' (§1.5) and
 `span_s = sweptStrips(y, y')`:
 - **ã_c:** i's IDM acceleration at its new leader. The new leader comes from the §1.6 rule over
@@ -323,7 +343,9 @@ at its target (`y = targetY`).
   current acceleration.
 
 **Safety (all required):**
-- the new-leader gap is > 0;
+- the new-leader gap is > 0, and the mover's own acceleration there satisfies
+  `ã_c ≥ −B_SAFE` (self-safety; without it a fast vehicle can move in close behind a slower
+  one that it cannot avoid even at B_MAX);
 - if N exists, `g_N > 0` and `ã_N ≥ −B_SAFE`, with `B_SAFE = 4 m/s²`;
 - no vehicle that overlaps `span_s` overlaps i longitudinally, meaning its interval
   `[front − length, front]` intersects i's interval.
@@ -335,8 +357,11 @@ are 0. p is the class `politeness`.
 **Route bias:**
 - **Band:** if the next route element is a movement with band `[b0, b1]`, let
   `dist(y) = max(0, b0 − (y − width/2)) + max(0, (y + width/2) − b1)`. Otherwise bias = 0.
-- **Bias:** `bias = β·(dist(y) − dist(y'))`, with `β = 0.5 · min(1, 50 / max(d, 1))` m/s² per
-  m, where d is the distance from i's front to the link end.
+- **Bias:** `bias = β·(dist(y) − dist(y'))`, with `β = min(1, 200 / max(d, 1))` m/s² per m,
+  where d is the distance from i's front to the link end. (It was `0.5·min(1, 50/d)` until
+  the diverge test showed vehicles overtaking out of their required band 500 m before a
+  split, then deadlocking side by side at the split. With the stronger bias, leaving the band
+  at 500 m costs about 0.4 m/s² per metre.)
 
 **Decision:**
 - A candidate qualifies if it is safe and `Δ > Δa_th`, the class `thresholdMps2`. The threshold
@@ -347,8 +372,11 @@ are 0. p is the class `politeness`.
 **Committing (deterministic):**
 - **Order:** within each link, decisions are committed in order of `(front desc, id asc)`.
 - **Re-check:** a decision is dropped if its swept span overlaps the swept span of a
-  decision already committed this step whose vehicle's longitudinal interval, widened by
-  `s0_i` on both ends, intersects i's interval.
+  decision already committed this step (vehicle j), and either:
+  - j's longitudinal interval, widened by `s0_i` on both ends, intersects i's interval; or
+  - the pair fails the safety criteria above. If j is ahead, i needs a gap > 0 and
+    `IDM_i(gap, v_j) ≥ −B_SAFE`; if j is behind, j needs a gap > 0 and
+    `IDM_j(gap, v_i) ≥ −B_SAFE`.
 - **Effect:** committing sets `targetY = y'`.
 
 **Lateral motion** (applied after the longitudinal integration):

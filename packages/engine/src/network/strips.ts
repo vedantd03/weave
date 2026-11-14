@@ -24,8 +24,9 @@ function span(left: number, right: number, layout: StripLayout): [number, number
 }
 
 export function occupiedStrips(yCentre: number, width: number, clearance: number, layout: StripLayout): [number, number] {
-  const half = width / 2 + clearance;
-  return span(yCentre - half, yCentre + half, layout);
+  // Evaluate exactly as written in MODEL.md §1.5 (left = y − width/2 − c). Insertion places edges
+  // on strip boundaries, where regrouping the arithmetic would change the rounded strip index.
+  return span(yCentre - width / 2 - clearance, yCentre + width / 2 + clearance, layout);
 }
 
 export function sweptStrips(yA: number, yB: number, width: number, clearance: number, layout: StripLayout): [number, number] {

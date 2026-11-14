@@ -102,18 +102,23 @@ export class Renderer {
     this.dirty = true;
   }
 
-  /** Fit the whole network in view. */
-  fit(): void {
+  /**
+   * Fit the network in view. For very elongated networks (a 1 km × 10 m corridor) a plain fit
+   * makes the road a hairline, so by default the narrow side is shown at ≥ 90 px, centred;
+   * `whole = true` (Fit view button, double-click) always shows everything.
+   */
+  fit(whole = false): void {
     if (!this.bounds || this.cssW === 0) return;
     const b = this.bounds;
     const pad = 24;
     const w = Math.max(b.maxX - b.minX, 1);
     const h = Math.max(b.maxY - b.minY, 1);
-    this.cam = {
-      cx: (b.minX + b.maxX) / 2,
-      cy: (b.minY + b.maxY) / 2,
-      scale: Math.min((this.cssW - 2 * pad) / w, (this.cssH - 2 * pad) / h),
-    };
+    let scale = Math.min((this.cssW - 2 * pad) / w, (this.cssH - 2 * pad) / h);
+    if (!whole) {
+      const narrow = Math.min(w, h);
+      if (narrow * scale < 90) scale = Math.min(90 / narrow, 12);
+    }
+    this.cam = { cx: (b.minX + b.maxX) / 2, cy: (b.minY + b.maxY) / 2, scale };
     this.dirty = true;
   }
 
@@ -282,8 +287,8 @@ export class Renderer {
       pinchDist = 0;
     };
     const onDbl = () => {
-      this.userMoved = false;
-      this.fit();
+      this.userMoved = true;
+      this.fit(true);
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     el.addEventListener('pointerdown', onDown);

@@ -20,6 +20,7 @@ let lastTick = 0;
 let carry = 0; // fractional steps owed
 let lastMetrics = 0;
 let timer: ReturnType<typeof setTimeout> | null = null;
+let seriesSent = 0;
 
 function post(msg: FromWorker, transfer: Transferable[] = []): void {
   self.postMessage(msg, transfer);
@@ -42,6 +43,12 @@ function metrics(s: Sim): MetricsDelta {
 
 function sendFrame(withMetrics: boolean): void {
   if (!sim) return;
+  // Series rows first, so a waiter resolved by this frame already sees them.
+  const rows = sim.series();
+  if (rows.length > seriesSent) {
+    post({ type: 'series', fromIndex: seriesSent, rows: rows.slice(seriesSent) });
+    seriesSent = rows.length;
+  }
   const n = sim.vehicleCount();
   const data = new Float32Array(Math.max(n, 1) * FRAME_STRIDE);
   const count = sim.writeFrame(data);
@@ -104,6 +111,7 @@ self.onmessage = (ev: MessageEvent<unknown>) => {
         stop();
         const network = msg.network ? Network.parse(msg.network) : undefined;
         sim = createSim({ scenario: msg.scenario, classes: msg.classes, network });
+        seriesSent = 0;
         post({ type: 'ready', network: sim.network, stateHash: sim.stateHash() });
         sendFrame(true);
         break;

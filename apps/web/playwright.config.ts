@@ -20,6 +20,6 @@ export default defineConfig({
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
   ],
   webServer: local
-    ? { command: 'pnpm build && pnpm preview', url: baseURL, reuseExistingServer: true, timeout: 120_000 }
+    ? { command: 'pnpm build && pnpm preview', url: baseURL, reuseExistingServer: false, timeout: 120_000 }
     : undefined,
 });

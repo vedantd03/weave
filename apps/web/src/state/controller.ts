@@ -1,10 +1,13 @@
 import {
   defaultClasses,
+  generateNetwork,
+  GeneratorParams,
   PRESETS,
   type ClassSet,
   type MetricsDelta,
   type Network,
   type ScenarioInput,
+  type SeriesRow,
 } from '@weave/engine';
 import type { FromWorker } from '@weave/engine/protocol';
 import { Renderer } from '../render/renderer.ts';
@@ -26,6 +29,9 @@ export interface SimState {
   network: Network | null;
   classes: ClassSet;
   workerPingMs: number | null;
+  /** The scenario currently loaded in the worker (null before the first load). */
+  scenario: ScenarioInput | null;
+  series: SeriesRow[];
 }
 
 type Listener = () => void;
@@ -57,6 +63,8 @@ export class SimController {
       network: null,
       classes: defaultClasses(),
       workerPingMs: null,
+      scenario: null,
+      series: [],
     };
     this.client.on((m) => this.onMessage(m));
     this.client
@@ -86,18 +94,50 @@ export class SimController {
   }
 
   fitView(): void {
-    this.renderer?.fit();
+    this.renderer?.fit(true);
   }
 
   /** Load a preset; resolves once the worker has built the scenario and sent the first frame. */
   load(presetId: string, seed = this.state.seed): Promise<void> {
     const preset: ScenarioInput | undefined = PRESETS[presetId];
     if (!preset) return Promise.reject(new Error(`unknown preset ${presetId}`));
-    this.set({ status: 'loading', presetId, seed, error: null, t: 0, step: 0 });
+    return this.loadScenario({ ...preset, seed }, presetId);
+  }
+
+  /** Load any scenario (sim is paused afterwards). */
+  loadScenario(scenario: ScenarioInput, presetId: string | null = this.state.presetId): Promise<void> {
+    this.frameWaiters = [];
+    this.set({
+      status: 'loading',
+      presetId,
+      seed: scenario.seed,
+      scenario,
+      series: [],
+      metrics: null,
+      error: null,
+      t: 0,
+      step: 0,
+    });
     const ready = this.waitForStep(0);
-    this.client.send({ type: 'init', scenario: { ...preset, seed }, classes: this.state.classes });
+    this.client.send({ type: 'init', scenario, classes: this.state.classes });
     this.client.send({ type: 'setSpeed', factor: this.state.speed });
     return ready;
+  }
+
+  /**
+   * Draw a generator's network immediately (no vehicles) while the user edits parameters.
+   * Returns an error message for invalid parameters instead of throwing.
+   */
+  preview(params: unknown): string | null {
+    const parsed = GeneratorParams.safeParse(params);
+    if (!parsed.success) return parsed.error.issues[0]?.message ?? 'invalid parameters';
+    try {
+      const net = generateNetwork(parsed.data);
+      this.renderer?.setNetwork(net, this.state.classes.classes.map((c) => c.id));
+      return null;
+    } catch (e) {
+      return e instanceof Error ? e.message : String(e);
+    }
   }
 
   play(): void {
@@ -158,6 +198,11 @@ export class SimController {
         }
         break;
       }
+      case 'series': {
+        const series = this.state.series.slice(0, m.fromIndex).concat(m.rows);
+        this.set({ series });
+        break;
+      }
       case 'error':
         this.set({ status: 'error', error: m.message });
         break;
@@ -175,6 +220,14 @@ export class SimController {
         await this.step(steps);
         return { hash: this.state.stateHash, t: this.state.t, count: this.state.vehicles };
       },
+      loadScenario: (scenario: ScenarioInput) => this.loadScenario(scenario),
+      counters: async () => {
+        const m = this.state.metrics;
+        return m
+          ? { generated: m.generated, exited: m.exited, onNetwork: m.vehiclesOnNetwork, entryQueue: m.entryQueue }
+          : { generated: 0, exited: 0, onNetwork: 0, entryQueue: 0 };
+      },
+      series: async () => this.state.series,
     };
   }
 }
