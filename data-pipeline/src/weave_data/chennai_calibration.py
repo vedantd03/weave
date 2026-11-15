@@ -466,10 +466,15 @@ def _sizes(v: pd.DataFrame, c: str) -> tuple[dict, dict]:
                     f"mode {mode:g} m): a fixed size assigned by the data producers, not a measurement.")
             out.append({"kind": "fixed", "value": round(mode, 3), "provenance": "assumption", "note": note})
         else:
+            n_cap = 0
+            if col == "width":
+                capped, n_cap = cal.cap_widths(vals)
+                vals = pd.Series(capped, index=vals.index)
             out.append({"kind": "quantiles", "q": cal.size_quantiles(vals), "provenance": "derived",
                         "note": f"Quantiles 0,5,...,100% of per-vehicle {col} over {len(vals)} vehicles."
-                        + (_small_car_note(v, col) if c == "car" else "")
-                        + (f" {int((vals > 2.6).sum())} vehicles are measured wider than the 2.6 m legal "
-                           "limit (video measurement, mirrors); kept as measured."
-                           if col == "width" and (vals > 2.6).any() else "")})
+                        + (f" Data correction: {n_cap} of {len(vals)} measured widths above "
+                           f"{cal.WIDTH_CAP_M:g} m capped at {cal.WIDTH_CAP_M:g} m (likely video "
+                           "measurement / mirrors)." if col == "width" else "")
+                        + (_small_car_note(v.assign(width=cal.cap_widths(v["width"])[0]), col)
+                           if c == "car" else "")})
     return out[0], out[1]

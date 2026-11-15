@@ -148,7 +148,7 @@
      2.59
     ],
     "provenance": "derived",
-    "note": "Quantiles 0,5,...,100% of per-vehicle width over 800 vehicles. Kept as measured, but 5 'cars' are smaller than a car (width < 1.2 m or length < 3 m; likely misclassified two-wheelers/autos). Without them the width quantiles 0/5/50/95/100% would be 1.2/1.32/1.58/1.97/2.59 m instead of 0.57/1.31/1.58/1.97/2.59 m."
+    "note": "Quantiles 0,5,...,100% of per-vehicle width over 800 vehicles. Data correction: 0 of 800 measured widths above 2.6 m capped at 2.6 m (likely video measurement / mirrors). Kept as measured, but 5 'cars' are smaller than a car (width < 1.2 m or length < 3 m; likely misclassified two-wheelers/autos). Without them the width quantiles 0/5/50/95/100% would be 1.2/1.32/1.58/1.97/2.59 m instead of 0.57/1.31/1.58/1.97/2.59 m."
    },
    "idm": {
     "v0": {
@@ -358,19 +358,19 @@
      2.546,
      2.563,
      2.59,
-     2.63,
-     2.66,
-     2.681,
-     2.718,
-     2.75,
-     2.792,
-     2.848,
-     2.91,
-     3.059,
-     3.27
+     2.6,
+     2.6,
+     2.6,
+     2.6,
+     2.6,
+     2.6,
+     2.6,
+     2.6,
+     2.6,
+     2.6
     ],
     "provenance": "derived",
-    "note": "Quantiles 0,5,...,100% of per-vehicle width over 95 vehicles. 44 vehicles are measured wider than the 2.6 m legal limit (video measurement, mirrors); kept as measured."
+    "note": "Quantiles 0,5,...,100% of per-vehicle width over 95 vehicles. Data correction: 44 of 95 measured widths above 2.6 m capped at 2.6 m (likely video measurement / mirrors)."
    },
    "idm": {
     "v0": {
@@ -503,7 +503,7 @@
      2.53
     ],
     "provenance": "derived",
-    "note": "Quantiles 0,5,...,100% of per-vehicle width over 9 vehicles."
+    "note": "Quantiles 0,5,...,100% of per-vehicle width over 9 vehicles. Data correction: 0 of 9 measured widths above 2.6 m capped at 2.6 m (likely video measurement / mirrors)."
    },
    "idm": {
     "v0": {
@@ -633,10 +633,10 @@
      2.332,
      2.381,
      2.426,
-     2.64
+     2.6
     ],
     "provenance": "derived",
-    "note": "Quantiles 0,5,...,100% of per-vehicle width over 40 vehicles. 1 vehicles are measured wider than the 2.6 m legal limit (video measurement, mirrors); kept as measured."
+    "note": "Quantiles 0,5,...,100% of per-vehicle width over 40 vehicles. Data correction: 1 of 40 measured widths above 2.6 m capped at 2.6 m (likely video measurement / mirrors)."
    },
    "idm": {
     "v0": {

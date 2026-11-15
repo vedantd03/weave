@@ -175,3 +175,30 @@ def test_T_sensitivity_reports_drops_per_v0_variant():
         assert r["n_dropped"] == expected and r["n_used"] == len(v) - expected
         assert r["share_dropped"] == pytest.approx(expected / len(v))
         assert math.isfinite(r["T"])
+
+
+# ------------------------------------------------------------------------------ width cap
+
+def test_width_cap_data_correction():
+    # user decision: measured widths above 2.6 m (legal maximum) are capped at 2.6 m before
+    # the quantiles are built; counts per class are reported
+    rng = np.random.default_rng(9)
+    w = {"bus": rng.uniform(2.2, 3.3, 95), "car": rng.uniform(1.2, 2.5, 50), "lcv": rng.uniform(1.5, 2.7, 40)}
+    for cls, vals in w.items():
+        capped, n = cal.cap_widths(vals)
+        assert n == int((vals > 2.6).sum())
+        assert np.array_equal(capped, np.where(vals > 2.6, 2.6, vals))
+        assert capped.max() <= 2.6
+    assert cal.cap_widths(w["car"])[1] == 0  # all below the cap: unchanged
+    # quantiles of the capped widths never exceed the cap and keep the uncapped lower part
+    q = cal.size_quantiles(pd.Series(cal.cap_widths(w["bus"])[0]))
+    assert max(q) == 2.6 and q[0] == round(float(w["bus"].min()), 3)
+
+
+def test_width_cap_in_classes_note(tmp_path):
+    from weave_data.chennai_calibration import _sizes
+    v = pd.DataFrame({"length": [12.0, 11.5, 10.8, 12.2], "width": [2.5, 2.7, 3.1, 2.6]})
+    _, width = _sizes(v, "bus")
+    assert width["provenance"] == "derived" and max(width["q"]) == 2.6
+    n_above = int((v["width"] > 2.6).sum())  # 2.6 itself is not above the cap
+    assert f"Data correction: {n_above} of {len(v)} measured widths above 2.6 m capped at 2.6 m" in width["note"]

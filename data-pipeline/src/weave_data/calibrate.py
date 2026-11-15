@@ -242,6 +242,15 @@ def spot_speeds(df: pd.DataFrame, X: float) -> pd.DataFrame:
     return out.drop_duplicates("key")
 
 
+WIDTH_CAP_M = 2.6  # usual legal maximum vehicle width (Indian CMVR); data correction (user)
+
+
+def cap_widths(widths, cap: float = WIDTH_CAP_M) -> tuple[np.ndarray, int]:
+    """Measured widths capped at `cap` (data correction); returns (capped, number capped)."""
+    w = np.asarray(widths, float)
+    return np.minimum(w, cap), int(np.sum(w > cap))
+
+
 def size_quantiles(per_vehicle: pd.Series) -> list[float]:
     qs = np.quantile(per_vehicle.to_numpy(float), np.linspace(0, 1, 21))
     return [round(float(v), 3) for v in np.maximum.accumulate(qs)]
