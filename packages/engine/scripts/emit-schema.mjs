@@ -4,13 +4,13 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
-import { Network, ClassSet, Scenario } from '../src/schema/index.ts';
+import { Network, ClassSet, Scenario, RunExport } from '../src/schema/index.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const out = resolve(here, '../../../docs/schema');
 mkdirSync(out, { recursive: true });
 
-const targets = { network: Network, classes: ClassSet, scenario: Scenario };
+const targets = { network: Network, classes: ClassSet, scenario: Scenario, 'run-export': RunExport };
 for (const [name, schema] of Object.entries(targets)) {
   // io: 'input' so fields with defaults are optional, matching what producers may omit.
   const json = z.toJSONSchema(schema, { io: 'input', unrepresentable: 'any' });

@@ -1048,26 +1048,60 @@ interface SegmentStat {
    - **Road card:** link or movement id, width, lanes (links), speed limit, and the vehicles
      on it now, with their mean speed.
    - **Dismissing:** Escape or a tap on empty ground clears it.
-6. **Export run.** An "Export run" button is enabled only when the run is paused or stopped
-   and t > 0. It downloads one JSON file, `weave-run-<presetId|scenario.id>-seed<seed>-t<t>.json`,
-   with this content:
-   - **`manifest`:**
-     - `buildSha`;
-     - `engineVersion` (the engine package version);
-     - `schemaVersion` (the scenario and classes `version`);
-     - `classesHash` (SHA-256 hex of the canonical classes JSON sent to the worker);
-     - `seed`;
-     - `simulatedTimeS`;
-     - `finalStateHash`;
-     - `exportedAt` (ISO 8601).
-   - **`scenario`:** the full scenario as run.
-   - **`metrics`:** `runSummary(sim, warmupS)`.
-   - **`series`:** the 1-minute rows.
-   - **`links`:** `segmentStats`.
-   - **`diagnostics`:**
-     - `guardActivations`, `vehicleKm`, `guardPer1000VehKm` and `guardBySegment`;
-     - `lockedJunctions`: `[{ node, sinceS }]`;
-     - `reroutes` and `diversions`.
-   - **Determinism:** the export of a run equals, field for field (apart from `exportedAt` and
-     `buildSha`), what Node computes for the same scenario, seed and step count.
+6. **Export run.** An "Export run" button is enabled only when the run is paused and t > 0.
+   It downloads one JSON file, `weave-run-<presetId|scenario.id>-seed<seed>-t<t>.json`, that
+   validates against the zod schema `RunExport` (§6.4; JSON Schema in
+   `docs/schema/run-export.schema.json`).
+   - **Determinism:** apart from `exportedAt` and `buildSha`, it equals, field for field, what
+     Node computes for the same scenario, seed and step count.
+   - **CSV downloads:** "Trips CSV" and "Series CSV" buttons, enabled under the same condition,
+     download the `trips` and `series` arrays as CSV. They have a header row and one row per
+     record, in the field order of §6.4, with empty cells for null.
 
+### 6.4 Run export (`schema/export.ts`, `stats/export.ts`)
+```ts
+RunExport = {
+  manifest: { buildSha: string; engineVersion: string; schemaVersion: number;
+              classesHash: string /* 64 hex: SHA-256 of JSON.stringify(classes as sent to the worker) */;
+              seed: number; simulatedTimeS: number; steps: number;
+              finalStateHash: string /* 8 hex */; exportedAt: string /* ISO 8601 */ };
+  scenario: ScenarioInput;                  // as run (the loaded scenario, seed included)
+  metrics: Record<MetricId, number | null>; // runSummary(sim, warmupS); NaN → null
+  series: SeriesRow[];
+  links: SegmentStat[];                     // §6.2; NaN → null
+  trips: TripExport[];
+  diagnostics: { guardActivations: number; vehicleKm: number; guardPer1000VehKm: number;
+                 guardBySegment: Record<string, number>;
+                 lockedJunctions: { node: string; sinceS: number }[];
+                 reroutes: number; diversions: number };
+}
+TripExport = { id; origin; destination; classId; tGen; tInsert: number | null; tExit: number | null;
+               freeFlowS; delayS; diverted: boolean; unfinished: boolean }
+```
+- **Trips:** there is one record per generated vehicle since t = 0, in id order
+  (`tripRecords(sim)`), and `freeFlowS` is the route's free-flow time (§2.7).
+  - **Completed:** `delayS = tExit − tGen − freeFlowS`.
+  - **On the network:** `tExit = null`, and `delayS = t − tGen − freeFlowTravelledS` (delay so
+    far, §5.2).
+  - **Still queued at entry:** `tInsert = null`, `tExit = null` and `delayS = t − tGen`.
+  - **`diverted`:** true if the vehicle was sent to an exit other than its destination
+    (§2.2).
+  - **`unfinished`:** true when `tExit` is null.
+- **Engine additions:** `TripRecord.diverted`, `VehicleView.tInsert` and `VehicleView.diverted`.
+  `exportBody(sim)` returns every field except `buildSha`, `engineVersion`, `classesHash`,
+  `exportedAt` and `scenario`. The worker answers the protocol message
+  `{ type: 'export', nonce }` with `{ type: 'export', nonce, body }`.
+- **Node CLI** `packages/engine/bin/weave.mjs` (`pnpm --filter @weave/engine sim -- …`):
+  - **Replay:** `--scenario <run.json>` accepts a run export, validates it with `RunExport`,
+    rebuilds the sim from `scenario` with the default classes and runs
+    `manifest.steps` steps.
+  - **Network files:** file networks are read from `apps/web/public/data/<id>.json`, or from
+    `--network`.
+  - **Output:** it prints `{ stateHash, expected, match, simulatedTimeS }` as JSON and exits
+    with 0 if the hash matches, or 1 if it doesn't.
+  - **Classes check:** it first checks that the SHA-256 of the default classes equals
+    `manifest.classesHash`. If not, it exits with 2 and says so.
+  - **Plain scenario:** `--scenario <scenario.json>` with a plain scenario (no manifest) runs
+    `durationS` (or `--steps N`) and prints `{ stateHash, simulatedTimeS, metrics }`.
+  - **Library form:** `replayExport(run, network?)` in `src/replay.ts` does the same as a
+    function, without the classes check.

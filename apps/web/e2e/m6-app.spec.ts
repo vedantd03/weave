@@ -10,7 +10,7 @@
  *  - The export button is "Export run"; runSummary is exported by '@weave/engine'.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { F_X, F_Y, PRESETS, createSim, defaultClasses, runSummary } from '@weave/engine';
+import { F_X, F_Y, PRESETS, RunExport, createSim, defaultClasses, runSummary } from '@weave/engine';
 
 type Hook = {
   load(id: string, seed: number): Promise<void>;
@@ -163,7 +163,28 @@ test('Inspect: a vehicle shows class and km/h; empty ground clears the card', as
   expect(errors).toEqual([]);
 });
 
-test('Export run: enabled only when paused with t > 0; JSON matches Node runSummary and the footer hash', async ({ page }) => {
+/* ---------- §6.3 item 6 / §6.4: Export run, CSVs, Node replay ---------- */
+
+const TRIP_FIELDS = ['id', 'origin', 'destination', 'classId', 'tGen', 'tInsert', 'tExit', 'freeFlowS', 'delayS', 'diverted', 'unfinished'];
+type Exported = {
+  manifest: Record<string, unknown> & { finalStateHash: string; steps: number; seed: number };
+  metrics: Record<string, number | null>;
+  links: { id: string }[];
+  trips: (Record<string, unknown> & { unfinished: boolean; tExit: number | null })[];
+  series: Record<string, unknown>[];
+};
+async function readDownload(page: Page, button: string): Promise<{ name: string; text: string; path: string }> {
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: button }).click()]);
+  const stream = (await download.createReadStream()) as unknown as AsyncIterable<Uint8Array>;
+  let text = '';
+  const dec = new TextDecoder();
+  for await (const chunk of stream) text += dec.decode(chunk, { stream: true });
+  return { name: download.suggestedFilename(), text, path: (await download.path())! };
+}
+const csvRows = (text: string) => text.trim().split(/\r?\n/);
+const nodeMod = (name: string) => import(/* @vite-ignore */ `node:${name}`) as Promise<Record<string, any>>; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+test('Export run: enablement, RunExport schema, hashes, trips, metrics vs Node, CSVs', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = watchErrors(page);
   const exportBtn = page.getByRole('button', { name: 'Export run' });
@@ -176,48 +197,68 @@ test('Export run: enabled only when paused with t > 0; JSON matches Node runSumm
   await page.goto(`/?test=1&autoplay=0&preset=${id}`);
   await waitHook(page);
   await expect(exportBtn).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Trips CSV' })).toBeDisabled();
   // stepped and paused: enabled
   const N = 1500;
   const r = await hAdvance(page, N);
   await expect(exportBtn).toBeEnabled();
-  const [download] = await Promise.all([page.waitForEvent('download'), exportBtn.click()]);
+  const json = await readDownload(page, 'Export run');
   const preset = PRESETS[id]!;
-  expect(download.suggestedFilename()).toMatch(new RegExp(`^weave-run-${id}-seed${preset.seed}-t[\\d.]+\\.json$`));
-  const stream = (await download.createReadStream()) as unknown as AsyncIterable<Uint8Array>;
-  let text = '';
-  const dec = new TextDecoder();
-  for await (const chunk of stream) text += dec.decode(chunk, { stream: true });
-  const j = JSON.parse(text) as {
-    manifest: Record<string, unknown>;
-    metrics: Record<string, number | null>;
-    links: { id: string }[];
-    scenario: unknown;
-    series: unknown[];
-    diagnostics: Record<string, unknown>;
-  };
-  for (const k of ['buildSha', 'engineVersion', 'schemaVersion', 'classesHash', 'seed', 'simulatedTimeS', 'finalStateHash', 'exportedAt']) {
-    expect(j.manifest, k).toHaveProperty(k);
-  }
-  expect(String(j.manifest.classesHash)).toMatch(/^[0-9a-f]{64}$/);
-  expect(Number.isNaN(Date.parse(String(j.manifest.exportedAt)))).toBe(false);
-  expect(j.manifest.seed).toBe(preset.seed);
-  expect(j.manifest.simulatedTimeS).toBeCloseTo(r.t, 9);
+  expect(json.name).toMatch(new RegExp(`^weave-run-${id}-seed${preset.seed}-t[\\d.]+\\.json$`));
+  const raw = JSON.parse(json.text);
+  expect(RunExport.safeParse(raw).success).toBe(true);
+  const j = raw as Exported;
   expect(j.manifest.finalStateHash).toBe(r.hash);
-  await expect(page.getByTestId('state-hash')).toContainText(String(j.manifest.finalStateHash));
-  for (const k of ['guardActivations', 'vehicleKm', 'guardPer1000VehKm', 'guardBySegment', 'lockedJunctions', 'reroutes', 'diversions']) {
-    expect(j.diagnostics, k).toHaveProperty(k);
-  }
+  expect(j.manifest.steps).toBe(N);
+  await expect(page.getByTestId('state-hash')).toContainText(j.manifest.finalStateHash);
+  // trips: non-empty and including unfinished records (tExit null)
+  expect(j.trips.length).toBeGreaterThan(0);
+  expect(j.trips.some((t) => t.unfinished && t.tExit === null)).toBe(true);
   // metrics equal Node runSummary for the same scenario, seed and step count
   const sim = createSim({ scenario: preset, classes: defaultClasses() });
   sim.advance(N);
   const node = runSummary(sim, preset.warmupS ?? 300) as Record<string, number>;
   for (const [k, v] of Object.entries(node)) {
     const got = j.metrics[k];
-    if (Number.isNaN(v)) expect(got === null || Number.isNaN(got as number), k).toBe(true);
+    if (Number.isNaN(v)) expect(got, k).toBeNull();
     else expect(Math.abs((got as number) - v), k).toBeLessThanOrEqual(1e-9 * Math.max(1, Math.abs(v)));
   }
-  // one entry per link plus each movement
   const net = sim.network;
   expect(j.links.map((l) => l.id).sort()).toEqual([...net.links.map((l) => l.id), ...net.movements.map((m) => m.id)].sort());
+  // CSVs: header in the §6.4 field order, one row per record
+  const trips = await readDownload(page, 'Trips CSV');
+  const tripLines = csvRows(trips.text);
+  expect(tripLines[0]!.split(',')).toEqual(TRIP_FIELDS);
+  expect(tripLines.length - 1).toBe(j.trips.length);
+  const series = await readDownload(page, 'Series CSV');
+  const seriesLines = csvRows(series.text);
+  expect(seriesLines[0]!.split(',')).toEqual(Object.keys(j.series[0]!));
+  expect(seriesLines.length - 1).toBe(j.series.length);
+  expect(errors).toEqual([]);
+});
+
+test('run a preset briefly, stop, export, rerun in Node: the CLI reproduces the state hash', async ({ page }) => {
+  test.setTimeout(240_000);
+  const errors = watchErrors(page);
+  await page.goto('/?autoplay=0&preset=junction4-signal');
+  await expect(page.getByRole('combobox', { name: 'Scenario' })).toHaveValue('junction4-signal');
+  await page.getByRole('button', { name: 'Play' }).click();
+  await expect.poll(async () => simTime(page), { timeout: 120_000 }).toBeGreaterThan(30);
+  await page.getByRole('button', { name: 'Pause' }).click();
+  await expect(page.getByRole('button', { name: 'Export run' })).toBeEnabled();
+  const json = await readDownload(page, 'Export run');
+  const raw = JSON.parse(json.text);
+  expect(RunExport.safeParse(raw).success).toBe(true);
+  const run = raw as Exported;
+  // the CLI, from the repository root (Playwright runs in apps/web)
+  const cp = await nodeMod('child_process');
+  const path = await nodeMod('path');
+  const proc = (globalThis as unknown as { process: { cwd(): string; execPath: string } }).process;
+  const root = path.resolve(proc.cwd(), '../..');
+  const res = cp.spawnSync(proc.execPath, ['packages/engine/bin/weave.mjs', '--scenario', json.path], { cwd: root, encoding: 'utf8' });
+  expect(res.status, res.stderr).toBe(0);
+  const out = JSON.parse(String(res.stdout).trim().split('\n').pop()!);
+  expect(out.match).toBe(true);
+  expect(out.stateHash).toBe(run.manifest.finalStateHash);
   expect(errors).toEqual([]);
 });
