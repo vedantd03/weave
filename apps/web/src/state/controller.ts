@@ -13,6 +13,7 @@ import {
 } from '@weave/engine';
 import type { FromWorker } from '@weave/engine/protocol';
 import { Renderer, type FrameView, type Selection } from '../render/renderer.ts';
+import { SIGNAL_STATES } from '../render/select.ts';
 import { FRAME_STRIDE, F_CLASS, F_LENGTH, F_SEG, F_SPEED, F_WIDTH } from '@weave/engine/protocol';
 import type { ColourMode } from '../render/palette.ts';
 import { SimClient } from '../worker/client.ts';
@@ -51,7 +52,8 @@ export interface SimState {
 
 export type InspectInfo =
   | { kind: 'vehicle'; classLabel: string; speedKmh: number; segment: string; lengthM: number; widthM: number }
-  | { kind: 'road'; segKind: 'link' | 'movement'; id: string; widthM: number; lanes: number | null; speedLimitKmh: number; onNow: number; meanSpeedKmh: number };
+  | { kind: 'road'; segKind: 'link' | 'movement'; id: string; widthM: number; lanes: number | null; speedLimitKmh: number; onNow: number; meanSpeedKmh: number }
+  | { kind: 'signal'; movement: string; from: string; to: string; node: string; state: string };
 
 type Listener = () => void;
 
@@ -69,9 +71,14 @@ export class SimController {
     setSelectionListener(cb: ((s: Selection | null) => void) | null): void;
     clearSelection(): void;
     worldToClient(x: number, y: number, z: number): { x: number; y: number };
+    signalLights(): { movement: string; colour: string }[];
+    signalLightClient(i: number): { x: number; y: number };
     destroy(): void;
   } | null = null;
   private scene3dToken = 0;
+  /** Resolves when the 3D scene of the current mount exists (test hooks wait on it). */
+  private scene3dReady: Promise<void> = Promise.resolve();
+  private markScene3dReady: () => void = () => {};
   private lastFrame: FrameView | null = null;
   private listeners = new Set<Listener>();
   private frameWaiters: Array<{ step: number; resolve: () => void }> = [];
@@ -173,9 +180,12 @@ export class SimController {
       if (this.state.inspect) this.set({ inspect: null });
       return;
     }
-    // Live values change every frame: refresh the card at most ~8 times a second.
+    // Live values change every frame: refresh the card at most ~8 times a second (a signal's
+    // state change always shows at once).
     const now = performance.now();
-    if (this.state.inspect && sel.kind === this.state.inspect.kind && now - this.lastInspectUi < 120) return;
+    const cur = this.state.inspect;
+    const signalChanged = sel.kind === 'signal' && cur?.kind === 'signal' && cur.state !== (SIGNAL_STATES[sel.code] ?? 'No signal');
+    if (cur && sel.kind === cur.kind && !signalChanged && now - this.lastInspectUi < 120) return;
     this.lastInspectUi = now;
     const segId = (i: number) => (i < net.links.length ? net.links[i]!.id : net.movements[i - net.links.length]?.id ?? '?');
     if (sel.kind === 'vehicle') {
@@ -184,6 +194,11 @@ export class SimController {
       this.set({
         inspect: { kind: 'vehicle', classLabel: cls?.label ?? '?', speedKmh: r[F_SPEED]! * 3.6, segment: segId(r[F_SEG]!), lengthM: r[F_LENGTH]!, widthM: r[F_WIDTH]! },
       });
+      return;
+    }
+    if (sel.kind === 'signal') {
+      const mv = net.movements[sel.movement]!;
+      this.set({ inspect: { kind: 'signal', movement: mv.id, from: mv.fromLink, to: mv.toLink, node: mv.node, state: SIGNAL_STATES[sel.code] ?? 'No signal' } });
       return;
     }
     const isLink = sel.seg < net.links.length;
@@ -268,6 +283,7 @@ export class SimController {
       return;
     }
     this.set({ view3dStatus: 'loading' });
+    this.scene3dReady = new Promise((r) => (this.markScene3dReady = r));
     const token = ++this.scene3dToken;
     import('../render/Scene3D.ts')
       .then(({ Scene3D }) => {
@@ -279,11 +295,13 @@ export class SimController {
         if (this.state.network) scene.setNetwork(this.state.network, this.state.classes.classes.map((c) => c.id));
         if (this.lastFrame) scene.setFrame(this.lastFrame);
         this.set({ view3dStatus: 'ready' });
+        this.markScene3dReady();
       })
       .catch((e: unknown) => {
         if (token !== this.scene3dToken) return;
         const msg = e instanceof Error ? e.message : String(e);
         this.set({ view: '2d', view3dStatus: 'error', view3dError: `3D view unavailable (${msg}). Showing 2D.` });
+        this.markScene3dReady();
       });
   }
 
@@ -467,7 +485,18 @@ export class SimController {
         return f ? { data: Array.from(f.data.subarray(0, f.count * FRAME_STRIDE)), count: f.count } : { data: [], count: 0 };
       },
       worldToScreen: async (x: number, y: number) => this.renderer?.worldToClient(x, y) ?? { x: NaN, y: NaN },
-      worldToScreen3d: async (x: number, y: number, z: number) => this.scene3d?.worldToClient(x, y, z) ?? { x: NaN, y: NaN },
+      worldToScreen3d: async (x: number, y: number, z: number) => {
+        if (this.state.view === '3d') await this.scene3dReady;
+        return this.scene3d?.worldToClient(x, y, z) ?? { x: NaN, y: NaN };
+      },
+      signalLights3d: async () => {
+        if (this.state.view === '3d') await this.scene3dReady;
+        return this.scene3d?.signalLights() ?? [];
+      },
+      signalLightPos3d: async (i: number) => {
+        if (this.state.view === '3d') await this.scene3dReady;
+        return this.scene3d?.signalLightClient(i) ?? { x: NaN, y: NaN };
+      },
       signals: async () => Array.from(this.lastSignals),
       runExperiment: async (o: { replications: number; compare: string }) => {
         const { runExperiment } = await import('./experiment.ts');

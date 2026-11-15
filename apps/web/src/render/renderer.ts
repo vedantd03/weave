@@ -1,7 +1,7 @@
 import type { Network, VehicleClassId } from '@weave/engine';
 import { FRAME_STRIDE, F_CLASS, F_HEADING, F_LAYER, F_LENGTH, F_SEG, F_SPEED, F_SPEED_RATIO, F_WIDTH, F_X, F_Y } from '@weave/engine/protocol';
 import { networkBounds, offsetPolyline, ribbon, type Bounds, type Pt } from './geometry.ts';
-import { roadNow, track, vehicleAt, type Selection } from './select.ts';
+import { roadNow, SIGNAL_COLOURS, track, vehicleAt, type Selection } from './select.ts';
 import { classCss, readMapTheme, speedCss, type ColourMode, type MapTheme } from './palette.ts';
 
 const SPEED_BINS = 20;
@@ -216,6 +216,7 @@ export class Renderer {
     if (!s) return;
     const { ctx } = this;
     ctx.strokeStyle = this.theme.dark ? '#fbbf24' : '#b45309';
+    if (s.kind === 'signal') return;
     if (s.kind === 'road') {
       const road = this.roads.find((r) => r.seg === s.seg);
       if (!road) return;
@@ -339,7 +340,7 @@ export class Renderer {
     if (!sig || this.heads.length === 0) return;
     const { ctx } = this;
     const r = Math.max(0.9, 3 * px);
-    const colours: Record<number, string> = { 0: '#ef4444', 1: '#f59e0b', 2: '#22c55e', 3: '#38bdf8' };
+    const colours = SIGNAL_COLOURS;
     for (const h of this.heads) {
       if (h.layer !== layer) continue;
       const c = colours[sig[h.movement] ?? 255];

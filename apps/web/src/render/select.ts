@@ -5,12 +5,19 @@ import { FRAME_STRIDE, F_CLASS, F_LENGTH, F_SEG, F_SPEED, F_WIDTH, F_X, F_Y } fr
 export interface FrameLike {
   data: Float32Array;
   count: number;
+  /** Signal code per network movement (SIG: 0 red, 1 amber, 2 green, 3 permissive, 255 none). */
+  signals?: Uint8Array;
 }
+
+/** 2D and 3D signal colours by SIG code (255 = uncontrolled: no light). */
+export const SIGNAL_COLOURS: Record<number, string> = { 0: '#ef4444', 1: '#f59e0b', 2: '#22c55e', 3: '#38bdf8' };
+export const SIGNAL_STATES: Record<number, string> = { 0: 'Red', 1: 'Amber', 2: 'Green', 3: 'Permissive' };
 
 /** What the user is inspecting. Vehicle records are a copy of the frame record. */
 export type Selection =
   | { kind: 'vehicle'; rec: Float32Array }
-  | { kind: 'road'; seg: number; onNow: number; meanSpeedMps: number };
+  | { kind: 'road'; seg: number; onNow: number; meanSpeedMps: number }
+  | { kind: 'signal'; movement: number; code: number };
 
 export function vehicleAt(f: FrameLike, i: number): Selection {
   return { kind: 'vehicle', rec: f.data.slice(i * FRAME_STRIDE, (i + 1) * FRAME_STRIDE) };
@@ -38,6 +45,7 @@ export function roadNow(f: FrameLike | null, seg: number): Selection {
  */
 export function track(s: Selection, f: FrameLike | null): Selection | null {
   if (s.kind === 'road') return roadNow(f, s.seg);
+  if (s.kind === 'signal') return { kind: 'signal', movement: s.movement, code: f?.signals?.[s.movement] ?? s.code };
   if (!f) return null;
   const r = s.rec;
   let best = -1;

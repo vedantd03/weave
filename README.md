@@ -31,7 +31,8 @@ Workers, a React UI, and a static deployment with no server.
   - **Inspect:** hover over or tap any vehicle or road for its details, in 2D or 3D. 3D picks
     with CPU raycasting and never reads pixels back from the GPU.
 - **3D view (optional):** roads follow their real elevation, and decks and ramps stand on
-  pillars. You can orbit, pan and zoom with a mouse or by touch. three.js loads only when you
+  pillars. Traffic lights on poles at every signalised stop line show the same signal states as
+  the 2D map. You can orbit, pan and zoom with a mouse or by touch. three.js loads only when you
   open 3D.
 - **Export a run:** pause and download one JSON file (validated against
   `docs/schema/run-export.schema.json`), plus trips and series as CSV.
@@ -147,7 +148,7 @@ pnpm --filter @weave/engine sync-classes
   Harders' gap-acceptance capacity, Webster's effective green, LWR shockwave speed, Little's
   law, conservation at every step, a no-collision property, t-interval coverage and common
   random numbers.
-- **Test counts:** engine 322, data 106, end-to-end 95 (desktop and mobile, plus the hash
+- **Test counts:** engine 322, data 106, end-to-end 103 (desktop and mobile, plus the hash
   checks in WebKit). One end-to-end test exports a run from the browser and replays it with the
   Node CLI to the same state hash. The end-to-end tests include checks that the browser and Node produce
   identical state hashes.

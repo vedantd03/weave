@@ -4,7 +4,7 @@ import type { Network, VehicleClassId } from '@weave/engine';
 import { FRAME_STRIDE, F_CLASS, F_HEADING, F_LENGTH, F_SPEED_RATIO, F_WIDTH, F_X, F_Y, F_Z } from '@weave/engine/protocol';
 import { classCss, readMapTheme, speedRgb, type ColourMode } from './palette.ts';
 import type { FrameView } from './renderer.ts';
-import { roadNow, track, vehicleAt, type Selection } from './select.ts';
+import { roadNow, SIGNAL_COLOURS, track, vehicleAt, type Selection } from './select.ts';
 
 /**
  * Optional 3D view (MODEL.md §6.3 item 4). Loaded with a dynamic import only when first opened,
@@ -19,6 +19,8 @@ const LINK_LIFT = 0.03; // above the ground plane
 const MOVE_LIFT = 0.06; // junction paths over the links they join
 const DECK_DEPTH = 0.9; // visual thickness of elevated decks
 const PILLAR_EVERY_M = 22;
+const LIGHT_HEIGHT_M = 5; // signal lights above the stop line (§6.3 item 9)
+const POLE_KERB_GAP_M = 0.6;
 
 /** 3D surface colours: more contrast than the flat map needs, decks lighter than ground roads. */
 const SURFACES = {
@@ -75,6 +77,12 @@ export class Scene3D {
   private onSelect: ((s: Selection | null) => void) | null = null;
   private outline: THREE.LineSegments | null = null;
   private detach: Array<() => void> = [];
+  /** Signal lights: one instance per signal head; light i shows movement lightMovement[i]. */
+  private lights: THREE.InstancedMesh | null = null;
+  private lightMovement: number[] = [];
+  private lightPos: THREE.Vector3[] = [];
+  private lightHex: string[] = [];
+  private movementIds: string[] = [];
   private colour = new THREE.Color();
 
   private canvas: HTMLCanvasElement;
@@ -94,7 +102,10 @@ export class Scene3D {
     this.controls.screenSpacePanning = false; // pan along the ground
     this.controls.maxPolarAngle = Math.PI * 0.48; // stay above the ground
     this.controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
-    this.controls.addEventListener('change', () => (this.dirty = true));
+    this.controls.addEventListener('change', () => {
+      this.dirty = true;
+      this.scaleLights();
+    });
     this.scene.add(this.world);
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0x8090a0, 1.6));
     const sun = new THREE.DirectionalLight(0xffffff, 1.4);
@@ -130,6 +141,7 @@ export class Scene3D {
   setFrame(frame: FrameView): void {
     this.frame = frame;
     this.updateVehicles();
+    this.updateLights(frame.signals);
     if (this.selection) this.select(track(this.selection, frame));
   }
 
@@ -144,6 +156,10 @@ export class Scene3D {
     this.world.clear();
     this.vehicles = null;
     this.outline = null;
+    this.lights = null;
+    this.lightMovement = [];
+    this.lightPos = [];
+    this.lightHex = [];
     this.capacity = 0;
   }
 
@@ -253,6 +269,9 @@ export class Scene3D {
       const es = eb.getSize(new THREE.Vector3());
       this.fit(eb.getCenter(new THREE.Vector3()), Math.min(Math.max(es.x, es.y) * 0.9, Math.max(size.x, size.y)), true);
     } else this.fit(centre, Math.max(size.x, size.y, 60));
+    this.scaleLights();
+    this.buildSignals(net, theme.dark);
+    this.scaleLights();
     this.ensureCapacity(256);
     const outlineGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1).translate(0, 0, 0.5));
     this.outline = new THREE.LineSegments(outlineGeo, new THREE.LineBasicMaterial({ color: theme.dark ? 0xfbbf24 : 0xb45309 }));
@@ -260,6 +279,141 @@ export class Scene3D {
     this.world.add(this.outline);
     this.select(null);
     this.updateVehicles();
+  }
+
+  /**
+   * Poles, arms and lights for every signal head (same heads as 2D: signal-controlled movements at
+   * nodes with a plan), built once per network as instanced meshes.
+   */
+  private buildSignals(net: Network, dark: boolean): void {
+    this.movementIds = net.movements.map((m) => m.id);
+    const signalNodes = new Set(net.signals.map((p) => p.node));
+    const linkById = new Map(net.links.map((l) => [l.id, l]));
+    const byStopLine = new Map<string, number[]>();
+    net.movements.forEach((m, i) => {
+      if (m.control !== 'signal' || !signalNodes.has(m.node)) return;
+      const list = byStopLine.get(m.fromLink) ?? [];
+      list.push(i);
+      byStopLine.set(m.fromLink, list);
+    });
+    if (byStopLine.size === 0) return;
+    const poles: { x: number; y: number; z: number; ax: number; ay: number }[] = [];
+    for (const [linkId, movs] of byStopLine) {
+      const l = linkById.get(linkId);
+      if (!l) continue;
+      const p = l.polyline;
+      const [x1, y1] = p[p.length - 1]!;
+      const [x0, y0] = p[p.length - 2]!;
+      const len = Math.hypot(x1 - x0, y1 - y0) || 1;
+      // Left of the travel direction is the kerb side (left-hand traffic).
+      const nx = -(y1 - y0) / len;
+      const ny = (x1 - x0) / len;
+      const off = l.widthM / 2 + POLE_KERB_GAP_M;
+      const z = l.zToM;
+      const pole = { x: x1 + nx * off, y: y1 + ny * off, z, ax: x1 + nx * off, ay: y1 + ny * off };
+      let far = 0;
+      for (const mi of movs) {
+        const [hx, hy] = net.movements[mi]!.path[0]!;
+        this.lightMovement.push(mi);
+        this.lightPos.push(new THREE.Vector3(hx, hy, z + LIGHT_HEIGHT_M));
+        const d = Math.hypot(hx - pole.x, hy - pole.y);
+        if (d > far) {
+          far = d;
+          pole.ax = hx;
+          pole.ay = hy;
+        }
+      }
+      poles.push(pole);
+    }
+    const poleMat = new THREE.MeshLambertMaterial({ color: dark ? '#9aa6b4' : '#4b5563' });
+    const poleGeo = new THREE.CylinderGeometry(0.12, 0.14, 1, 8).rotateX(Math.PI / 2).translate(0, 0, 0.5);
+    const poleMesh = new THREE.InstancedMesh(poleGeo, poleMat, poles.length);
+    const armGeo = new THREE.BoxGeometry(1, 0.14, 0.14).translate(0.5, 0, 0);
+    const armMesh = new THREE.InstancedMesh(armGeo, poleMat, poles.length);
+    poles.forEach((p, i) => {
+      this.tmp.position.set(p.x, p.y, p.z);
+      this.tmp.rotation.set(0, 0, 0);
+      this.tmp.scale.set(1, 1, LIGHT_HEIGHT_M + 0.4);
+      this.tmp.updateMatrix();
+      poleMesh.setMatrixAt(i, this.tmp.matrix);
+      this.tmp.position.set(p.x, p.y, p.z + LIGHT_HEIGHT_M + 0.35);
+      this.tmp.rotation.set(0, 0, Math.atan2(p.ay - p.y, p.ax - p.x));
+      this.tmp.scale.set(Math.hypot(p.ax - p.x, p.ay - p.y) + 0.3, 1, 1);
+      this.tmp.updateMatrix();
+      armMesh.setMatrixAt(i, this.tmp.matrix);
+    });
+    // Self-lit lights: visible from any angle and in both themes (§6.3 item 9).
+    const lightGeo = new THREE.SphereGeometry(0.42, 12, 8);
+    const lights = new THREE.InstancedMesh(lightGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }), this.lightPos.length);
+    this.lightPos.forEach((v, i) => {
+      this.tmp.position.copy(v);
+      this.tmp.rotation.set(0, 0, 0);
+      this.tmp.scale.set(1, 1, 1);
+      this.tmp.updateMatrix();
+      lights.setMatrixAt(i, this.tmp.matrix);
+      this.colour.set('#475569');
+      lights.setColorAt(i, this.colour);
+    });
+    this.lightHex = this.lightPos.map(() => '#475569');
+    this.lights = lights;
+    this.lightScale = 1;
+    this.world.add(poleMesh, armMesh, lights);
+  }
+
+  private lightScale = 1;
+
+  /**
+   * Keep lights readable from far away: at least ~4 CSS px in radius on screen, never smaller
+   * than their real 0.42 m. Rewrites the light matrices only when the factor changes.
+   */
+  private scaleLights(): void {
+    const lights = this.lights;
+    if (!lights) return;
+    const h = this.canvas.getBoundingClientRect().height || 1;
+    const focal = h / 2 / Math.tan((this.camera.fov * Math.PI) / 360);
+    const dist = this.camera.position.distanceTo(this.controls.target);
+    const want = Math.max(1, (4 * dist) / focal / 0.42);
+    const scale = Math.round(want * 20) / 20; // quantised: no rewrite for tiny camera moves
+    if (scale === this.lightScale) return;
+    this.lightScale = scale;
+    this.lightPos.forEach((v, i) => {
+      this.tmp.position.copy(v);
+      this.tmp.rotation.set(0, 0, 0);
+      this.tmp.scale.setScalar(scale);
+      this.tmp.updateMatrix();
+      lights.setMatrixAt(i, this.tmp.matrix);
+    });
+    lights.instanceMatrix.needsUpdate = true;
+    lights.computeBoundingSphere();
+  }
+
+  /** Recolour lights from the frame's signal codes; only changed lights are written. */
+  private updateLights(signals: Uint8Array | undefined): void {
+    const lights = this.lights;
+    if (!lights || !signals) return;
+    let changed = false;
+    for (let i = 0; i < this.lightMovement.length; i++) {
+      const hex = SIGNAL_COLOURS[signals[this.lightMovement[i]!] ?? 255] ?? '#475569';
+      if (hex === this.lightHex[i]) continue;
+      this.lightHex[i] = hex;
+      this.colour.set(hex);
+      lights.setColorAt(i, this.colour);
+      changed = true;
+    }
+    if (changed && lights.instanceColor) {
+      lights.instanceColor.needsUpdate = true;
+      this.dirty = true;
+    }
+  }
+
+  /** Test hook data: every light's movement id and current colour. */
+  signalLights(): { movement: string; colour: string }[] {
+    return this.lightMovement.map((mi, i) => ({ movement: this.movementIds[mi]!, colour: this.lightHex[i]! }));
+  }
+
+  signalLightClient(i: number): { x: number; y: number } {
+    const v = this.lightPos[i];
+    return v ? this.worldToClient(v.x, v.y, v.z) : { x: NaN, y: NaN };
   }
 
   setSelectionListener(cb: ((s: Selection | null) => void) | null): void {
@@ -304,8 +458,13 @@ export class Scene3D {
     this.raycaster.setFromCamera(ndc, this.camera);
     const targets: THREE.Object3D[] = this.pickables.map((p) => p.mesh);
     if (this.vehicles && this.vehicles.count > 0) targets.unshift(this.vehicles);
+    if (this.lights) targets.unshift(this.lights);
     const hit = this.raycaster.intersectObjects(targets, false)[0];
     if (!hit) return null;
+    if (hit.object === this.lights && hit.instanceId !== undefined) {
+      const mi = this.lightMovement[hit.instanceId]!;
+      return { kind: 'signal', movement: mi, code: this.frame?.signals?.[mi] ?? 255 };
+    }
     if (hit.object === this.vehicles && hit.instanceId !== undefined && this.frame) return vehicleAt(this.frame, hit.instanceId);
     const p = this.pickables.find((q) => q.mesh === hit.object);
     const seg = p && hit.faceIndex !== undefined && hit.faceIndex !== null ? p.triSeg[hit.faceIndex] : undefined;
