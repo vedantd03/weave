@@ -436,6 +436,21 @@ a wide vehicle whose next movement is narrow can face a contradiction: edge clea
 every in-band position, and it waits forever. Silk Board has a 2.69 m bus, a 3.5 m link and a
 3.0 m movement. Other candidates keep the full edge-clearance rule.
 
+**Band-centred move (revision 2, strip mode only):** candidates are offsets `y + j·Δ` from the
+current position, so a band only slightly wider than the body can leave no grid candidate that
+fits it.
+- **When it applies:** the vehicle's body misses its next movement's band (band miss > ε,
+  §2.2), and no grid candidate within reach (`|j| ≤ J`) has band miss ≤ ε.
+- **Extra candidate:** the band-centred position
+  `y* = clamp((b0 + b1)/2, width/2, W − width/2)` (`W/2` when width > W), when
+  `|y* − y| ≤ J·Δ`.
+- **Rules:** it is a band-seeking move (body inside the road; every safety check applies) and
+  is evaluated like any other candidate.
+- **Why:** on Silk Board a 2.98 m bus stood at y = 1.61 before a 3.0 m band [0, 3]. The only
+  centres that fit, 1.49–1.51, were off its 0.25 m grid. The grid steps either overflowed the
+  road or missed the band. It waited for over 1,300 s, and 80 vehicles on the minor approach
+  that yields to its movement piled up behind it (seed 47).
+
 **Band keeping:** a candidate that would take the body out of the next movement's band when it
 is currently inside (`dist(y) = 0 < dist(y′)`) is not a candidate. Discretionary overtaking
 never leaves the side a vehicle needs.
