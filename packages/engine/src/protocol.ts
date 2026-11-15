@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { ClassSet } from './schema/classes.ts';
 import { Network } from './schema/network.ts';
 import { Scenario } from './schema/scenario.ts';
+import { RunExportBody } from './schema/export.ts';
 
 /**
  * Worker protocol. Main → worker messages are zod-validated in the worker. Worker → main frames
@@ -45,6 +46,8 @@ export const StepMsg = z.object({ type: z.literal('step'), steps: z.number().int
 export const SpeedMsg = z.object({ type: z.literal('setSpeed'), factor: z.number().min(0.1).max(1000) });
 export const ResetMsg = z.object({ type: z.literal('reset') });
 export const PingMsg = z.object({ type: z.literal('ping'), nonce: z.number() });
+/** Ask the worker for the run export body of the current sim (MODEL.md §6.4). */
+export const ExportReqMsg = z.object({ type: z.literal('export'), nonce: z.number() });
 
 export const ToWorker = z.discriminatedUnion('type', [
   InitMsg,
@@ -54,6 +57,7 @@ export const ToWorker = z.discriminatedUnion('type', [
   SpeedMsg,
   ResetMsg,
   PingMsg,
+  ExportReqMsg,
 ]);
 export type ToWorker = z.infer<typeof ToWorker>;
 export type ToWorkerInput = z.input<typeof ToWorker>;
@@ -118,6 +122,9 @@ export const SeriesMsg = z.object({ type: z.literal('series'), fromIndex: z.numb
 export const PongMsg = z.object({ type: z.literal('pong'), nonce: z.number() });
 export const ErrorMsg = z.object({ type: z.literal('error'), message: z.string() });
 
-export const FromWorker = z.discriminatedUnion('type', [ReadyMsg, FrameMsg, SeriesMsg, PongMsg, ErrorMsg]);
+/** Run export body (validated against RunExport on the main thread, after the manifest is added). */
+export const ExportMsg = z.object({ type: z.literal('export'), nonce: z.number(), body: RunExportBody });
+
+export const FromWorker = z.discriminatedUnion('type', [ReadyMsg, FrameMsg, SeriesMsg, PongMsg, ErrorMsg, ExportMsg]);
 export type FromWorker = z.infer<typeof FromWorker>;
 export type FrameMsg = z.infer<typeof FrameMsg>;

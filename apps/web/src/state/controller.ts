@@ -8,6 +8,8 @@ import {
   type MetricsDelta,
   type ScenarioInput,
   type SeriesRow,
+  RunExport,
+  type RunExportBody,
 } from '@weave/engine';
 import type { FromWorker } from '@weave/engine/protocol';
 import { Renderer, type FrameView, type Selection } from '../render/renderer.ts';
@@ -203,6 +205,49 @@ export class SimController {
 
   clearInspect(): void {
     this.renderer?.clearSelection();
+  }
+
+  /**
+   * Build the run export (MODEL.md §6.4): the worker computes the body from its sim, this adds
+   * the manifest fields only the app knows, and the whole thing is validated before use.
+   */
+  async exportRun(): Promise<{ run: RunExport; filename: string }> {
+    const scenario = this.state.scenario;
+    if (!scenario || this.state.status !== 'ready' || this.state.t <= 0) throw new Error('pause a run with data first');
+    const nonce = Math.random();
+    const body = await new Promise<RunExportBody>((resolve, reject) => {
+      const off = this.client.on((m) => {
+        if (m.type === 'export' && m.nonce === nonce) {
+          off();
+          resolve(m.body);
+        } else if (m.type === 'error') {
+          off();
+          reject(new Error(m.message));
+        }
+      });
+      this.client.send({ type: 'export', nonce });
+    });
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(this.state.classes)));
+    const classesHash = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+    const run = {
+      manifest: {
+        buildSha: __WEAVE_COMMIT__,
+        engineVersion: __WEAVE_ENGINE_VERSION__,
+        schemaVersion: scenario.version,
+        classesHash,
+        ...body.manifest,
+        exportedAt: new Date().toISOString(),
+      },
+      scenario,
+      metrics: body.metrics,
+      series: body.series,
+      links: body.links,
+      trips: body.trips,
+      diagnostics: body.diagnostics,
+    };
+    RunExport.parse(run); // never hand out an export that does not match its schema
+    const id = this.state.presetId ?? scenario.id;
+    return { run: run as unknown as RunExport, filename: `weave-run-${id}-seed${body.manifest.seed}-t${body.manifest.simulatedTimeS.toFixed(1)}` };
   }
 
   setView(view: '2d' | '3d'): void {

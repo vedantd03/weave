@@ -3,6 +3,7 @@ import { PRESETS } from '@weave/engine';
 import { SimController } from './state/controller.ts';
 import { Legend, Segmented } from './ui/MapOverlay.tsx';
 import { InspectCard } from './ui/InspectCard.tsx';
+import { RunData } from './ui/RunData.tsx';
 import { ScenarioForm } from './ui/ScenarioForm.tsx';
 import { LiveCharts } from './charts/LiveCharts.tsx';
 import { ExperimentPanel } from './ui/ExperimentPanel.tsx';
@@ -305,6 +306,9 @@ export default function App() {
           </Panel>
           <Panel title="Over time (1-minute windows)">
             <LiveCharts rows={st.series} />
+          </Panel>
+          <Panel title="Run data">
+            <RunData ctrl={ctrl} enabled={st.status === 'ready' && st.t > 0} />
           </Panel>
           </>}
         </aside>

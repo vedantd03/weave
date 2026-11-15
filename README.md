@@ -18,8 +18,21 @@ Workers, a React UI, and a static deployment with no server.
   - **Signals:** the plan (phase greens, amber, all-red, offset).
   - **Behaviour:** strip mode (mixed traffic) or lane mode (theory check), and box compliance.
   - **Run settings:** duration, warm-up, time step and seed.
-- **Watch it live:** vehicles coloured by class, signal heads, flyovers drawn above the box,
-  live charts, the collision-guard rate and gridlock notices.
+- **Watch it live:** the app opens on the 4-arm junction with flyover, already running.
+  - **Colour:** colour vehicles by class or by speed (red when stopped, green at free flow),
+    with a legend.
+  - **Map:** signal heads, flyovers drawn above the box, live charts, the collision-guard rate
+    and gridlock notices.
+  - **Inspect:** hover over or tap any vehicle or road for its details.
+- **3D view (optional):** roads follow their real elevation, and decks and ramps stand on
+  pillars. You can orbit, pan and zoom with a mouse or by touch. three.js loads only when you
+  open 3D.
+- **Export a run:** pause and download one JSON file (validated against
+  `docs/schema/run-export.schema.json`), plus trips and series as CSV.
+  - **Contents:** the scenario and seed, the final state hash, metrics, the 1-minute series,
+    per-link statistics, trip records (including unfinished trips' delay so far) and
+    diagnostics.
+  - **Replay:** the Node CLI replays it and checks the hash.
 - **Run experiments:** *N* seeds in parallel workers, with means and 95% Student-t intervals.
   You can compare "flyover off", "flyover on with the same timings" and "flyover on, retimed"
   using **paired** intervals over common random numbers, then export to CSV.
@@ -112,6 +125,7 @@ pnpm install
 pnpm --filter @weave/web dev          # app at http://localhost:5173
 pnpm typecheck && pnpm test           # engine: theory, unit and property tests
 pnpm --filter @weave/web e2e          # UI checks on the production build (desktop + mobile)
+node packages/engine/bin/weave.mjs --scenario weave-run-….json   # replay an exported run: same final state hash
 cd data-pipeline && uv sync && uv run pytest
 uv run python build.py                # rebuild the network and calibration (needs data/chennai/*.xlsx)
 pnpm --filter @weave/engine sync-classes
@@ -127,8 +141,9 @@ pnpm --filter @weave/engine sync-classes
   Harders' gap-acceptance capacity, Webster's effective green, LWR shockwave speed, Little's
   law, conservation at every step, a no-collision property, t-interval coverage and common
   random numbers.
-- **Test counts:** engine 306, data 106, end-to-end 66 (desktop and mobile, plus the hash
-  checks in WebKit). The end-to-end tests include checks that the browser and Node produce
+- **Test counts:** engine 319, data 106, end-to-end 81 (desktop and mobile, plus the hash
+  checks in WebKit). One end-to-end test exports a run from the browser and replays it with the
+  Node CLI to the same state hash. The end-to-end tests include checks that the browser and Node produce
   identical state hashes.
 - **When tests disagreed with the model:** the spec was fixed and the reasons recorded. Tests
   were never weakened; each disagreement went to a human decision. See TESTING.md and ADR-014

@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import { createSim, Network, type Sim } from '@weave/engine';
+import { createSim, exportBody, Network, type Sim } from '@weave/engine';
 import { FRAME_STRIDE, ToWorker, type FromWorker, type MetricsDelta } from '@weave/engine/protocol';
 
 /**
@@ -136,6 +136,13 @@ self.onmessage = (ev: MessageEvent<unknown>) => {
         break;
       case 'setSpeed':
         speed = msg.factor;
+        break;
+      case 'export':
+        if (!sim) {
+          post({ type: 'error', message: 'nothing to export: no scenario loaded' });
+          break;
+        }
+        post({ type: 'export', nonce: msg.nonce, body: exportBody(sim) });
         break;
       case 'reset':
         stop();

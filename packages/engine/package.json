@@ -12,7 +12,8 @@
     "typecheck": "tsc -p .",
     "test": "node scripts/sync-classes.mjs --check && vitest run",
     "emit-schema": "node scripts/emit-schema.mjs",
-    "sync-classes": "node scripts/sync-classes.mjs"
+    "sync-classes": "node scripts/sync-classes.mjs",
+    "sim": "node bin/weave.mjs"
   },
   "dependencies": {
     "zod": "4.6.7"

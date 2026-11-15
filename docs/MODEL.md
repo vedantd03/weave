@@ -1079,8 +1079,11 @@ TripExport = { id; origin; destination; classId; tGen; tInsert: number | null; t
                freeFlowS; delayS; diverted: boolean; unfinished: boolean }
 ```
 - **Trips:** there is one record per generated vehicle since t = 0, in id order
-  (`tripRecords(sim)`), and `freeFlowS` is the route's free-flow time (§2.7).
-  - **Completed:** `delayS = tExit − tGen − freeFlowS`.
+  (`tripRecords(sim)`), and `freeFlowS` is the free-flow time of the route planned at
+  generation (`generatedLog`, §2.7).
+  - **Completed:** `delayS = tExit − tGen − freeFlowS_driven`, where `freeFlowS_driven` is the
+    free-flow time of the route actually driven (`trips()`, so the delay agrees with §5.2). It
+    differs from `freeFlowS` only for rerouted vehicles (§2.2).
   - **On the network:** `tExit = null`, and `delayS = t − tGen − freeFlowTravelledS` (delay so
     far, §5.2).
   - **Still queued at entry:** `tInsert = null`, `tExit = null` and `delayS = t − tGen`.

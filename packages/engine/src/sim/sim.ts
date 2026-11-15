@@ -31,6 +31,10 @@ export interface VehicleView {
   targetY: number;
   /** Free-flow time for the distance travelled so far (§5.2). */
   freeFlowTravelledS: number;
+  /** Time the vehicle entered the network (§6.4). */
+  tInsert: number;
+  /** Rerouted to an exit other than its destination (§2.2). */
+  diverted: boolean;
 }
 
 export interface SimCounters {
@@ -57,6 +61,8 @@ export interface TripRecord {
   tInsert: number;
   tExit: number;
   freeFlowS: number;
+  /** Sent to an exit other than its destination by the deadlock breaker (§2.2). */
+  diverted: boolean;
 }
 
 export interface GeneratedRecord {
@@ -1591,6 +1597,7 @@ class SimImpl implements Sim {
         tInsert: st.tIns[k]!,
         tExit: tNew,
         freeFlowS: this.freeFlow(k),
+        diverted: st.diverted[k] === 1,
       });
     }
     st.release(k);
@@ -1839,6 +1846,8 @@ class SimImpl implements Sim {
       hi: st.hi[k]!,
       targetY: st.ty[k]!,
       freeFlowTravelledS: st.ffTrav[k]!,
+      tInsert: st.tIns[k]!,
+      diverted: st.diverted[k] === 1,
     }));
   }
 
