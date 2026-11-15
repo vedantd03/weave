@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { METRICS, METRIC_LABELS, type CI, type Network, type ScenarioInput } from '@weave/engine';
+import { DiffChart, summaryText } from './ExperimentSummary.tsx';
 import { compareOptions, runExperiment, toCsv, type CompareId, type ExperimentOutcome } from '../state/experiment.ts';
 
 const field = 'h-8 w-full rounded-md border border-border bg-surface-2 px-2 text-sm text-text tabular-nums';
@@ -100,6 +101,10 @@ export function ExperimentPanel({ scenario, network }: { scenario: ScenarioInput
       )}
       {outcome && (
         <div className="space-y-2">
+          <p data-testid="experiment-summary" className="rounded-md border border-border bg-surface-2 p-2.5 text-sm leading-relaxed text-text">
+            {summaryText(outcome)}
+          </p>
+          {outcome.variant && <DiffChart o={outcome} />}
           <div className="overflow-x-auto">
             <table data-testid="experiment-results" className="w-full text-left text-xs tabular-nums">
               <thead className="text-muted">
