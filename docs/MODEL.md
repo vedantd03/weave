@@ -316,8 +316,20 @@ than the movement it feeds. Imported data can carry wider bands, for example a 3
 feeding a 3.0 m movement. A vehicle that ends up wider than its road anyway may make any lateral
 move that reduces its overflow beyond the road edges (§2.4 candidates).
 
-When the next route element after a link is a movement with band `fromLateral = [b0, b1]`, a
-vehicle may continue only if its body `[y − width/2, y + width/2]` lies inside `[b0, b1]`.
+When the next route element after a link is a movement with band `fromLateral = [b0, b1]`
+(effective band, above), a vehicle may continue only if its body **fits** the band. The fit is
+measured by the **band miss** of a body `[lo, hi] = [y − width/2, y + width/2]`:
+- **No wider than the band** (`width ≤ b1 − b0`): `miss = max(0, b0 − lo) + max(0, hi − b1)`,
+  so the body must lie inside the band.
+- **Wider than the band** (revision 2): `miss = max(0, lo − b0) + max(0, b1 − hi)`, so the
+  body must **cover** the band. A body cannot fit inside a band narrower than itself, so
+  without this case a 3.09 m bus never got past a 3.0 m band on Silk Board.
+- **Fit:** the body fits when `miss ≤ ε`, with ε = `EPS` = 1e-9 m. Both cases give the same
+  miss when `width = b1 − b0`.
+- **Where it applies:** the same miss drives the leader search obstacle (here), band-seeking
+  and band keeping (§2.4), the deadlock-breaker trigger and choice (below), and insertion
+  (§2.3).
+
 Otherwise the end of the link counts as a **standing obstacle** in the leader search: a
 candidate with rear end at offset `L_link − s_i` and speed 0. Vehicles that couldn't move
 across in time stop at the end and keep trying to move laterally.
@@ -358,9 +370,18 @@ origin link, repeating until an attempt fails.
   `gap = ∞` and `v_ins = v0_eff`.
 - **Feasible:** a candidate is feasible when `gap ≥ s0 + v_ins·T`, using the driver's
   parameters.
+- **Band-centred candidate (revision 2, strip mode only):** in lane mode, vehicles enter at
+  lane centres only, so this candidate does not apply there. If the origin link's next route element is a
+  movement with band `[b0, b1]` and no candidate above fits it (band miss, §2.2), one more
+  candidate is added: `y* = (b0 + b1)/2`, clamped to `[width/2, W − width/2]` when
+  `width ≤ W`, otherwise `W/2`. Its body may then touch the road edges without clearance,
+  which band-seeking moves already allow (§2.4). Before this rule, a 2.89 m bus whose entry
+  link fed a 3 m band had no candidate inside the band, because every grid candidate keeps
+  edge clearance. It never entered, and its origin's queue grew without limit at any demand
+  (Silk Board, seeds 46 and 47).
 - **Choice:** if the origin link's next route element is a movement with band `[b0, b1]`, and
-  at least one candidate's body `[y − width/2, y + width/2]` fits inside the band
-  geometrically, only those in-band candidates are considered.
+  at least one candidate's body fits the band (band miss ≤ ε, §2.2), only those in-band
+  candidates are considered.
   - **Status:** vehicles enter already sorted, so the model does **not** simulate merging at
     lane drops. This is a documented simplification (M2, user decision).
   - **What was tried:** a band zone, where band rules apply only within 150 m of the node, made
