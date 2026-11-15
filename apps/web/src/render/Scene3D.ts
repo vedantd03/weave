@@ -453,6 +453,7 @@ export class Scene3D {
    * readback. Returns the vehicle or road under a page point, or null.
    */
   pick(clientX: number, clientY: number): Selection | null {
+    this.syncCamera();
     const r = this.canvas.getBoundingClientRect();
     const ndc = new THREE.Vector2(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
     this.raycaster.setFromCamera(ndc, this.camera);
@@ -473,6 +474,7 @@ export class Scene3D {
 
   /** World (m) → page coordinates (CSS px) in the 3D view, for tests. */
   worldToClient(x: number, y: number, z: number): { x: number; y: number } {
+    this.syncCamera();
     const v = new THREE.Vector3(x, y, z).project(this.camera);
     const r = this.canvas.getBoundingClientRect();
     return { x: r.left + ((v.x + 1) / 2) * r.width, y: r.top + ((1 - v.y) / 2) * r.height };
@@ -564,9 +566,30 @@ export class Scene3D {
     this.dirty = true;
   }
 
+  /**
+   * Projection and raycasting read the camera's world matrices, which three.js refreshes only
+   * when rendering: bring size and matrices up to date first (e.g. right after fit(), before the
+   * first frame has rendered).
+   */
+  private syncCamera(): void {
+    this.resize();
+    this.camera.updateMatrixWorld();
+  }
+
+  private sizeW = 0;
+  private sizeH = 0;
+
+  /**
+   * Match the camera to the canvas's current layout size. The scene can be created before the
+   * new canvas is laid out (size 0), and the ResizeObserver reports later: every projection,
+   * pick and render checks first, so none uses a stale aspect.
+   */
   private resize(): void {
     const r = this.canvas.getBoundingClientRect();
     if (r.width === 0 || r.height === 0) return;
+    if (r.width === this.sizeW && r.height === this.sizeH) return;
+    this.sizeW = r.width;
+    this.sizeH = r.height;
     this.renderer.setSize(r.width, r.height, false);
     this.camera.aspect = r.width / r.height;
     this.camera.updateProjectionMatrix();
@@ -574,6 +597,7 @@ export class Scene3D {
   }
 
   private render(): void {
+    this.resize();
     this.dirty = false;
     this.renderer.render(this.scene, this.camera);
   }
