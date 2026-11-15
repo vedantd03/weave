@@ -36,7 +36,11 @@ WINDOW = 5      # detection smoothing (position)
 VY_WINDOW = 3   # lateral speed for the peak (central difference)
 MIN_DISP_M = 1.0
 EPISODE_Q = 0.85
-MIN_EPISODES = 30
+SMALL_SAMPLE = 30
+# Per-class source of maxSpeedMps (user decision): "own" = this class's p85 of fully observed
+# episode peaks (provenance derived); otherwise the class whose value is borrowed (assumption).
+SOURCE = {"motorcycle": "own", "car": "own", "auto": "own", "bus": "own",
+          "truck": "bus", "lcv": "car"}
 
 
 def sg_weights(window: int, deriv: int, dt: float = DT_S) -> np.ndarray:
@@ -133,7 +137,8 @@ def _moving_parts(moving: np.ndarray) -> list[tuple[int, int]]:
 
 
 def episodes(t: np.ndarray, y: np.ndarray, delta: float, window: int = WINDOW,
-             min_disp: float = MIN_DISP_M, sigma_y: float | None = None) -> tuple[list[dict], int]:
+             min_disp: float = MIN_DISP_M, sigma_y: float | None = None,
+             excluded: list | None = None) -> tuple[list[dict], int]:
     """Episodes in one contiguous stretch. Returns (episodes, n_excluded_at_edges).
 
     Runs between turning points are split at dwells (|vy₅| < dwell_speed for ≥ 2 s); a part with |Δy| ≥ min_disp is an episode if it is fully observed
@@ -158,6 +163,10 @@ def episodes(t: np.ndarray, y: np.ndarray, delta: float, window: int = WINDOW,
                 continue
             if a2 < SETTLE_SAMPLES or b2 > n - 1 - SETTLE_SAMPLES:
                 edge += 1
+                if excluded is not None:
+                    ip = a2 + int(np.argmax(np.abs(vy[a2:b2 + 1])))
+                    excluded.append({"peak": float(np.max(np.abs(vy[a2:b2 + 1]))), "peak_index": ip,
+                                     "n": n, "dist_to_end": int(min(ip, n - 1 - ip))})
                 continue
             frac = (ys[a2:b2 + 1] - ys[a2]) / disp
             i10 = a2 + int(np.argmax(frac >= 0.1))
@@ -168,7 +177,11 @@ def episodes(t: np.ndarray, y: np.ndarray, delta: float, window: int = WINDOW,
     return out, edge
 
 
-def all_episodes(df: pd.DataFrame, delta: float, sigma_y: float) -> tuple[pd.DataFrame, int]:
+def all_episodes(df: pd.DataFrame, delta: float, sigma_y: float,
+                 excluded: list | None = None) -> tuple[pd.DataFrame, int]:
+    """All fully observed episodes. If `excluded` is a list, partly observed ones are appended
+    to it with their peak, the peak's distance (samples) to the nearest end of its stretch, and
+    whether that stretch end is also an end of the vehicle's trajectory."""
     rows, edge = [], 0
     d = df.sort_values(["key", "t"])
     for key, g in d.groupby("key", sort=False):
@@ -181,8 +194,16 @@ def all_episodes(df: pd.DataFrame, delta: float, sigma_y: float) -> tuple[pd.Dat
             m = (sid == s_) & ok
             if m.sum() < WINDOW:
                 continue
-            eps, e = episodes(t[m], y[m], delta, sigma_y=sigma_y)
+            ex: list = []
+            eps, e = episodes(t[m], y[m], delta, sigma_y=sigma_y, excluded=ex)
             edge += e
+            if excluded is not None:
+                idx = np.flatnonzero(m)
+                for x in ex:
+                    near_start = x["peak_index"] <= x["n"] - 1 - x["peak_index"]
+                    x["trajectory_end"] = bool(idx[0] == 0 if near_start else idx[-1] == len(t) - 1)
+                    x["cls"] = g["cls"].iloc[0]
+                    excluded.append(x)
             for ep in eps:
                 ep["key"] = key
                 ep["cls"] = g["cls"].iloc[0]
@@ -206,11 +227,15 @@ def sg_peak_gain(duration_s: float, window: int = VY_WINDOW, dt: float = DT_S) -
     return est / (2.0 / tau)
 
 
-def summarise(ep: pd.DataFrame, classes: list[str]) -> dict:
-    """Per class: episode count, mean |displacement|, mean durations, peak percentiles; the
-    chosen maxSpeedMps (p85) or the pooled p85 when < MIN_EPISODES (provenance assumption)."""
+def summarise(ep: pd.DataFrame, classes: list[str], source: dict[str, str] | None = None) -> dict:
+    """Per class: episode count, mean |displacement|, mean durations, peak percentiles, and
+    maxSpeedMps from the explicit per-class `source` mapping (default SOURCE): "own" → this
+    class's p85 (derived, flagged small_sample if < SMALL_SAMPLE episodes); another class id →
+    that class's value (assumption). If the source class has no episodes, value is None and the
+    caller must fall back; a borrowed class that itself borrows is an error."""
+    source = source or SOURCE
     pooled = {f"p{q}": float(np.quantile(ep["peak"], q / 100)) for q in (75, 85, 95)} if len(ep) else {}
-    out = {"pooled": {"n": int(len(ep)), **pooled}}
+    out: dict = {"pooled": {"n": int(len(ep)), **pooled}}
     for c in classes:
         e = ep[ep["cls"] == c] if len(ep) else ep
         r = {"n": int(len(e))}
@@ -219,9 +244,24 @@ def summarise(ep: pd.DataFrame, classes: list[str]) -> dict:
                       "mean_duration_s": float(e["duration"].mean()),
                       "mean_duration_10_90_s": float(e["duration_10_90"].mean()),
                       **{f"p{q}": float(np.quantile(e["peak"], q / 100)) for q in (75, 85, 95)}})
-        own = len(e) >= MIN_EPISODES
-        r["value"] = r["p85"] if own else pooled.get("p85", math.nan)
-        r["provenance"] = "derived" if own else "assumption"
-        r["time_to_cross_3p5m_s"] = 3.5 / r["value"] if r["value"] else math.nan
         out[c] = r
+    for c in classes:
+        r = out[c]
+        src = source.get(c, "own")
+        if src == "own":
+            r["source"] = c
+            if r["n"]:
+                r["value"], r["provenance"] = r["p85"], "derived"
+                r["small_sample"] = r["n"] < SMALL_SAMPLE
+            else:  # no deliberate moves at all: the caller must supply a fallback
+                r["value"], r["provenance"] = None, None
+        else:
+            if source.get(src, "own") != "own":
+                raise ValueError(f"{c} borrows from {src}, which itself borrows")
+            r["source"] = src
+            if out[src]["n"]:
+                r["value"], r["provenance"] = out[src]["p85"], "assumption"
+            else:
+                r["value"], r["provenance"] = None, None
+        r["time_to_cross_3p5m_s"] = 3.5 / r["value"] if r["value"] else None
     return out

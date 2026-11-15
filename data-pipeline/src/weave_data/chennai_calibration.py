@@ -96,7 +96,24 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
     from . import lateral as lat
     ny = position_noise(dfs, "y")
     delta = lat.hysteresis(ny["sigma_x_m"])
-    ep, n_edge = lat.all_episodes(all_df, delta, ny["sigma_x_m"])
+    excl: list = []
+    ep, n_edge = lat.all_episodes(all_df, delta, ny["sigma_x_m"], excluded=excl)
+    ex = pd.DataFrame(excl)
+    if len(ex):
+        both = pd.concat([ep.assign(part="full"), ex.assign(part="partial")], ignore_index=True)
+        edge_art = {
+            "n_partial": int(len(ex)),
+            "share_peak_within_2_samples_of_stretch_end": float((ex["dist_to_end"] <= 1).mean()),
+            "share_peak_at_stretch_end_sample": float((ex["dist_to_end"] == 0).mean()),
+            "share_peak_within_2_samples_of_trajectory_end": float(
+                ((ex["dist_to_end"] <= 1) & ex["trajectory_end"]).mean()),
+            "p85_partial_by_class": {k: float(v) for k, v in ex.groupby("cls")["peak"].quantile(0.85).items()},
+            "p85_partial_peak_not_near_end": {k: float(v) for k, v in
+                                             ex[ex["dist_to_end"] > 1].groupby("cls")["peak"].quantile(0.85).items()},
+            "p85_with_partial_by_class": {k: float(v) for k, v in both.groupby("cls")["peak"].quantile(0.85).items()},
+        }
+    else:
+        edge_art = {"n_partial": 0}
     latsum = lat.summarise(ep, CLASS_ORDER)
     rep["lateral_episodes"] = {
         "sigma_y_m": ny["sigma_x_m"], "hysteresis_m": delta,
@@ -104,7 +121,8 @@ def run(dfs: dict[str, pd.DataFrame]) -> tuple[dict, dict, dict]:
         "sigma_vy_mps": ny["sigma_x_m"] * float(np.linalg.norm(lat.sg_weights(lat.VY_WINDOW, 1))),
         "peak_gain_by_duration": {f"{d}s": lat.sg_peak_gain(d) for d in (3, 4, 5, 6, 8)},
         "peak_gain_5pt_by_duration": {f"{d}s": lat.sg_peak_gain(d, 5) for d in (3, 4, 5, 6, 8)},
-        "excluded_not_fully_observed": n_edge, "summary": latsum}
+        "excluded_not_fully_observed": n_edge, "partial_episode_edge_check": edge_art,
+        "summary": latsum}
 
     # ---- smoothing-window sensitivity of a and b
     win = accel_window_analysis(dfs)
@@ -384,18 +402,34 @@ def _win_range(win: dict, c: str, key: str) -> str:
 
 def _lat_param(latsum: dict, info: dict, c: str, old: float) -> dict:
     r = latsum[c]
+    ea = info.get("partial_episode_edge_check", {})
     common = (f"Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral "
               f"displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis "
               f"{info['hysteresis_m']:.3f} m (4·√2·σ_s, σ_y = {info['sigma_y_m']:.3f} m) ignored, split "
-              f"at pauses ≥ 2 s with |vy| < {info['dwell_speed_mps']:.3f} m/s, fully observed only; speed by 3-point central difference (noise sd "
-              f"{info['sigma_vy_mps']:.3f} m/s). ")
+              f"at pauses ≥ 2 s with |vy| < {info['dwell_speed_mps']:.3f} m/s; speed by 3-point central "
+              f"difference (noise sd {info['sigma_vy_mps']:.3f} m/s). Only fully observed moves are used "
+              "(user decision): a partly observed move's measured peak can only be at or below its true "
+              "peak, so including them should lower p85; that it raises p85 instead points to smoothing "
+              "artefacts at stretch/trajectory ends"
+              + (f" ({100 * ea['share_peak_within_2_samples_of_stretch_end']:.0f}% of the "
+                 f"{ea['n_partial']} partly observed peaks lie within 2 samples of a stretch end)"
+                 if ea.get("n_partial") else "") + ". ")
+    if r["value"] is None:
+        return cal.p(old, "assumption",
+                     f"No deliberate lateral moves detected for {r['source']} (episode rule as for the other "
+                     "classes); fallback: p95 of |position-derived lateral speed| over all clean samples.")
     if r["provenance"] == "derived":
-        txt = (common + f"p85 of {r['n']} episode peaks (p75/p95 = {r['p75']:.2f}/{r['p95']:.2f} m/s); "
-               f"3.5 m at this speed takes {r['time_to_cross_3p5m_s']:.1f} s. Previously "
-               f"{old:.2f} m/s (p95 over all samples, mostly drift).")
+        txt = (common + f"p85 of n = {r['n']} episode peaks"
+               + (" (small sample)" if r.get("small_sample") else "")
+               + f" (p75/p95 = {r['p75']:.2f}/{r['p95']:.2f} m/s); 3.5 m at this speed takes "
+               f"{r['time_to_cross_3p5m_s']:.1f} s. Previously {old:.2f} m/s (p95 over all samples, "
+               "mostly drift).")
     else:
-        txt = (common + f"Only {r['n']} episodes for this class (< 30): pooled p85 over all "
-               f"{latsum['pooled']['n']} episodes used. Previously {old:.2f} m/s.")
+        src = latsum[r["source"]]
+        txt = (common + f"Only n = {r['n']} episodes for this class, too few (user decision): the "
+               f"{r['source']} value ({src['p85']:.3f} m/s, p85 of {src['n']} episodes) is used"
+               + (f"; this class's own p85 would be {r['p85']:.3f} m/s" if r["n"] else "")
+               + f". Previously {old:.2f} m/s.")
     return cal.p(r["value"], r["provenance"], txt)
 
 

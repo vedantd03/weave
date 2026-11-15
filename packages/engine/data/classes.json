@@ -72,7 +72,7 @@
     "maxSpeedMps": {
      "value": 0.856,
      "provenance": "derived",
-     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s, fully observed only; speed by 3-point central difference (noise sd 0.020 m/s). p85 of 552 episode peaks (p75/p95 = 0.74/1.12 m/s); 3.5 m at this speed takes 4.1 s. Previously 0.57 m/s (p95 over all samples, mostly drift)."
+     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s; speed by 3-point central difference (noise sd 0.020 m/s). Only fully observed moves are used (user decision): a partly observed move's measured peak can only be at or below its true peak, so including them should lower p85; that it raises p85 instead points to smoothing artefacts at stretch/trajectory ends (26% of the 1690 partly observed peaks lie within 2 samples of a stretch end). p85 of n = 552 episode peaks (p75/p95 = 0.74/1.12 m/s); 3.5 m at this speed takes 4.1 s. Previously 0.57 m/s (p95 over all samples, mostly drift)."
     },
     "politeness": {
      "value": 0.2,
@@ -205,7 +205,7 @@
     "maxSpeedMps": {
      "value": 0.775,
      "provenance": "derived",
-     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s, fully observed only; speed by 3-point central difference (noise sd 0.020 m/s). p85 of 145 episode peaks (p75/p95 = 0.71/0.99 m/s); 3.5 m at this speed takes 4.5 s. Previously 0.46 m/s (p95 over all samples, mostly drift)."
+     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s; speed by 3-point central difference (noise sd 0.020 m/s). Only fully observed moves are used (user decision): a partly observed move's measured peak can only be at or below its true peak, so including them should lower p85; that it raises p85 instead points to smoothing artefacts at stretch/trajectory ends (26% of the 1690 partly observed peaks lie within 2 samples of a stretch end). p85 of n = 145 episode peaks (p75/p95 = 0.71/0.99 m/s); 3.5 m at this speed takes 4.5 s. Previously 0.46 m/s (p95 over all samples, mostly drift)."
     },
     "politeness": {
      "value": 0.2,
@@ -294,7 +294,7 @@
     "maxSpeedMps": {
      "value": 0.634,
      "provenance": "derived",
-     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s, fully observed only; speed by 3-point central difference (noise sd 0.020 m/s). p85 of 81 episode peaks (p75/p95 = 0.57/0.86 m/s); 3.5 m at this speed takes 5.5 s. Previously 0.37 m/s (p95 over all samples, mostly drift)."
+     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s; speed by 3-point central difference (noise sd 0.020 m/s). Only fully observed moves are used (user decision): a partly observed move's measured peak can only be at or below its true peak, so including them should lower p85; that it raises p85 instead points to smoothing artefacts at stretch/trajectory ends (26% of the 1690 partly observed peaks lie within 2 samples of a stretch end). p85 of n = 81 episode peaks (p75/p95 = 0.57/0.86 m/s); 3.5 m at this speed takes 5.5 s. Previously 0.37 m/s (p95 over all samples, mostly drift)."
     },
     "politeness": {
      "value": 0.2,
@@ -425,9 +425,9 @@
    },
    "lateral": {
     "maxSpeedMps": {
-     "value": 0.817,
-     "provenance": "assumption",
-     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s, fully observed only; speed by 3-point central difference (noise sd 0.020 m/s). Only 18 episodes for this class (< 30): pooled p85 over all 803 episodes used. Previously 0.36 m/s."
+     "value": 0.613,
+     "provenance": "derived",
+     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s; speed by 3-point central difference (noise sd 0.020 m/s). Only fully observed moves are used (user decision): a partly observed move's measured peak can only be at or below its true peak, so including them should lower p85; that it raises p85 instead points to smoothing artefacts at stretch/trajectory ends (26% of the 1690 partly observed peaks lie within 2 samples of a stretch end). p85 of n = 18 episode peaks (small sample) (p75/p95 = 0.56/0.72 m/s); 3.5 m at this speed takes 5.7 s. Previously 0.36 m/s (p95 over all samples, mostly drift)."
     },
     "politeness": {
      "value": 0.2,
@@ -558,9 +558,9 @@
    },
    "lateral": {
     "maxSpeedMps": {
-     "value": 0.817,
+     "value": 0.613,
      "provenance": "assumption",
-     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s, fully observed only; speed by 3-point central difference (noise sd 0.020 m/s). Only 1 episodes for this class (< 30): pooled p85 over all 803 episodes used. Previously 0.41 m/s."
+     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s; speed by 3-point central difference (noise sd 0.020 m/s). Only fully observed moves are used (user decision): a partly observed move's measured peak can only be at or below its true peak, so including them should lower p85; that it raises p85 instead points to smoothing artefacts at stretch/trajectory ends (26% of the 1690 partly observed peaks lie within 2 samples of a stretch end). Only n = 1 episodes for this class, too few (user decision): the bus value (0.613 m/s, p85 of 18 episodes) is used; this class's own p85 would be 0.599 m/s. Previously 0.41 m/s."
     },
     "politeness": {
      "value": 0.2,
@@ -691,9 +691,9 @@
    },
    "lateral": {
     "maxSpeedMps": {
-     "value": 0.817,
+     "value": 0.775,
      "provenance": "assumption",
-     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s, fully observed only; speed by 3-point central difference (noise sd 0.020 m/s). Only 6 episodes for this class (< 30): pooled p85 over all 803 episodes used. Previously 0.45 m/s."
+     "note": "Peak |lateral speed| of deliberate lateral moves: episodes = monotonic lateral displacement ≥ 1 m on 5-point SG smoothed position, reversals below the hysteresis 0.056 m (4·√2·σ_s, σ_y = 0.014 m) ignored, split at pauses ≥ 2 s with |vy| < 0.036 m/s; speed by 3-point central difference (noise sd 0.020 m/s). Only fully observed moves are used (user decision): a partly observed move's measured peak can only be at or below its true peak, so including them should lower p85; that it raises p85 instead points to smoothing artefacts at stretch/trajectory ends (26% of the 1690 partly observed peaks lie within 2 samples of a stretch end). Only n = 6 episodes for this class, too few (user decision): the car value (0.775 m/s, p85 of 145 episodes) is used; this class's own p85 would be 0.702 m/s. Previously 0.45 m/s."
     },
     "politeness": {
      "value": 0.2,

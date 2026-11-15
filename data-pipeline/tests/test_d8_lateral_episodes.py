@@ -5,6 +5,7 @@ import math
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from weave_data import lateral as L
 
@@ -80,13 +81,44 @@ def test_turning_points_hysteresis():
     assert L.turning_points(y, 0.2) == [0, 3, 7]
 
 
-def test_summary_borrows_pooled_value_below_min_episodes():
-    ep = pd.DataFrame({"cls": ["motorcycle"] * 40 + ["bus"] * 5,
-                       "peak": np.r_[np.linspace(0.5, 1.0, 40), np.full(5, 0.4)],
+def test_summary_explicit_per_class_mapping():
+    # user decision: own p85 for motorcycle, car, auto, bus (bus even below 30 episodes);
+    # truck borrows bus, lcv borrows car, both labelled 'assumption'
+    rng = np.random.default_rng(3)
+    n = {"motorcycle": 60, "car": 40, "auto": 35, "bus": 18, "truck": 1, "lcv": 6}
+    peaks = {c: rng.uniform(0.3, 1.2, k) for c, k in n.items()}
+    ep = pd.DataFrame({"cls": np.concatenate([[c] * k for c, k in n.items()]),
+                       "peak": np.concatenate(list(peaks.values())),
                        "disp": 1.5, "duration": 6.0, "duration_10_90": 4.0})
-    s = L.summarise(ep, ["motorcycle", "bus"])
-    assert s["motorcycle"]["provenance"] == "derived"
-    assert s["motorcycle"]["value"] == np.quantile(np.linspace(0.5, 1.0, 40), 0.85)
-    assert s["bus"]["provenance"] == "assumption"
-    assert s["bus"]["value"] == s["pooled"]["p85"]
-    assert s["motorcycle"]["time_to_cross_3p5m_s"] == 3.5 / s["motorcycle"]["value"]
+    s = L.summarise(ep, list(n))
+    for c in ("motorcycle", "car", "auto", "bus"):
+        assert s[c]["provenance"] == "derived"
+        assert s[c]["value"] == np.quantile(peaks[c], 0.85)
+        assert s[c]["n"] == n[c]
+    assert s["bus"]["small_sample"] and not s["car"]["small_sample"]
+    assert s["truck"]["provenance"] == "assumption" and s["truck"]["value"] == np.quantile(peaks["bus"], 0.85)
+    assert s["lcv"]["provenance"] == "assumption" and s["lcv"]["value"] == np.quantile(peaks["car"], 0.85)
+    for c in n:
+        assert s[c]["time_to_cross_3p5m_s"] == 3.5 / s[c]["value"]
+
+
+def test_summary_missing_source_and_chained_mapping():
+    ep = pd.DataFrame({"cls": ["car"] * 3, "peak": [0.5, 0.6, 0.7], "disp": 1.5,
+                       "duration": 6.0, "duration_10_90": 4.0})
+    # a class whose source has no episodes gets no value (the caller falls back), not a guess
+    s = L.summarise(ep, ["car", "bus", "truck"], {"car": "own", "bus": "own", "truck": "bus"})
+    assert s["bus"]["value"] is None and s["truck"]["value"] is None
+    assert s["car"]["value"] == np.quantile([0.5, 0.6, 0.7], 0.85)
+    with pytest.raises(ValueError):
+        L.summarise(ep, ["car", "bus", "lcv"], {"car": "own", "bus": "lcv", "lcv": "car"})  # chain
+
+
+def test_partly_observed_moves_are_excluded_and_reported():
+    # a move that runs into the end of the stretch is not used, but is reported with its peak
+    sigma = 0.03
+    t = np.arange(0.0, 30.0, DT)
+    y = 3.0 + raised_cosine_move(t, 24.0, 2.0, 6.0) + np.random.default_rng(1).normal(0, sigma, len(t))
+    ex = []
+    eps, edge = L.episodes(t, y, L.hysteresis(sigma), sigma_y=sigma, excluded=ex)
+    assert eps == [] and edge == 1 and len(ex) == 1
+    assert ex[0]["dist_to_end"] == min(ex[0]["peak_index"], len(t) - 1 - ex[0]["peak_index"])
