@@ -156,6 +156,17 @@ const BOX_QUEUE_SPEED = 2;
 const REGION_M = 50;
 
 /** A movement's band cannot be wider than the movement itself (§2.2). */
+/**
+ * Band miss (§2.2): 0 when a body of `width` centred at `y` fits band `b`. A body no wider than the
+ * band must lie inside it; a wider body must cover it.
+ */
+function bandMiss(y: number, width: number, b: readonly [number, number]): number {
+  const lo = y - width / 2;
+  const hi = y + width / 2;
+  if (width <= b[1] - b[0] + EPS) return Math.max(0, b[0] - lo) + Math.max(0, hi - b[1]);
+  return Math.max(0, lo - b[0]) + Math.max(0, b[1] - hi);
+}
+
 function effBand(m: Segment): [number, number] {
   const b0 = m.fromLateral[0];
   const b1 = Math.min(m.fromLateral[1], b0 + m.widthM);
@@ -732,9 +743,7 @@ class SimImpl implements Sim {
       if (!nx) break;
       const nseg = this.segs[nx.seg]!;
       if (seg.kind === 'link' && nseg.kind === 'movement') {
-        const half = width / 2;
-        const band = effBand(nseg);
-        if (yy - half < band[0] - EPS || yy + half > band[1] + EPS) {
+        if (bandMiss(yy, width, effBand(nseg)) > EPS) {
           // Lane-band rule: the link end is a standing obstacle.
           if (off < bestRear) {
             bestRear = off;
@@ -996,12 +1005,8 @@ class SimImpl implements Sim {
       const route = this.routes[st.route[k]!]!;
       const nx = seg.kind === 'link' ? this.nextSeg(route, st.rpos[k]!) : null;
       const m = nx ? this.segs[nx.seg]! : null;
-      const half = st.wid[k]! / 2;
       const y = st.y[k]!;
-      const outside = (mv: Segment) => {
-        const b = effBand(mv);
-        return Math.max(0, b[0] - (y - half)) + Math.max(0, y + half - b[1]);
-      };
+      const outside = (mv: Segment) => bandMiss(y, st.wid[k]!, effBand(mv));
       const atEnd = m !== null && m.kind === 'movement' && seg.length - st.s[k]! < st.s0[k]! + 1 && st.v[k]! < 0.1 && outside(m) > EPS;
       if (!atEnd) {
         st.stuck[k] = 0;
@@ -1156,7 +1161,7 @@ class SimImpl implements Sim {
       // Band-seeking moves (towards the next movement's band) need only the body inside the
       // road: edge clearance yields when the band requires it (wide vehicle, narrow movement).
       const nb = this.nextBand(k);
-      const bandDist = (yy: number) => (nb ? Math.max(0, nb[0] - (yy - width / 2)) + Math.max(0, yy + width / 2 - nb[1]) : 0);
+      const bandDist = (yy: number) => (nb ? bandMiss(yy, width, nb) : 0);
       const dNow = bandDist(y);
       for (let j = -J; j <= J; j++) {
         if (j === 0) continue;
@@ -1174,7 +1179,7 @@ class SimImpl implements Sim {
     const band = nx && this.segs[nx.seg]!.kind === 'movement' ? effBand(this.segs[nx.seg]!) : null;
     const dEnd = seg.length - st.s[k]!;
     const dist = (yy: number) =>
-      band ? Math.max(0, band[0] - (yy - width / 2)) + Math.max(0, yy + width / 2 - band[1]) : 0;
+      band ? bandMiss(yy, width, band) : 0;
     const beta = Math.min(1, 200 / Math.max(dEnd, 1));
     const distNow = dist(y);
     const threshold = distNow > 0 && dEnd < WAIVER_M ? 0 : cls.lateral.thresholdMps2.value;
@@ -1687,8 +1692,13 @@ class SimImpl implements Sim {
     // Band of the route's next movement: candidates inside it are preferred (§2.3).
     const nx = this.nextSeg(route, 0);
     const band = nx && this.segs[nx.seg]!.kind === 'movement' ? effBand(this.segs[nx.seg]!) : null;
-    const inBand = (y: number) =>
-      !band || (y - p.width / 2 >= band[0] - EPS && y + p.width / 2 <= band[1] + EPS);
+    const inBand = (y: number) => !band || bandMiss(y, p.width, band) <= EPS;
+    // Band-centred candidate (§2.3, strip mode): when no clearance-respecting candidate fits the
+    // band, try the band centre, body allowed up to the road edges.
+    if (band && !this.lane && !ys.some(inBand)) {
+      const yc = p.width <= W ? Math.min(Math.max((band[0] + band[1]) / 2, p.width / 2), W - p.width / 2) : W / 2;
+      if (!ys.some((y) => Math.abs(y - yc) <= EPS)) ys.push(yc);
+    }
     // If any candidate fits the band, only in-band candidates are allowed (§2.3).
     const bandOnly = band !== null && ys.some(inBand);
     for (const y of ys) {
