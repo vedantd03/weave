@@ -21,6 +21,9 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { PRESETS, createSim, defaultClasses } from '@weave/engine';
 
+/** §6.3 item 1: the app now opens playing; tests that need a fixed, paused start add ?autoplay=0. */
+const paused = (url: string) => url + (url.includes('?') ? '&' : '?') + 'autoplay=0';
+
 type Counters = { generated: number; exited: number; onNetwork: number; entryQueue: number };
 interface WeaveTestHook {
   load(presetId: string, seed: number): Promise<void>;
@@ -44,7 +47,7 @@ function watchErrors(page: Page): string[] {
 }
 
 async function openCorridor(page: Page, url = '/'): Promise<void> {
-  await page.goto(url);
+  await page.goto(paused(url));
   await page.getByRole('combobox', { name: 'Scenario' }).selectOption('corridor-lanedrop');
   await expect(page.getByTestId('sim-canvas')).toBeVisible();
 }
@@ -190,7 +193,7 @@ test('switching the lateral model to lane changes the state and matches Node', a
 
 test('cross-runtime determinism for the corridor preset at several step counts', async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto('/?test=1');
+  await page.goto(paused('/?test=1'));
   await waitHook(page);
   for (const seed of [3, 4242]) {
     await page.evaluate(

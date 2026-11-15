@@ -960,3 +960,114 @@ export function retimedFlyoverScenario(input: SimInput): ScenarioInput  // flyov
 
 Every value carries a provenance of `derived`, `proxy` or `assumption`. See VALIDATION.md for
 how each was obtained.
+
+## 6. App (revision 3)
+
+### 6.1 Frame record (protocol, engine `writeFrame`)
+`FRAME_STRIDE = 11`. Records are written in vehicle-id order, the same order as `vehicles()`.
+Fields, in order (`F_*` constants in `protocol.ts`):
+- `F_X`, `F_Y`, `F_HEADING`, `F_CLASS`, `F_LENGTH`, `F_WIDTH`, `F_LAYER`: unchanged.
+- **`F_SPEED` (7):** the speed v in m/s.
+- **`F_SPEED_RATIO` (8):** `v / min(v0_driver, speedLimit of the current segment)`, clamped to
+  [0, 1]. This is what the speed colour shows: 0 = stopped, 1 = free flow.
+- **`F_Z` (9):** the elevation of the vehicle's centre in m. It is used for rendering only and
+  never enters the physics.
+  - **On a link:** z is linear in arc length, from `zFromM` at s = 0 to `zToM` at s = L.
+  - **On a movement:** z is linear in arc length, from the fromLink's `zToM` to the toLink's
+    `zFromM`.
+  - **Position:** z is evaluated at the same centre point as x and y (`s − length/2`).
+- **`F_SEG` (10):** the index of the segment the vehicle's front is on. Index
+  `i < links.length` means `network.links[i]`; otherwise it means
+  `network.movements[i − links.length]`.
+
+### 6.2 Run summary and per-link statistics (engine `stats/summary.ts`)
+```ts
+export function runSummary(sim: Sim, warmupS: number): Record<MetricId, number>
+export function segmentStats(sim: Sim): SegmentStat[]
+interface SegmentStat {
+  id: string; kind: 'link' | 'movement'; lengthM: number; widthM: number;
+  entered: number; exited: number; vehicleKm: number; vehicleHours: number;
+  meanSpeedKmh: number;      // vehicleKm / vehicleHours (NaN when vehicleHours = 0)
+  meanDensityPerKm: number;  // vehicleHours / (lengthM/1000 · t/3600)  (Edie, over [0, t])
+  meanFlowVph: number;       // vehicleKm / (lengthM/1000 · t/3600)   (Edie, over [0, t]); = density × speed
+  onNow: number; guardActivations: number
+}
+```
+- **`runSummary`:** the §5.2 metrics evaluated at the sim's current time t instead of
+  `durationS`. The window is `[warmupS, t]`, and "unfinished" means unfinished at t.
+  - `runReplicate(input, seed)` equals `runSummary` of a sim advanced to `durationS`, exactly.
+  - `queueGrowing` uses the midpoint of `[warmupS, t]`, with m rounded down to a whole step as
+    in §5.2. The sim records the entry queue after every step: `queueAt(step)` returns
+    `counters().entryQueue` as it was right after that step, and 0 at step 0 before any
+    generation. So the rule is exact at any t, and `runReplicate`'s rule is unchanged.
+- **`vehicleKm` per segment:** the sum of the front displacement `ds` while the front is on the
+  segment (the same quantity as `diagnostics().vehicleKm`, split by segment). Summed over all
+  segments, it equals `diagnostics().vehicleKm`.
+- **`vehicleHours`:** `linkStats().vehicleSeconds / 3600`.
+
+### 6.3 App behaviour
+1. **Opens running.** The app opens on the **4-arm junction with flyover** preset
+   (`junction4-flyover`), loaded and playing, with no empty state. On this default open, the
+   preset's warm-up (`warmupS`) is run first, so the network is already busy when it appears:
+   the app opens at t = warmupS and plays from there. `?preset=<id>` opens another preset the
+   same way. `?autoplay=0` loads the preset but leaves it paused (used by tests that need a fixed
+   start).
+2. **Colour by.** A two-option control "Colour by" (Class / Speed), shown over the map, sets the
+   vehicle colour in both 2D and 3D.
+   - **Class:** the existing class palette.
+   - **Speed:** a continuous ramp over `F_SPEED_RATIO`: red at 0 (stopped), amber at 0.5,
+     green at 1 (free flow).
+   - **Legend:** a legend for the active mode is always shown on the map
+     (`data-testid="legend"`). Class mode shows a swatch and name per class. Speed mode shows
+     a gradient bar labelled "Stopped" and "Free flow".
+3. **Experiments summary and chart.** After a run, a plain-English summary sits above the
+   results table (`data-testid="experiment-summary"`).
+   - **What it says:** the number of seeds; the mean delay with its 95% CI; gridlocked and
+     queue-growing runs, if any; and, when there is a variant, which variant reduced or
+     increased mean delay, by how much and with what CI. A difference whose CI includes 0 is
+     described as "no clear difference".
+   - **Chart:** with a variant, a small chart (`data-testid="diff-chart"`, `role="img"`, with
+     an aria-label) shows the paired difference of each key metric as a percentage of the
+     base mean, with its 95% CI as a whisker, around a zero line. The key metrics are mean
+     delay (all trips), mean travel time, throughput and mean speed.
+4. **3D view.** A "2D / 3D" toggle sits beside the colour control.
+   - **Loading:** 3D loads three.js with a dynamic `import()` only when it is first opened,
+     and three.js is never in the initial bundle.
+   - **Geometry:** roads follow their z-profiles (§6.1), and decks and ramps are visibly
+     raised, with pillars under elevated links.
+   - **Vehicles:** instanced boxes sized by the frame's length and width and a class height,
+     in the same colours as 2D.
+   - **Controls:** orbit, pan, zoom and touch.
+   - **Class heights (rendering assumption):** motorcycle 1.4 m, car 1.5, auto 1.7, LCV 2.2,
+     bus 3.0, truck 3.2.
+   - **Failure:** if WebGL is unavailable, the 3D toggle shows a message and the view stays
+     2D.
+5. **Map inspection (2D).** Hovering (mouse) or tapping (touch) on a vehicle or road shows an
+   info card (`data-testid="inspect-card"`) and highlights the selection.
+   - **Vehicle card:** class, speed in km/h, the segment id it is on, and length × width.
+   - **Road card:** link or movement id, width, lanes (links), speed limit, and the vehicles
+     on it now, with their mean speed.
+   - **Dismissing:** Escape or a tap on empty ground clears it.
+6. **Export run.** An "Export run" button is enabled only when the run is paused or stopped
+   and t > 0. It downloads one JSON file, `weave-run-<presetId|scenario.id>-seed<seed>-t<t>.json`,
+   with this content:
+   - **`manifest`:**
+     - `buildSha`;
+     - `engineVersion` (the engine package version);
+     - `schemaVersion` (the scenario and classes `version`);
+     - `classesHash` (SHA-256 hex of the canonical classes JSON sent to the worker);
+     - `seed`;
+     - `simulatedTimeS`;
+     - `finalStateHash`;
+     - `exportedAt` (ISO 8601).
+   - **`scenario`:** the full scenario as run.
+   - **`metrics`:** `runSummary(sim, warmupS)`.
+   - **`series`:** the 1-minute rows.
+   - **`links`:** `segmentStats`.
+   - **`diagnostics`:**
+     - `guardActivations`, `vehicleKm`, `guardPer1000VehKm` and `guardBySegment`;
+     - `lockedJunctions`: `[{ node, sinceS }]`;
+     - `reroutes` and `diversions`.
+   - **Determinism:** the export of a run equals, field for field (apart from `exportedAt` and
+     `buildSha`), what Node computes for the same scenario, seed and step count.
+

@@ -18,6 +18,9 @@
 import { expect, test, type Page } from '@playwright/test';
 import { PRESETS, createSim, defaultClasses, retimedFlyoverScenario, runReplicate } from '@weave/engine';
 
+/** §6.3 item 1: the app now opens playing; tests that need a fixed, paused start add ?autoplay=0. */
+const paused = (url: string) => url + (url.includes('?') ? '&' : '?') + 'autoplay=0';
+
 type Rep = { seed: number; metrics: Record<string, number> };
 type Hook = {
   runExperiment(o: { replications: number; compare: string }): Promise<unknown>;
@@ -34,7 +37,7 @@ function watchErrors(page: Page): string[] {
   return errors;
 }
 async function open(page: Page, preset: string, url = '/') {
-  await page.goto(url);
+  await page.goto(paused(url));
   await page.getByRole('combobox', { name: 'Scenario' }).selectOption(preset);
   await page.getByRole('tab', { name: 'Experiments' }).or(page.getByRole('button', { name: 'Experiments', exact: true })).first().click();
   await expect(page.getByRole('button', { name: 'Run experiment' })).toBeVisible();

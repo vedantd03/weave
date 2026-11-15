@@ -18,6 +18,9 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { Network, PRESETS, createSim, cycleLength, defaultClasses, signalState } from '@weave/engine';
 
+/** §6.3 item 1: the app now opens playing; tests that need a fixed, paused start add ?autoplay=0. */
+const paused = (url: string) => url + (url.includes('?') ? '&' : '?') + 'autoplay=0';
+
 type Counters = { generated: number; exited: number; onNetwork: number; entryQueue: number };
 type Hook = {
   load(id: string, seed: number): Promise<void>;
@@ -50,7 +53,7 @@ async function waitHook(page: Page) {
   await page.waitForFunction(() => Boolean((window as unknown as { weaveTest?: unknown }).weaveTest), undefined, { timeout: 15_000 });
 }
 async function open(page: Page, preset: string, url = '/') {
-  await page.goto(url);
+  await page.goto(paused(url));
   await page.getByRole('combobox', { name: 'Scenario' }).selectOption(preset);
   await expect(page.getByTestId('sim-canvas')).toBeVisible();
 }
@@ -102,7 +105,7 @@ for (const id of ['junction4-signal', 'junction4-flyover', 'merge-onramp', 'silk
 
 test('signal colours follow the plan (browser vs Node signalState)', async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto('/?test=1');
+  await page.goto(paused('/?test=1'));
   await waitHook(page);
   const seed = JUNCTION.seed;
   await hLoad(page, 'junction4-signal', seed);
@@ -153,7 +156,7 @@ test('toggling Flyover redraws the junction preview', async ({ page }) => {
 
 test('Silk Board: 300 steps give the same state hash in the browser and in Node', async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto('/?test=1');
+  await page.goto(paused('/?test=1'));
   await waitHook(page);
   const silk = PRESETS['silkboard']!;
   const json = await (await page.request.get('/data/silkboard.json')).json();

@@ -107,7 +107,7 @@ describe('contract: classes and scenario', () => {
   });
 
   it('frames carry vehicle length in every record', () => {
-    expect(FRAME_STRIDE).toBe(7);
+    expect(FRAME_STRIDE).toBe(11); // §6.1 (revision 3): 7 original fields + speed, speed ratio, z, segment
     expect(F_LENGTH).toBeLessThan(FRAME_STRIDE);
   });
 });

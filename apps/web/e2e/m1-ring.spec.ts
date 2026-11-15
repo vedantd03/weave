@@ -13,6 +13,9 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { PRESETS, createSim, defaultClasses } from '@weave/engine';
 
+/** §6.3 item 1: the app now opens playing; tests that need a fixed, paused start add ?autoplay=0. */
+const paused = (url: string) => url + (url.includes('?') ? '&' : '?') + 'autoplay=0';
+
 interface WeaveTestHook {
   load(presetId: string, seed: number): Promise<void>;
   advance(steps: number): Promise<{ hash: string; t: number; count: number }>;
@@ -43,7 +46,7 @@ async function simTime(page: Page): Promise<{ value: number; decimals: number }>
 }
 
 async function openRing(page: Page, url = '/'): Promise<void> {
-  await page.goto(url);
+  await page.goto(paused(url));
   await page.getByRole('combobox', { name: 'Scenario' }).selectOption('ring-demo');
   await expect(page.getByTestId('sim-canvas')).toBeVisible();
   // The ring has no demand: its vehicle count is fixed by initial placement (MODEL.md §1.7).
@@ -153,7 +156,7 @@ test('ring demo: Step advances exactly one dt', async ({ page }) => {
 
 test('cross-runtime determinism: browser state hash equals the Node engine hash', async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto('/?test=1');
+  await page.goto(paused('/?test=1'));
   await page.waitForFunction(() => Boolean((window as unknown as { weaveTest?: unknown }).weaveTest), undefined, {
     timeout: 15_000,
   });
