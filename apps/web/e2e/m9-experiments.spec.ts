@@ -5,14 +5,13 @@
  *
  * Selector contract (assumptions, flagged in the report):
  *  - radio group "Experiment type" with radios Replicate / Compare / Sweep;
- *  - number inputs "Replications", "Duration (min)", "Warm-up (min)"; sweep: select "Parameter",
+ *  - number inputs "Replications", "Duration per run (min)", "Warm-up per run (min)"; sweep: select "Parameter",
  *    number inputs "From", "To", "Steps";
- *  - buttons "Set as baseline", "Add as variant" (its name comes from window.prompt or a textbox
- *    "Variant name"), "Flyover off", "Run experiment", "Cancel", "Export JSON", "Export CSV",
+ *  - buttons "Set as baseline", "Add as variant" (takes its name from the textbox "Variant name"), "Flyover on (same timings)", "Run experiment", "Cancel", "Export JSON", "Export CSV",
  *    "Import"; history entries have buttons "Open" and "Delete";
  *  - test ids experiment-estimate, experiment-progress, experiment-summary, compare-chart,
- *    sweep-chart, history-list; the sweep per-point table is a table whose name mentions
- *    "points"; a paired difference row contains the word "paired".
+ *    sweep-chart, history-list; the sweep per-point table is a table named
+ *    "Sweep points"; a paired difference row contains the word "paired".
  */
 import { expect, test, type Page } from '@playwright/test';
 import { ExperimentFile, PRESETS } from '@weave/engine';
@@ -40,12 +39,12 @@ async function chooseType(page: Page, type: 'Replicate' | 'Compare' | 'Sweep') {
 }
 async function smallRun(page: Page, reps = 2) {
   await page.getByLabel('Replications', { exact: true }).fill(String(reps));
-  await page.getByLabel('Duration (min)', { exact: true }).fill('5');
-  await page.getByLabel('Warm-up (min)', { exact: true }).fill('1');
+  await page.getByLabel('Duration per run (min)', { exact: true }).fill('5');
+  await page.getByLabel('Warm-up per run (min)', { exact: true }).fill('1');
 }
 async function runToEnd(page: Page) {
   await page.getByRole('button', { name: 'Run experiment' }).click();
-  await expect(page.getByTestId('experiment-progress')).toContainText(/(\d+) \/ \1/, { timeout: 240_000 });
+  await expect(page.getByTestId('experiment-progress')).toContainText(/([1-9]\d*) \/ \1/, { timeout: 240_000 });
   await expect(page.getByTestId('experiment-summary')).toBeVisible();
 }
 async function download(page: Page, button: string): Promise<{ text: string; path: string }> {
@@ -61,20 +60,31 @@ async function setDemand(page: Page, v: number) {
   await page.getByRole('button', { name: 'Apply', exact: true }).click();
 }
 async function addVariant(page: Page, name: string) {
-  page.once('dialog', (d) => void d.accept(name));
+  await page.getByRole('textbox', { name: 'Variant name' }).fill(name);
   await page.getByRole('button', { name: 'Add as variant', exact: true }).click();
-  const box = page.getByRole('textbox', { name: 'Variant name' });
-  if (await box.isVisible().catch(() => false)) {
-    await box.fill(name);
-    await box.press('Enter');
-  }
 }
-const csvRows = (text: string) => text.trim().split(/\r?\n/).map((l) => l.split(','));
+/** RFC 4180 rows: quoted fields may contain commas and doubled quotes (labels are quoted). */
+function csvRows(text: string): string[][] {
+  return text.trim().split(/\r?\n/).map((line) => {
+    const out: string[] = [];
+    let cur = '';
+    let q = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i]!;
+      if (q && c === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+      else if (c === '"') q = !q;
+      else if (c === ',' && !q) { out.push(cur); cur = ''; }
+      else cur += c;
+    }
+    out.push(cur);
+    return out;
+  });
+}
 
 test.describe('experiments (§7.4)', () => {
   test.setTimeout(300_000);
 
-  test('Compare: baseline + "More demand" + one-click "Flyover off"; paired differences', async ({ page }) => {
+  test('Compare: baseline + "More demand" + one-click "Flyover on (same timings)"; paired differences', async ({ page }) => {
     const errors = watchErrors(page);
     await openExperiments(page);
     await chooseType(page, 'Compare');
@@ -82,8 +92,10 @@ test.describe('experiments (§7.4)', () => {
     await setDemand(page, 3600);
     await addVariant(page, 'More demand');
     await expect(page.getByText(`Demand ${fmt(DEMAND)} → ${fmt(3600)}`)).toBeVisible();
-    await page.getByRole('button', { name: 'Flyover off', exact: true }).click();
-    await expect(page.getByText('Flyover off').first()).toBeVisible();
+    // one-click variants only offer changes: junction4-signal has no flyover, so "Flyover on (same timings)"
+    await expect(page.getByRole('button', { name: 'Flyover off', exact: true })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Flyover on (same timings)', exact: true }).click();
+    await expect(page.getByText('Flyover off → on').first()).toBeVisible();
     await smallRun(page);
     await runToEnd(page);
     const results = page.getByTestId('experiment-summary').locator('..');
@@ -97,7 +109,7 @@ test.describe('experiments (§7.4)', () => {
     const errors = watchErrors(page);
     await openExperiments(page);
     await chooseType(page, 'Sweep');
-    await page.getByLabel('Parameter', { exact: true }).selectOption({ label: 'Demand scale' });
+    await page.getByRole('combobox', { name: 'Parameter', exact: true }).selectOption({ label: 'Demand scale' });
     await page.getByLabel('From', { exact: true }).fill('0.8');
     await page.getByLabel('To', { exact: true }).fill('1.2');
     await page.getByLabel('Steps', { exact: true }).fill('3');
@@ -105,7 +117,7 @@ test.describe('experiments (§7.4)', () => {
     await expect(page.getByTestId('experiment-estimate')).toContainText(/\b6 runs\b/);
     await runToEnd(page);
     await expect(page.getByTestId('sweep-chart')).toBeVisible();
-    const table = page.getByRole('table', { name: /points/i });
+    const table = page.getByRole('table', { name: 'Sweep points' });
     await expect(table.locator('tbody tr')).toHaveCount(3);
     // seeds: identical at every point (§7.3)
     const csv = csvRows((await download(page, 'Export CSV')).text);
@@ -127,14 +139,16 @@ test.describe('experiments (§7.4)', () => {
     await openExperiments(page);
     await chooseType(page, 'Replicate');
     await page.getByLabel('Replications', { exact: true }).fill('20');
-    await page.getByLabel('Duration (min)', { exact: true }).fill('60');
+    await page.getByLabel('Duration per run (min)', { exact: true }).fill('60');
     await page.getByRole('button', { name: 'Run experiment' }).click();
     const progress = page.getByTestId('experiment-progress');
     await expect(progress).toContainText(/\d+ \/ 20/);
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
-    const after = (await progress.textContent().catch(() => null)) ?? '';
+    // the progress readout may be removed on cancel: read it without waiting (allTextContents)
+    await page.waitForTimeout(500); // let an in-flight message settle
+    const after = (await progress.allTextContents()).join('');
     await page.waitForTimeout(3000);
-    const later = (await progress.textContent().catch(() => null)) ?? '';
+    const later = (await progress.allTextContents()).join('');
     expect(later).toBe(after); // no further progress
     expect(after).not.toMatch(/20 \/ 20/);
     await expect(page.getByRole('button', { name: 'Run experiment' })).toBeEnabled();
@@ -154,7 +168,9 @@ test.describe('experiments (§7.4)', () => {
     await openExperiments(page);
     const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.getByRole('button', { name: 'Import', exact: true }).click()]);
     await chooser.setFiles(first.path);
-    await expect(page.getByTestId('experiment-progress')).toContainText(/(\d+) \/ \1/, { timeout: 240_000 });
+    await expect(page.getByTestId('experiment-progress')).toContainText(/([1-9]\d*) \/ \1/, { timeout: 240_000 });
+    await expect(page.getByTestId('experiment-summary')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Export JSON', exact: true })).toBeEnabled();
     const second = ExperimentFile.parse(JSON.parse((await download(page, 'Export JSON')).text));
     const r1 = f1.results!.runs;
     const r2 = second.results!.runs;
@@ -166,11 +182,13 @@ test.describe('experiments (§7.4)', () => {
         else expect(Math.abs((w as number) - v), k).toBeLessThanOrEqual(1e-9 * Math.max(1, Math.abs(v)));
       }
     });
-    // a run export: step, pause, "Export run", import it in Experiments
+    // a run export: step, pause, "Export run" (Live tab), import it in Experiments
+    await page.getByRole('tab', { name: 'Live' }).click();
     await page.getByRole('button', { name: 'Play', exact: true }).click();
     await expect.poll(async () => Number(/-?\d+(?:\.\d+)?/.exec((await page.getByTestId('sim-time').textContent()) ?? '')?.[0] ?? 0), { timeout: 60_000 }).toBeGreaterThan(10);
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
     const runFile = await download(page, 'Export run');
+    await page.getByRole('tab', { name: 'Experiments' }).click();
     const [c2] = await Promise.all([page.waitForEvent('filechooser'), page.getByRole('button', { name: 'Import', exact: true }).click()]);
     await c2.setFiles(runFile.path);
     await expect(page.getByText(/hash matches/i)).toBeVisible({ timeout: 120_000 });
@@ -180,8 +198,11 @@ test.describe('experiments (§7.4)', () => {
   test('URL round trip: after Apply the hash holds the scenario; a new page restores it at t = 0', async ({ page, context }) => {
     const errors = watchErrors(page);
     await page.goto(`/?preset=${PRESET}`);
+    await expect(page.getByLabel('Demand (veh/h)', { exact: true })).toHaveValue(String(DEMAND));
+    const before = await page.evaluate(() => location.hash); // the app may already carry the preset's #s=
     await setDemand(page, 3600);
-    await expect.poll(() => page.evaluate(() => location.hash)).toMatch(/^#s=/);
+    await expect.poll(() => page.evaluate(() => location.hash)).not.toBe(before);
+    expect(await page.evaluate(() => location.hash)).toMatch(/^#s=/);
     const url = page.url();
     const p2 = await context.newPage();
     await p2.goto(url);

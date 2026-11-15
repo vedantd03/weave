@@ -3,17 +3,19 @@
  *
  * UI contract (M4):
  *  - a tab or button "Experiments" opens the panel; number input "Replications" (default 10);
- *    select "Compare with" (None / Flyover off / Flyover on (same timings) / Flyover on (retimed)
- *    on flyover presets; "Signal plan as edited" after a plan edit); button "Run experiment";
- *    data-testid "experiment-progress" ("k / n"), "experiment-results" (a row per metric,
- *    columns mean ± 95% CI per variant and the paired difference with its CI); button
- *    "Download CSV".
+ *    (§7.4) radio group "Experiment type" (Replicate / Compare / Sweep); in Compare, "Set as
+ *    baseline" and one-click variants "Flyover off" / "Flyover on (same timings)" /
+ *    "Flyover on (retimed)"; button "Run experiment"; data-testid "experiment-progress"
+ *    ("k / n"), "experiment-results" (a row per metric, columns mean ± 95% CI per scenario and,
+ *    for a 2-scenario compare, a "Difference (Δ)" column); button "Export CSV" (one row per run:
+ *    group,label,seed,…metric ids). The table shows the metrics ticked under the "Metrics shown"
+ *    disclosure (a role="group" with one checkbox per metric; stability rows are always shown), so
+ *    tests that need a row per metric tick every box first.
  *  - window.weaveTest.runExperiment({ replications, compare }) returns the replicate results.
  * runExperiment resolves to { base, variant? } (§5.4), compare 'none' means no variant, and
  * replicate i uses seed scenario.seed + i with the default classes, so Node's runReplicate
- * reproduces it exactly. Assumptions (flagged): the hook's `compare` takes the value of the
- * "Compare with" option; for "Flyover on (retimed)" on a flyover preset, base = the preset with
- * the flyover disabled and variant = retimedFlyoverScenario(preset).
+ * reproduces it exactly. The hook's compare 'flyover-retimed' on a flyover preset gives
+ * base = the preset with the flyover disabled and variant = retimedFlyoverScenario(preset).
  */
 import { expect, test, type Page } from '@playwright/test';
 import { PRESETS, createSim, defaultClasses, retimedFlyoverScenario, runReplicate } from '@weave/engine';
@@ -41,6 +43,11 @@ async function open(page: Page, preset: string, url = '/') {
   await page.getByRole('combobox', { name: 'Scenario' }).selectOption(preset);
   await page.getByRole('tab', { name: 'Experiments' }).or(page.getByRole('button', { name: 'Experiments', exact: true })).first().click();
   await expect(page.getByRole('button', { name: 'Run experiment' })).toBeVisible();
+}
+async function showAllMetrics(page: Page) {
+  const group = page.getByRole('group').filter({ hasText: /Metrics shown/ });
+  await group.getByText(/Metrics shown/).click();
+  for (const box of await group.getByRole('checkbox').all()) await box.check();
 }
 async function hookRun(page: Page, replications: number, compare = 'none'): Promise<Rep[]> {
   await page.waitForFunction(() => Boolean((window as unknown as { weaveTest?: unknown }).weaveTest), undefined, { timeout: 15_000 });
@@ -91,15 +98,18 @@ test('"Flyover on (retimed)" vs "Flyover off": paired-difference column; both va
   test.setTimeout(300_000);
   const errors = watchErrors(page);
   await open(page, 'junction4-flyover', '/?test=1');
+  // UI: a 2-scenario compare (preset baseline + one-click "Flyover off") shows the Δ column
+  await page.getByRole('radiogroup', { name: 'Experiment type' }).getByRole('radio', { name: 'Compare' }).check();
+  await page.getByRole('button', { name: 'Set as baseline', exact: true }).click();
+  await page.getByRole('button', { name: 'Flyover off', exact: true }).click();
   await page.getByLabel('Replications', { exact: true }).fill('2');
-  const select = page.getByLabel('Compare with', { exact: true });
-  await select.selectOption({ label: 'Flyover on (retimed)' });
-  const value = await select.inputValue();
+  await showAllMetrics(page);
+  const value = 'flyover-retimed';
   await page.getByRole('button', { name: 'Run experiment' }).click();
   const results = page.getByTestId('experiment-results');
   await expect(page.getByTestId('experiment-progress')).toContainText(/(\d+) \/ \1/, { timeout: 240_000 });
   await expect(results).toBeVisible();
-  await expect(results.getByRole('columnheader', { name: /difference|Δ/i })).toBeVisible();
+  await expect(results.getByRole('columnheader', { name: 'Difference (Δ)' })).toBeVisible();
   expect(await results.getByRole('row').count()).toBeGreaterThanOrEqual(9 + 1);
 
   // Node: base = flyover disabled, variant = retimedFlyoverScenario(preset)
@@ -118,23 +128,24 @@ test('"Flyover on (retimed)" vs "Flyover off": paired-difference column; both va
   expect(errors).toEqual([]);
 });
 
-test('Download CSV gives a file with a header row', async ({ page }) => {
+test('Export CSV gives one row per run under a group,label,seed,…metrics header', async ({ page }) => {
   test.setTimeout(300_000);
   const errors = watchErrors(page);
   await open(page, 'junction4-signal');
   await page.getByLabel('Replications', { exact: true }).fill('2');
   await page.getByRole('button', { name: 'Run experiment' }).click();
   await expect(page.getByTestId('experiment-progress')).toContainText('2 / 2', { timeout: 240_000 });
-  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Download CSV' }).click()]);
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export CSV', exact: true }).click()]);
   expect(download.suggestedFilename()).toMatch(/\.csv$/);
   const stream = (await download.createReadStream()) as unknown as AsyncIterable<Uint8Array>;
   let text = '';
   const dec = new TextDecoder();
   for await (const chunk of stream) text += dec.decode(chunk, { stream: true });
   const lines = text.trim().split(/\r?\n/);
-  expect(lines.length).toBeGreaterThanOrEqual(2);
-  expect(lines[0]!).toMatch(/metric/i);
+  expect(lines.length).toBe(1 + 2); // header + one row per run (2 replications)
+  expect(lines[0]!).toMatch(/\bseed\b/);
   expect(lines[0]!.split(',').length).toBeGreaterThanOrEqual(3);
+  for (const id of ['divertedTrips', 'queueGrowing', 'guardPer1000VehKm', 'networkGrowing']) expect(lines[0]!, id).toContain(id);
   expect(errors).toEqual([]);
 });
 
@@ -162,11 +173,12 @@ function shortJunction(allRed: boolean) {
     ...(allRed ? { signalOverrides: [{ node, amberS: 3, allRedS: 2, offsetS: 0, phases: [{ greenS: 60, protected: [] as string[] }] }] } : {}),
   } as typeof JUNCTION;
 }
-async function runLoaded(page: Page, scenario: unknown, replications: number) {
+async function runLoaded(page: Page, scenario: unknown, replications: number, allMetrics = false) {
   await open(page, 'junction4-signal', '/?test=1');
   await page.waitForFunction(() => Boolean((window as unknown as { weaveTest?: unknown }).weaveTest), undefined, { timeout: 15_000 });
   await page.evaluate(async (sc) => (window as unknown as { weaveTest: Hook }).weaveTest.loadScenario(sc), scenario);
   await page.getByLabel('Replications', { exact: true }).fill(String(replications));
+  if (allMetrics) await showAllMetrics(page);
   await page.getByRole('button', { name: 'Run experiment' }).click();
   await expect(page.getByTestId('experiment-progress')).toContainText(`${replications} / ${replications}`, { timeout: 240_000 });
 }
@@ -236,14 +248,14 @@ test('queue not growing: row 0 / n and no "queue" warning in a light case', asyn
 test('results have a "Diverted trips" row; the CSV lists divertedTrips, queueGrowing and guardPer1000VehKm', async ({ page }) => {
   test.setTimeout(300_000);
   const errors = watchErrors(page);
-  await runLoaded(page, corridorScenario(300), 2);
+  await runLoaded(page, corridorScenario(300), 2, true);
   const results = page.getByTestId('experiment-results');
   await expect(results.getByRole('row', { name: /Diverted trips/ })).toBeVisible();
-  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Download CSV' }).click()]);
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export CSV', exact: true }).click()]);
   const stream = (await download.createReadStream()) as unknown as AsyncIterable<Uint8Array>;
   let text = '';
   const dec = new TextDecoder();
   for await (const chunk of stream) text += dec.decode(chunk, { stream: true });
-  for (const id of ['divertedTrips', 'queueGrowing', 'guardPer1000VehKm']) expect(text, id).toContain(id);
+  for (const id of ['divertedTrips', 'queueGrowing', 'guardPer1000VehKm', 'networkGrowing']) expect(text, id).toContain(id);
   expect(errors).toEqual([]);
 });

@@ -136,8 +136,12 @@ test('Experiments: summary after a run; diff chart with a variant', async ({ pag
   const errors = watchErrors(page);
   await page.goto('/?autoplay=0');
   await page.getByRole('tab', { name: 'Experiments' }).or(page.getByRole('button', { name: 'Experiments', exact: true })).first().click();
+  // §7.4: a variant comes from Compare → "Set as baseline" → a one-click variant (the default
+  // preset has a flyover, so "Flyover off" is offered)
+  await page.getByRole('radiogroup', { name: 'Experiment type' }).getByRole('radio', { name: 'Compare' }).check();
+  await page.getByRole('button', { name: 'Set as baseline', exact: true }).click();
+  await page.getByRole('button', { name: 'Flyover off', exact: true }).click();
   await page.getByLabel('Replications', { exact: true }).fill('2');
-  await page.getByLabel('Compare with', { exact: true }).selectOption({ label: 'Flyover on (retimed)' });
   await page.getByRole('button', { name: 'Run experiment' }).click();
   await expect(page.getByTestId('experiment-progress')).toContainText(/(\d+) \/ \1/, { timeout: 240_000 });
   const summary = page.getByTestId('experiment-summary');
@@ -145,7 +149,7 @@ test('Experiments: summary after a run; diff chart with a variant', async ({ pag
   await expect(summary).toContainText(/\b2\b/);
   await expect(summary).toContainText(/seed/i);
   await expect(summary).toContainText(/delay/i);
-  const chart = page.getByTestId('diff-chart');
+  const chart = page.getByTestId('compare-chart'); // §7.4: the per-scenario chart replaced diff-chart
   await expect(chart).toBeVisible();
   await expect(chart).toHaveAttribute('role', 'img');
   expect(((await chart.getAttribute('aria-label')) ?? '').length).toBeGreaterThan(0);
