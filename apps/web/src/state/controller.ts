@@ -13,6 +13,9 @@ import type { FromWorker } from '@weave/engine/protocol';
 import { Renderer } from '../render/renderer.ts';
 import { SimClient } from '../worker/client.ts';
 
+/** The preset the app opens on (§6.3 item 1). */
+export const DEFAULT_PRESET = 'junction4-flyover';
+
 export type Status = 'starting' | 'idle' | 'loading' | 'ready' | 'playing' | 'error';
 
 export interface SimState {
@@ -46,6 +49,12 @@ export class SimController {
   private listeners = new Set<Listener>();
   private frameWaiters: Array<{ step: number; resolve: () => void }> = [];
   private lastUiUpdate = 0;
+  /** Inits sent and 'ready' replies seen: the worker answers in order, so while
+   * readies < inits, messages belong to a superseded load and are ignored. */
+  private initsSent = 0;
+  /** Resolves when the most recent load's first frame has arrived. */
+  private pendingLoad: Promise<void> = Promise.resolve();
+  private readies = 0;
   state: SimState;
 
   constructor() {
@@ -69,8 +78,27 @@ export class SimController {
     this.client.on((m) => this.onMessage(m));
     this.client
       .ping()
-      .then((ms) => this.set({ status: 'idle', workerPingMs: ms }))
+      .then((ms) => {
+        this.set({ status: 'idle', workerPingMs: ms });
+        return this.openDefault();
+      })
       .catch((e: unknown) => this.set({ status: 'error', error: String(e) }));
+  }
+
+  /**
+   * Open straight into a running scenario (MODEL.md §6.3 item 1): the 4-arm flyover preset, or
+   * `?preset=<id>`; `?autoplay=0` leaves it paused at t = 0.
+   */
+  private async openDefault(): Promise<void> {
+    const q = new URLSearchParams(window.location.search);
+    const id = q.get('preset') ?? DEFAULT_PRESET;
+    const preset = PRESETS[id] ? id : DEFAULT_PRESET;
+    await this.load(preset);
+    if (q.get('autoplay') === '0' || this.state.status !== 'ready') return;
+    // Run the warm-up first so the network opens busy, then play from there.
+    const warm = Math.round((PRESETS[preset]!.warmupS ?? 0) / (this.state.scenario?.dtS ?? 0.2));
+    if (warm > 0) await this.step(warm);
+    if (this.state.status === 'ready') this.play();
   }
 
   subscribe = (l: Listener): (() => void) => {
@@ -150,6 +178,8 @@ export class SimController {
       step: 0,
     });
     const ready = this.waitForStep(0);
+    this.pendingLoad = ready;
+    this.initsSent++;
     this.client.send({ type: 'init', scenario, classes: this.state.classes, ...(network ? { network } : {}) });
     this.client.send({ type: 'setSpeed', factor: this.state.speed });
     return ready;
@@ -184,7 +214,9 @@ export class SimController {
   }
 
   /** Advance exactly `steps` steps (pauses first); resolves when that frame arrives. */
-  step(steps = 1): Promise<void> {
+  async step(steps = 1): Promise<void> {
+    // A step requested while a scenario is (re)building applies to that scenario.
+    if (this.state.status === 'loading') await this.pendingLoad;
     if (this.state.status === 'playing') this.pause();
     if (this.state.status !== 'ready') return Promise.reject(new Error('no scenario loaded'));
     const target = this.state.step + steps;
@@ -203,6 +235,9 @@ export class SimController {
   }
 
   private onMessage(m: FromWorker): void {
+    if (m.type === 'ready') this.readies++;
+    const stale = this.readies < this.initsSent;
+    if (stale && (m.type === 'ready' || m.type === 'frame' || m.type === 'series')) return;
     switch (m.type) {
       case 'ready':
         this.renderer?.setNetwork(m.network, this.state.classes.classes.map((c) => c.id), this.focusOf(m.network));

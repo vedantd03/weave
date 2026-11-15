@@ -134,8 +134,8 @@ export default function App() {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-        <aside className="order-2 shrink-0 overflow-y-auto border-border bg-surface md:order-1 md:w-80 md:border-r">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto md:flex-row md:overflow-hidden">
+        <aside className="order-3 shrink-0 border-border bg-surface md:order-1 md:w-80 md:overflow-y-auto md:border-r">
           <Panel title="Scenario">
             {st.scenario ? (
               <div className="space-y-3">
@@ -151,7 +151,7 @@ export default function App() {
                 <ScenarioForm ctrl={ctrl} scenario={st.scenario} network={st.network} />
               </div>
             ) : (
-              <p className="text-sm text-muted">Choose a scenario from the menu above.</p>
+              <p className="text-sm text-muted">Loading scenario…</p>
             )}
           </Panel>
           <Panel title="Vehicle classes">
@@ -173,16 +173,12 @@ export default function App() {
             className="absolute inset-0 h-full w-full touch-none"
             aria-label="Road network and vehicles. Drag to pan, scroll or pinch to zoom, double-click to fit."
           />
-          {!loaded && (
+          {!loaded && st.status !== 'error' && (
             <div className="pointer-events-none absolute inset-0 grid place-items-center p-6 text-center">
-              <div className="max-w-sm">
-                <p className="text-base font-medium text-text">
-                  {st.status === 'loading' ? 'Building scenario…' : 'No scenario loaded'}
-                </p>
-                <p className="mt-1 text-sm text-muted">
-                  Choose a scenario, then press Play. Vehicles are simulated in your browser.
-                </p>
-              </div>
+              <p className="flex items-center gap-2 text-sm text-muted" role="status">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
+                Starting simulation…
+              </p>
             </div>
           )}
           {loaded && (
@@ -196,7 +192,7 @@ export default function App() {
           )}
         </main>
 
-        <aside className="order-3 shrink-0 overflow-y-auto border-border bg-surface md:w-80 md:border-l">
+        <aside className="order-2 shrink-0 border-border bg-surface md:order-3 md:w-80 md:overflow-y-auto md:border-l">
           <div role="tablist" aria-label="Results" className="flex border-b border-border px-2 pt-2">
             {(['live', 'experiments'] as const).map((t) => (
               <button
