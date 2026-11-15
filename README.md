@@ -115,7 +115,9 @@ See [docs/VALIDATION.md](docs/VALIDATION.md). In short:
 - **Collision guard:** 65 activations per 1,000 vehicle-km on the Silk Board preset, 23 on the
   4-arm junction and 0 on corridors. At the old Silk Board demand, the rate per vehicle-km is
   about 1.8 times the previous engine's. This is documented, not hidden.
-- **Lighthouse** (deployed, mobile): Performance 95, Accessibility 100, Best Practices 100.
+- **Lighthouse:** median of 3 runs on https://weave-simulator.vercel.app (Lighthouse 12.8.2,
+  default mobile settings, `pnpm lighthouse`): Performance 99, Accessibility 100, Best Practices
+  100.
 
 ## Repository
 | Path | Contents |

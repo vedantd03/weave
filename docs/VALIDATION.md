@@ -485,5 +485,7 @@ their own row, with a mean, CI and paired difference.
   launch on the development machine ("Could not find profile folder"). The engine avoids every
   operation whose rounding ECMAScript leaves open, so no difference is expected, but none is
   claimed.
-- **Lighthouse** (deployed site, default mobile settings, run by the user): Performance **95**,
-  Accessibility **100**, Best Practices **100**.
+- **Lighthouse:** `pnpm lighthouse` runs npx lighthouse@12 (12.8.2) with Playwright's Chromium,
+  default mobile settings, against https://weave-simulator.vercel.app (build 80624de). Each of 3
+  runs scored Performance 99, Accessibility 100 and Best Practices 100, so those are the medians.
+  The user's earlier manual run gave 95 / 100 / 100.
