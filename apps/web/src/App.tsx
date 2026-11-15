@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 
 import { PRESETS } from '@weave/engine';
 import { SimController } from './state/controller.ts';
 import { Legend, Segmented } from './ui/MapOverlay.tsx';
+import { InspectCard } from './ui/InspectCard.tsx';
 import { ScenarioForm } from './ui/ScenarioForm.tsx';
 import { LiveCharts } from './charts/LiveCharts.tsx';
 import { ExperimentPanel } from './ui/ExperimentPanel.tsx';
@@ -68,6 +69,7 @@ export default function App() {
   const ctrl = useController();
   const st = useSyncExternalStore(ctrl.subscribe, ctrl.getState);
   const canvasRef = useCallback((el: HTMLCanvasElement | null) => ctrl.attachCanvas(el), [ctrl]);
+  const canvas3dRef = useCallback((el: HTMLCanvasElement | null) => ctrl.attach3D(el), [ctrl]);
   const presets = useMemo(() => Object.entries(PRESETS), []);
 
   const loaded = st.status === 'ready' || st.status === 'playing';
@@ -167,9 +169,22 @@ export default function App() {
           <canvas
             ref={canvasRef}
             data-testid="sim-canvas"
-            className="absolute inset-0 h-full w-full touch-none"
-            aria-label="Road network and vehicles. Drag to pan, scroll or pinch to zoom, double-click to fit."
+            className={`absolute inset-0 h-full w-full touch-none ${st.view === '3d' ? 'invisible' : ''}`}
+            aria-label="Road network and vehicles. Drag to pan, scroll or pinch to zoom, double-click to fit. Hover or tap a vehicle or road to inspect it."
           />
+          {st.view === '3d' && (
+            <canvas
+              ref={canvas3dRef}
+              data-testid="sim-canvas-3d"
+              className="absolute inset-0 h-full w-full touch-none"
+              aria-label="3D view of the road network and vehicles. Drag to orbit, right-drag or two fingers to pan, scroll or pinch to zoom."
+            />
+          )}
+          {st.view === '3d' && st.view3dStatus === 'loading' && (
+            <p className="pointer-events-none absolute inset-0 grid place-items-center text-sm text-muted" role="status">
+              Loading 3D view…
+            </p>
+          )}
           {!loaded && st.status !== 'error' && (
             <div className="pointer-events-none absolute inset-0 grid place-items-center p-6 text-center">
               <p className="flex items-center gap-2 text-sm text-muted" role="status">
@@ -191,6 +206,22 @@ export default function App() {
                   onChange={(m) => ctrl.setColourMode(m)}
                 />
               </div>
+              <div className="pointer-events-auto">
+                <Segmented
+                  label="View"
+                  value={st.view}
+                  options={[
+                    { value: '2d', label: '2D' },
+                    { value: '3d', label: '3D' },
+                  ]}
+                  onChange={(v) => ctrl.setView(v)}
+                />
+              </div>
+              {st.view3dError && (
+                <p role="status" className="pointer-events-auto rounded-md border border-danger/40 bg-surface/95 px-2 py-1 text-xs text-danger">
+                  {st.view3dError}
+                </p>
+              )}
             </div>
           )}
           {loaded && (
@@ -198,7 +229,12 @@ export default function App() {
               <Legend mode={st.colourMode} classes={st.classes.classes} dark={darkScheme} />
             </div>
           )}
-          {loaded && (
+          {loaded && st.view === '2d' && st.inspect && (
+            <div className="pointer-events-none absolute top-14 right-3">
+              <InspectCard info={st.inspect} onClose={() => ctrl.clearInspect()} />
+            </div>
+          )}
+          {loaded && st.view === '2d' && (
             <button
               type="button"
               onClick={() => ctrl.fitView()}

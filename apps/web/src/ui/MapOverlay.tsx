@@ -42,7 +42,7 @@ export function Legend({ mode, classes, dark }: { mode: ColourMode; classes: { i
       {mode === 'class' ? (
         <ul className="grid grid-cols-2 gap-x-3 gap-y-1 sm:grid-cols-3">
           {classes.map((c) => (
-            <li key={c.id} className="flex items-center gap-1.5 whitespace-nowrap">
+            <li key={c.id} className="flex items-center gap-1.5">
               <span className="h-2 w-3.5 shrink-0 rounded-sm" style={{ background: classCss(c.id, dark) }} />
               {c.label}
             </li>

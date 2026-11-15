@@ -16,7 +16,7 @@ Plan: ~/.claude/plans/quest-lab-full-stack-moonlit-dream.md. Spec: docs/MODEL.md
 ## Dependencies and services
 - Ask the user before adding ANY dependency (npm, Python, build backend, types package) or external service.
 - Approved: typescript, vite, @vitejs/plugin-react, vitest, @playwright/test, fast-check, tailwindcss,
-  @tailwindcss/vite, react, react-dom, @types/react(-dom), uplot, zod; Python: numpy, pandas, scipy,
+  @tailwindcss/vite, react, react-dom, @types/react(-dom), uplot, zod, three, @types/three (3D view, lazy-loaded); Python: numpy, pandas, scipy,
   openpyxl, jsonschema, eclipse-sumo, pytest. No backend, accounts or database.
 - Chennai raw data lives in data/chennai/ (provided by the user). Never commit the .xlsx; never download it.
 

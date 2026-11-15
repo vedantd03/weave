@@ -1,11 +1,18 @@
 import type { Network, VehicleClassId } from '@weave/engine';
-import { FRAME_STRIDE, F_CLASS, F_HEADING, F_LAYER, F_LENGTH, F_SPEED_RATIO, F_WIDTH, F_X, F_Y } from '@weave/engine/protocol';
+import { FRAME_STRIDE, F_CLASS, F_HEADING, F_LAYER, F_LENGTH, F_SEG, F_SPEED, F_SPEED_RATIO, F_WIDTH, F_X, F_Y } from '@weave/engine/protocol';
 import { networkBounds, offsetPolyline, ribbon, type Bounds, type Pt } from './geometry.ts';
 import { classCss, readMapTheme, speedCss, type ColourMode, type MapTheme } from './palette.ts';
 
 const SPEED_BINS = 20;
 
+/** What the user is inspecting (§6.3 item 5). Vehicle records are a copy of the frame record. */
+export type Selection =
+  | { kind: 'vehicle'; rec: Float32Array }
+  | { kind: 'road'; seg: number; onNow: number; meanSpeedMps: number };
+
 interface RoadShape {
+  /** Network segment index: links first, then movements (§6.1 F_SEG). */
+  seg: number;
   layer: number;
   surface: Path2D;
   edges: Path2D;
@@ -51,6 +58,8 @@ export class Renderer {
   private classIds: VehicleClassId[] = [];
   private frame: FrameView | null = null;
   private colourMode: ColourMode = 'class';
+  private selection: Selection | null = null;
+  private onSelect: ((s: Selection | null) => void) | null = null;
   private dirty = true;
   private raf = 0;
   private cssW = 0;
@@ -100,10 +109,10 @@ export class Renderer {
     this.roads = [];
     // Elevation drives the drawing order: a link is drawn as elevated only if it actually
     // rises (z > 0.5 m), so at-grade bridges over drains are not styled as flyovers.
-    for (const l of net.links) {
+    net.links.forEach((l, i) => {
       const elevated = l.zFromM > 0.5 || l.zToM > 0.5;
-      this.roads.push(this.buildRoad(l.polyline as Pt[], l.widthM, l.lanes, elevated ? Math.max(1, l.layer) : 0));
-    }
+      this.roads.push(this.buildRoad(i, l.polyline as Pt[], l.widthM, l.lanes, elevated ? Math.max(1, l.layer) : 0));
+    });
     // One signal head per signal-controlled movement, at the start of its path.
     const signalNodes = new Set(net.signals.map((p) => p.node));
     this.heads = [];
@@ -112,15 +121,16 @@ export class Renderer {
       const p = m.path[0]!;
       this.heads.push({ movement: i, x: p[0], y: p[1], layer: layerOfNode.get(m.node) ?? 0 });
     });
-    for (const m of net.movements) {
+    net.movements.forEach((m, i) => {
       const layer = layerOfNode.get(m.node) ?? 0;
-      this.roads.push(this.buildRoad(m.path as Pt[], m.widthM, 1, layer, false));
-    }
+      this.roads.push(this.buildRoad(net.links.length + i, m.path as Pt[], m.widthM, 1, layer, false));
+    });
     this.layers = [...new Set(this.roads.map((r) => r.layer))].sort((a, b) => a - b);
     this.bounds = networkBounds(net);
     this.userMoved = false;
     this.fit();
     this.frame = null;
+    this.select(null);
     this.dirty = true;
   }
 
@@ -132,6 +142,137 @@ export class Renderer {
   setFrame(frame: FrameView): void {
     this.frame = frame;
     this.dirty = true;
+    if (this.selection) this.select(this.track(this.selection));
+  }
+
+  /** Called with the current selection after every change and every frame while one is active. */
+  setSelectionListener(cb: ((s: Selection | null) => void) | null): void {
+    this.onSelect = cb;
+  }
+
+  clearSelection(): void {
+    this.select(null);
+  }
+
+  private select(s: Selection | null): void {
+    const had = this.selection !== null;
+    this.selection = s;
+    this.dirty = true;
+    if (s || had) this.onSelect?.(s);
+  }
+
+  /** World (m) → page coordinates (CSS px), for tests and overlays. */
+  worldToClient(x: number, y: number): { x: number; y: number } {
+    const r = this.canvas.getBoundingClientRect();
+    return { x: r.left + this.cssW / 2 + (x - this.cam.cx) * this.cam.scale, y: r.top + this.cssH / 2 - (y - this.cam.cy) * this.cam.scale };
+  }
+
+  private clientToWorld(cx: number, cy: number): [number, number] {
+    const r = this.canvas.getBoundingClientRect();
+    return [this.cam.cx + (cx - r.left - this.cssW / 2) / this.cam.scale, this.cam.cy - (cy - r.top - this.cssH / 2) / this.cam.scale];
+  }
+
+  /** Road statistics now: vehicles whose front is on segment `seg` and their mean speed. */
+  private roadNow(seg: number): Selection {
+    let n = 0;
+    let sum = 0;
+    const f = this.frame;
+    if (f) {
+      for (let i = 0; i < f.count; i++) {
+        const o = i * FRAME_STRIDE;
+        if (f.data[o + F_SEG] === seg) {
+          n++;
+          sum += f.data[o + F_SPEED]!;
+        }
+      }
+    }
+    return { kind: 'road', seg, onNow: n, meanSpeedMps: n ? sum / n : NaN };
+  }
+
+  /** Hit-test a page point: the topmost vehicle under it, else the topmost road, else null. */
+  pick(clientX: number, clientY: number): Selection | null {
+    const [wx, wy] = this.clientToWorld(clientX, clientY);
+    const tol = Math.max(4 / this.cam.scale, 0.3); // 4 CSS px, at least 0.3 m
+    const f = this.frame;
+    let best = -1;
+    let bestLayer = -Infinity;
+    let bestD = Infinity;
+    if (f) {
+      for (let i = 0; i < f.count; i++) {
+        const o = i * FRAME_STRIDE;
+        const dx = wx - f.data[o + F_X]!;
+        const dy = wy - f.data[o + F_Y]!;
+        const h = f.data[o + F_HEADING]!;
+        const lx = dx * Math.cos(h) + dy * Math.sin(h);
+        const ly = -dx * Math.sin(h) + dy * Math.cos(h);
+        if (Math.abs(lx) > f.data[o + F_LENGTH]! / 2 + tol || Math.abs(ly) > f.data[o + F_WIDTH]! / 2 + tol) continue;
+        const layer = f.data[o + F_LAYER]!;
+        const d = dx * dx + dy * dy;
+        if (layer > bestLayer || (layer === bestLayer && d < bestD)) {
+          best = i;
+          bestLayer = layer;
+          bestD = d;
+        }
+      }
+    }
+    if (best >= 0) return { kind: 'vehicle', rec: f!.data.slice(best * FRAME_STRIDE, (best + 1) * FRAME_STRIDE) };
+    const r = this.canvas.getBoundingClientRect();
+    const px = (clientX - r.left) * this.dpr;
+    const py = (clientY - r.top) * this.dpr;
+    this.applyWorldTransform();
+    for (const layer of [...this.layers].reverse()) {
+      // Movements were added after links, so search in reverse: junction paths win on top.
+      for (let k = this.roads.length - 1; k >= 0; k--) {
+        const road = this.roads[k]!;
+        if (road.layer === layer && this.ctx.isPointInPath(road.surface, px, py)) return this.roadNow(road.seg);
+      }
+    }
+    return null;
+  }
+
+  /** Follow a selected vehicle into the new frame: same class and size, nearest to where it was. */
+  private track(s: Selection): Selection | null {
+    if (s.kind === 'road') return this.roadNow(s.seg);
+    const f = this.frame;
+    if (!f) return null;
+    const r = s.rec;
+    let best = -1;
+    let bestD = 30 * 30; // a vehicle moves < 30 m between displayed frames even at 60×
+    for (let i = 0; i < f.count; i++) {
+      const o = i * FRAME_STRIDE;
+      if (f.data[o + F_CLASS] !== r[F_CLASS] || f.data[o + F_LENGTH] !== r[F_LENGTH] || f.data[o + F_WIDTH] !== r[F_WIDTH]) continue;
+      const dx = f.data[o + F_X]! - r[F_X]!;
+      const dy = f.data[o + F_Y]! - r[F_Y]!;
+      const d = dx * dx + dy * dy;
+      if (d < bestD) {
+        bestD = d;
+        best = i;
+      }
+    }
+    return best >= 0 ? { kind: 'vehicle', rec: f.data.slice(best * FRAME_STRIDE, (best + 1) * FRAME_STRIDE) } : null;
+  }
+
+  private drawSelection(px: number): void {
+    const s = this.selection;
+    if (!s) return;
+    const { ctx } = this;
+    ctx.strokeStyle = this.theme.dark ? '#fbbf24' : '#b45309';
+    if (s.kind === 'road') {
+      const road = this.roads.find((r) => r.seg === s.seg);
+      if (!road) return;
+      ctx.lineWidth = 3 * px;
+      ctx.stroke(road.surface);
+      return;
+    }
+    const r = s.rec;
+    const hl = Math.max(r[F_LENGTH]!, 2.2 * px) / 2 + 3 * px;
+    const hw = Math.max(r[F_WIDTH]!, 1.6 * px) / 2 + 3 * px;
+    ctx.save();
+    ctx.translate(r[F_X]!, r[F_Y]!);
+    ctx.rotate(r[F_HEADING]!);
+    ctx.lineWidth = 2 * px;
+    ctx.strokeRect(-hl, -hw, 2 * hl, 2 * hw);
+    ctx.restore();
   }
 
   /**
@@ -156,7 +297,7 @@ export class Renderer {
     this.dirty = true;
   }
 
-  private buildRoad(centre: Pt[], widthM: number, lanes: number, layer: number, edges = true): RoadShape {
+  private buildRoad(seg: number, centre: Pt[], widthM: number, lanes: number, layer: number, edges = true): RoadShape {
     const surface = new Path2D();
     const poly = ribbon(centre, widthM);
     poly.forEach((p, i) => (i === 0 ? surface.moveTo(p[0], p[1]) : surface.lineTo(p[0], p[1])));
@@ -175,7 +316,7 @@ export class Renderer {
         offsetPolyline(centre, widthM / 2 - k * lw).forEach((p, i) => (i === 0 ? markings!.moveTo(p[0], p[1]) : markings!.lineTo(p[0], p[1])));
       }
     }
-    return { layer, surface, edges: edgePath, markings };
+    return { seg, layer, surface, edges: edgePath, markings };
   }
 
   private resize(): void {
@@ -231,6 +372,7 @@ export class Renderer {
       this.drawVehicles(layer, px);
       this.drawSignals(layer, px);
     }
+    this.drawSelection(px);
   }
 
   private drawSignals(layer: number, px: number): void {
@@ -311,7 +453,9 @@ export class Renderer {
       e.preventDefault();
       zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * 0.0015));
     };
+    let downAt: { x: number; y: number; id: number } | null = null;
     const onDown = (e: PointerEvent) => {
+      downAt = { x: e.clientX, y: e.clientY, id: e.pointerId };
       el.setPointerCapture(e.pointerId);
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (pointers.size === 2) {
@@ -321,7 +465,11 @@ export class Renderer {
     };
     const onMove = (e: PointerEvent) => {
       const prev = pointers.get(e.pointerId);
-      if (!prev) return;
+      if (!prev) {
+        // Hover with a mouse (no button down) inspects whatever is under the cursor.
+        if (e.pointerType === 'mouse') this.select(this.pick(e.clientX, e.clientY));
+        return;
+      }
       const cur = { x: e.clientX, y: e.clientY };
       pointers.set(e.pointerId, cur);
       if (pointers.size === 1) {
@@ -340,9 +488,19 @@ export class Renderer {
       }
     };
     const onUp = (e: PointerEvent) => {
+      // A tap or click (no drag) selects what is under it, or clears on empty ground.
+      if (downAt && downAt.id === e.pointerId && pointers.size === 1 && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 6) {
+        this.select(this.pick(e.clientX, e.clientY));
+      }
+      downAt = null;
       pointers.delete(e.pointerId);
       pinchDist = 0;
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') this.select(null);
+    };
+    window.addEventListener('keydown', onKey);
+    this.detach.push(() => window.removeEventListener('keydown', onKey));
     const onDbl = () => {
       this.userMoved = true;
       this.fit(true);
