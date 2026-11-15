@@ -2,8 +2,9 @@
  * Revision 2 of the band rules (docs/MODEL.md §2.2 "band miss", §2.3 "Band-centred candidate").
  *
  * Band miss of a body [lo, hi] = [y − width/2, y + width/2] against an effective band [b0, b1]:
- *   width ≤ b1 − b0: miss = max(0, b0 − lo) + max(0, hi − b1)   (body inside the band);
- *   width > b1 − b0: miss = max(0, lo − b0) + max(0, b1 − hi)   (body covers the band).
+ *   miss = max(0, b0 − lo) + max(0, hi − b1): the body must lie inside the band, for every
+ *   vehicle (the "cover the band" case for wider vehicles was reverted; a wider-than-band
+ *   vehicle is stopped again, covered by lane-band.test.ts's 3.6 m truck).
  * Insertion adds y* = (b0 + b1)/2, clamped to [width/2, W − width/2] when width ≤ W, else W/2,
  * when no grid candidate fits.
  *
@@ -85,15 +86,16 @@ describe('§2.3 band-centred insertion candidate', () => {
     for (const r of log) if (r.tGen < sim.t - 120) expect(done.has(r.id), `vehicle ${r.id}`).toBe(true);
   });
 
-  it('wider than the band: 3 m link and band [0, 3], 3.09 m bus → inserted at W/2 = 1.5, covers the band, exits', () => {
+  it('ADR-022: a 2.6 m bus enters a 3 m link with band [0, 3]: inserted at y* = 1.5, exits', () => {
     const W = 3;
     const band: P = [0, 3];
-    const cls = bus(3.09, 0.2);
-    // premise: no grid candidate at all (2h = 3.49 > W), and width > W → y* = W/2
+    const cls = bus(2.6, 0.37);
+    // premise: 2h = 2·(1.3 + 0.37) = 3.34 > W, so there is no grid candidate at all
     expect(2 * (cls.width / 2 + cls.c0!)).toBeGreaterThan(W);
-    const yStar = W / 2;
-    // covering: lo = −0.045 ≤ 0 and hi = 3.045 ≥ 3 → miss = 0
-    expect(Math.max(0, yStar - cls.width / 2 - band[0]) + Math.max(0, band[1] - (yStar + cls.width / 2))).toBe(0);
+    // y* = clamp((0 + 3)/2, 1.3, 1.7) = 1.5; body [0.2, 2.8] lies inside the band (miss 0)
+    const yStar = Math.min(W - cls.width / 2, Math.max(cls.width / 2, (band[0] + band[1]) / 2));
+    expect(yStar).toBe(1.5);
+    expect(Math.max(0, band[0] - (yStar - cls.width / 2)) + Math.max(0, yStar + cls.width / 2 - band[1])).toBe(0);
     const { sim, firstY } = runDemand(net(W, band, 3, 3), cls, 300, 3000);
     expect(firstY.size).toBeGreaterThan(5);
     for (const [id, y] of firstY) expect(Math.abs(y - yStar), `vehicle ${id}`).toBeLessThanOrEqual(1e-9);
@@ -105,8 +107,8 @@ describe('§2.3 band-centred insertion candidate', () => {
 });
 
 describe('§2.2 band miss on a link', () => {
-  it('a 3.09 m bus at y = 1.5 on a 3 m link covers the [0, 3] band and is not stopped at the link end', () => {
-    const sim = makeSim(scenario(0), classSet([bus(3.09, 0.2)]), net(3, [0, 3], 3, 3));
+  it('a 2.6 m bus at y = 1.5 on a 3 m link (body [0.2, 2.8] inside [0, 3]) is not stopped at the link end', () => {
+    const sim = makeSim(scenario(0), classSet([bus(2.6, 0.37)]), net(3, [0, 3], 3, 3));
     const id = sim.addVehicle({ classId: 'bus', link: 'a', s: 50, y: 1.5, v: 10 });
     let reachedB = false;
     for (let k = 0; k < 600 && !reachedB; k++) {
