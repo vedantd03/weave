@@ -188,3 +188,59 @@ test('no gridlock: the row reads 0 / n and no warning is shown', async ({ page }
   await expect(page.getByRole('status').filter({ hasText: /gridlock/i })).toHaveCount(0);
   expect(errors).toEqual([]);
 });
+
+/*
+ * Revision 2 (§5.2 queueGrowing / divertedTrips / guardPer1000VehKm, §5.3b): a
+ * "queue-growing-runs" row with k / n per variant and a role="status" warning containing "queue"
+ * when any run's entry queue is still growing; a "Diverted trips" metric row; the CSV lists
+ * divertedTrips, queueGrowing and guardPer1000VehKm.
+ * Oversaturated case: one 3.5 m lane at 6000 veh/h. Insertion needs gap ≥ s0 + v·T, so a lane
+ * admits at most 1/T_min vehicles per second (< 6000 veh/h for every default class); the Node
+ * premise checks queueGrowing = 1 on the exact scenario.
+ */
+function corridorScenario(rateVph: number) {
+  return {
+    version: 1 as const, id: 'q', name: 'queue test',
+    network: { kind: 'generator' as const, params: { generator: 'corridor' as const, lengthM: 300, widthM: 3.5, lanes: 1, change: { kind: 'none' as const } } },
+    od: [{ origin: 'in', destination: 'out', rateVph }],
+    composition: { motorcycle: 0.56, car: 0.27, auto: 0.12, bus: 0.03, truck: 0.01, lcv: 0.01 },
+    mode: 'lane' as const, durationS: 600, warmupS: 120, seed: 11,
+  };
+}
+
+test('queue still growing: row k / n and a "queue" warning when oversaturated', async ({ page }) => {
+  test.setTimeout(300_000);
+  const errors = watchErrors(page);
+  const sc = corridorScenario(6000);
+  expect((runReplicate({ scenario: sc, classes: defaultClasses() }, sc.seed) as Rep).metrics.queueGrowing).toBe(1);
+  await runLoaded(page, sc, 2);
+  await expect(page.getByTestId('queue-growing-runs')).toContainText('2 / 2');
+  await expect(page.getByRole('status').filter({ hasText: /queue/i })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('queue not growing: row 0 / n and no "queue" warning in a light case', async ({ page }) => {
+  test.setTimeout(300_000);
+  const errors = watchErrors(page);
+  const sc = corridorScenario(300);
+  expect((runReplicate({ scenario: sc, classes: defaultClasses() }, sc.seed) as Rep).metrics.queueGrowing).toBe(0);
+  await runLoaded(page, sc, 2);
+  await expect(page.getByTestId('queue-growing-runs')).toContainText('0 / 2');
+  await expect(page.getByRole('status').filter({ hasText: /queue/i })).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test('results have a "Diverted trips" row; the CSV lists divertedTrips, queueGrowing and guardPer1000VehKm', async ({ page }) => {
+  test.setTimeout(300_000);
+  const errors = watchErrors(page);
+  await runLoaded(page, corridorScenario(300), 2);
+  const results = page.getByTestId('experiment-results');
+  await expect(results.getByRole('row', { name: /Diverted trips/ })).toBeVisible();
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Download CSV' }).click()]);
+  const stream = (await download.createReadStream()) as unknown as AsyncIterable<Uint8Array>;
+  let text = '';
+  const dec = new TextDecoder();
+  for await (const chunk of stream) text += dec.decode(chunk, { stream: true });
+  for (const id of ['divertedTrips', 'queueGrowing', 'guardPer1000VehKm']) expect(text, id).toContain(id);
+  expect(errors).toEqual([]);
+});

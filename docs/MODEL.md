@@ -123,6 +123,10 @@ export function ballistic(x: number, v: number, a: number, dt: number): { x: num
   - **What it leaves alone:** the IDM acceleration (`VehicleView.a`) is unchanged.
   - **Reporting:** activations are counted by `sim.diagnostics().guardActivations` and
     reported. They are not hidden.
+  - **Where and how far (revision 2):** `diagnostics().guardBySegment` maps a segment id
+    (link or movement) to the activations that happened on it; only non-zero entries appear,
+    and they sum to `guardActivations`. `diagnostics().vehicleKm` is the distance driven by
+    all vehicles' fronts (§5.2). The live panel shows the rate per 1,000 vehicle-km.
 
 ### 1.5 Strips: `network/strips.ts`
 
@@ -808,7 +812,7 @@ export function pairedCI(a: readonly number[], b: readonly number[], level?: num
 ### 5.2 Replicate metrics: `stats/experiment.ts`
 ```ts
 export interface ReplicateResult { seed: number; metrics: Record<MetricId, number> }
-export type MetricId = 'meanDelayS' | 'meanDelayCompletedS' | 'gridlocked' | 'meanTravelTimeS' | 'throughputVph' | 'meanSpeedKmh' | 'maxEntryQueue' | 'completedTrips' | 'incompleteTrips' | 'lockedJunctions' | 'guardPer10k'
+export type MetricId = 'meanDelayS' | 'meanDelayCompletedS' | 'gridlocked' | 'queueGrowing' | 'meanTravelTimeS' | 'throughputVph' | 'meanSpeedKmh' | 'maxEntryQueue' | 'completedTrips' | 'incompleteTrips' | 'divertedTrips' | 'lockedJunctions' | 'guardPer10k' | 'guardPer1000VehKm'
 export function runReplicate(input: SimInput, seed: number): ReplicateResult
 export function summarize(results: ReplicateResult[]): Record<MetricId, ReturnType<typeof meanCI>>
 export function compare(base: ReplicateResult[], variant: ReplicateResult[]): Record<MetricId, ReturnType<typeof pairedCI>>
@@ -842,6 +846,26 @@ export function compare(base: ReplicateResult[], variant: ReplicateResult[]): Re
   `gridlocked` is 1 if `lockedJunctions > 0`, otherwise 0;
   `guardPer10k` is guard activations per 10k vehicle-steps over the **whole run**. Vehicle-steps
   are the sum over steps of the vehicles on the network **after** each step.
+- **Queue still growing (`queueGrowing`, revision 2):** 1 if the entry queue is still growing
+  at the end of the run, otherwise 0.
+  - **Queue size:** let `Q(t)` be `counters().entryQueue` (all origins) at time t.
+  - **Midpoint:** `m = warmupS + (durationS − warmupS)/2`, rounded down to a whole step.
+  - **Threshold:** `λ` is the total OD demand in veh/s (the sum of `rateVph` / 3600).
+  - **Rule:** `queueGrowing = 1` iff `Q(durationS) − Q(m) > max(10, 60·λ)`, that is, the queue
+    grew by more than one minute of total demand (and at least 10 vehicles) over the second half
+    of the window.
+  - **Provenance:** the threshold is an **assumption**. It ignores fluctuations of a stable
+    queue and flags a queue that is fed faster than it drains. A queue that settles at a high
+    level is reported by `maxEntryQueue` and is not flagged.
+- **Diverted trips (`divertedTrips`):** the number of diversions (§2.2) that happen inside the
+  window, i.e. `diagnostics().diversions` at `durationS` minus its value at `warmupS`.
+- **Guard per distance (`guardPer1000VehKm`):** guard activations over the **whole run** ×
+  1000 / vehicle-km over the whole run.
+  - **Vehicle-km:** `diagnostics().vehicleKm` is the sum over steps and vehicles of the front's
+    displacement `ds` (step 5, the same displacement that moves the vehicle), ÷ 1000.
+  - **Why this unit:** `guardPer10k` divides by vehicle-steps, and in a gridlocked run most
+    vehicle-steps are spent standing still, where the guard cannot act. That dilutes the rate.
+    Distance driven measures the exposure the guard acts on.
 - **Windows:** "in the window" is inclusive. Series rows count when `t0 ≥ warmupS` and
   `t1 ≤ durationS`. `SimInput` is `{ scenario, classes, network? }`, the same as for
   `createSim`.
@@ -870,6 +894,17 @@ export function retimedFlyoverScenario(input: SimInput): ScenarioInput  // flyov
 - **Use:** "Flyover, retimed" = the flyover network with its junction plan retimed using the
   demand that still uses the at-grade box. Through traffic on the deck no longer counts, so the
   flyover arms lose the green they no longer need.
+
+### 5.3b Experiments view: run flags and rows (revision 2)
+- **Gridlocked runs:** a row `data-testid="gridlocked-runs"` showing "k / n" per variant (k runs
+  with `gridlocked = 1`). A `role="status"` warning mentioning gridlock appears when any k > 0.
+- **Queue still growing:** a row `data-testid="queue-growing-runs"`, "k / n" per variant, with k
+  runs where `queueGrowing = 1`. A `role="status"` warning containing "queue" appears when any
+  k > 0.
+- **Metric rows:** neither flag gets a mean ± CI row. Every other metric, including
+  `divertedTrips` ("Diverted trips") and `guardPer1000VehKm`, has a mean ± CI row per variant
+  and a paired-difference column. The CSV contains every metric in `METRICS`, including both
+  flags, in the summary and per-seed sections.
 
 ### 5.4 Execution
 - **Workers:** experiments run in a pool of `hardwareConcurrency − 1` workers, at least 1. Each
