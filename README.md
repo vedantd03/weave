@@ -227,7 +227,12 @@ pnpm --filter @weave/engine sync-classes
 - **Test counts:**
   - **Engine:** 344 tests.
   - **Data pipeline:** 106 tests.
-  - **End-to-end:** 115 tests on desktop and mobile, plus the hash checks in WebKit.
+  - **End-to-end:** 119 tests on desktop and mobile, plus the hash checks in WebKit.
+  - **Against the live site:** at build 3e4eb2a, all 119 end-to-end tests passed against
+    https://weave-simulator.vercel.app (`pnpm --filter @weave/web e2e:live`).
+  - **Load race:** a test that intermittently failed against the live site exposed a race between
+    loading a scenario and pressing Play. It is fixed and covered by a deterministic test; see
+    `docs/TESTING.md`.
   - **Browser vs Node:** some end-to-end tests check identical state hashes. One exports a run
     from the browser and replays it with the Node CLI.
 - **Disagreements:** when a test disagreed with the model, the specification was changed and the
