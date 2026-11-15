@@ -1158,3 +1158,154 @@ TripExport = { id; origin; destination; classId; tGen; tInsert: number | null; t
     `durationS` (or `--steps N`) and prints `{ stateHash, simulatedTimeS, metrics }`.
   - **Library form:** `replayExport(run, network?)` in `src/replay.ts` does the same as a
     function, without the classes check.
+
+## 7. Experiments for traffic studies (revision 5)
+
+No physics changes. Everything here is statistics over replicate runs, plus app behaviour.
+
+### 7.1 Stability flags (`stats/summary.ts`)
+Three per-run 0/1 flags are shown everywhere: in tables, summaries, charts and every CSV.
+- **`gridlocked`:** §5.2.
+- **`queueGrowing`:** §5.2.
+- **`networkGrowing` (new):** 1 iff the number of vehicles on the network grew by more than
+  `max(10, 60·λ)` over the second half of the window. That is
+  `onNetwork(durationS) − onNetwork(m) > max(10, 60·λ)`, with m and λ as in §5.2. This is the
+  criterion behind the "vehicles in network, mid → end" column of VALIDATION.md §9.
+  - **Data:** the sim records `onNetwork` after every step (`historyAt(step).onNetwork`).
+  - **Test case:** Silk Board preset, seed 58: 89 → 184 vehicles, growth 95 > 29.5, so the flag
+    is 1. Its `gridlocked` and `queueGrowing` are both 0.
+
+### 7.2 Breakdowns (`stats/breakdown.ts`)
+`breakdown(sim, warmupS)` is computed for every replicate (`ReplicateResult.breakdown`). It
+covers trips generated in `[warmupS, t]`.
+- **`approaches`:** one row per origin zone.
+  - **Trip counts:** `generated` and `completed`.
+  - **Delay:** `meanDelayS` (§5.2, unfinished trips included).
+  - **Throughput:** `throughputVph`, the window's completed trips from this origin × 3600 /
+    (t − warmupS).
+  - **Entry queue:** `meanEntryQueue` and `maxEntryQueue` for this origin. The queue at time τ
+    is the number of generated vehicles with `tGen ≤ τ` that are not inserted by τ. It is
+    sampled every 10 s over the window, at τ = warmupS + 10k.
+- **`movements`:** one row per junction movement used by an OD route (`odRoutes()`), at nodes
+  with ≥ 2 movements.
+  - **Flow:** `entered` (linkStats over the whole run) and `flowVph` (= `entered` × 3600 / t).
+  - **Time:** `meanTimeS` = travelTimeSum / travelTimeCount (NaN if 0).
+  - **Delay:** `meanDelayS`, the mean §5.2 delay of the window's trips whose OD route contains
+    the movement.
+- **`od`:** one row per OD pair: `origin`, `destination`, `generated`, `completed`,
+  `meanDelayS` and `meanTravelTimeS` (completed trips only). It is null when the scenario has
+  more than 40 OD pairs.
+- **Consistency:** the sum of `generated` over approaches equals the window's generated count,
+  and so does the sum over OD rows when they are present.
+
+### 7.3 Experiment design (`stats/design.ts`, pure functions)
+- **`runCount(design)`:** the number of runs.
+  - Replicate: `reps`.
+  - Compare: `reps × scenarios.length` (scenarios ≥ 2).
+  - Sweep: `reps × values.length` (1 ≤ values ≤ 10).
+- **`pairable(a, b)`:** returns `{ paired: true }` iff both scenarios have the same set of
+  origin zones, the same set of destination zones and the same set of (origin, destination)
+  pairs. Rates may differ. Otherwise it returns `{ paired: false, reason }`, where the reason
+  names the first difference found: "different origin zones", "different destination zones"
+  or "different OD pairs".
+  - **Why:** seeds are paired only when arrivals line up (common random numbers per origin,
+    §1.2).
+- **`welchCI(a, b, level = 0.95)`:** the CI of mean(b) − mean(a) for unpaired samples:
+  - variance `se² = s_a²/n_a + s_b²/n_b`;
+  - Welch–Satterthwaite degrees of freedom `ν = se⁴ / ((s_a²/n_a)²/(n_a−1) + (s_b²/n_b)²/(n_b−1))`;
+  - half-width `t_{(1+level)/2, ν} · se`, with a non-integer ν using the t quantile of §5.1;
+  - when `se = 0`, half = 0.
+  - Returns `{ mean, half, lo, hi, n, sd, df }`.
+- **`compareRuns(base, variant, paired)`:** per metric, `pairedCI` (§5.1) when paired,
+  otherwise `welchCI`.
+- **Sweep parameters:** `sweepParams(scenario, network)` lists only the parameters that apply,
+  each with id, label, unit, kind (`number` or `choice`), current value and default range or
+  choices.
+  - `demandScale` (×, current 1): only if the OD table is non-empty. It multiplies every OD
+    rate.
+  - `motorcycleShare` (%, current from `composition`): sets the motorcycle share and rescales
+    the other shares proportionally so they sum to 1.
+  - `green:<node>:<k>` (s): the green time of phase k at a signalised node, on top of the
+    effective plan (`signalOverrides`, else the network's plan).
+  - **Widths:**
+    - `armWidth:<k>` (m), junction generator: sets arm k's in-width and out-width;
+    - `width` (m), corridor or ring generator: sets `widthM`;
+    - `mainWidth` and `rampWidth` (m), merge generator.
+  - **Ramps:**
+    - `rampLength` (m), junction generator with a flyover: `flyover.rampLengthM`;
+    - `accelLength` (m), merge generator: `taperM`.
+  - `flyover` (choice off/on), junction generator: `flyover.enabled`, adding the default
+    flyover when there is none.
+  - `mode` (choice strip/lane): `mode`.
+- **`applySweep(scenario, network, id, value)`:** returns a new scenario with only that
+  parameter changed; nothing else differs (`describeDiff` lists exactly one line).
+- **`sweepValues(from, to, steps)`:** `steps` (1 to 10) evenly spaced values from `from` to
+  `to` inclusive. One step gives `[from]`.
+- **`describeDiff(a, b, network?)`:** plain-words lines for what differs. Examples:
+  - "Demand 3,000 → 3,600 veh/h" (total OD);
+  - "Arm 2 green 25 → 35 s" (phase k is shown as "Phase k" when phase-to-arm is not obvious);
+  - "Flyover off → on";
+  - "Lateral model strips → lanes";
+  - "Motorcycle share 56% → 70%";
+  - "Arm 1 width 7 → 10.5 m";
+  - "Duration 60 → 30 min";
+  - "OD Arm 1 → Arm 3: 450 → 600 veh/h" (for at most 3 changed rows, then "and k more OD
+    changes").
+
+  It returns [] for identical scenarios.
+- **Seeds:** every design uses seeds `scenario.seed + i` for i in 0 … reps − 1, the same at
+  every Compare scenario and every Sweep point.
+
+### 7.4 Experiments view
+- **Types:** Replicate, Compare and Sweep, chosen in a segmented control. All follow the same
+  flow: type, settings, run, results.
+- **Common settings:**
+  - replications (reps);
+  - duration and warm-up (minutes), overriding the scenario for this experiment only;
+  - metrics to show, as checkboxes. The default is mean delay, throughput, mean speed and max
+    entry queue; the three stability flags are always shown.
+- **Compare:**
+  - "Set as baseline" takes the loaded scenario. "Add as variant" asks for a name and takes
+    the currently loaded scenario, so the user can edit anything in the form, Apply, then add.
+  - Each scenario shows its `describeDiff` against the baseline.
+  - One-click flyover variants: "Flyover off", "Flyover on (same timings)", "Flyover on
+    (retimed)" when the baseline is a junction.
+  - A scenario can be removed.
+  - The run needs at least 2 scenarios.
+  - **Pairing:** each comparison with the baseline is paired when `pairable`; otherwise it
+    uses Welch, and the reason is shown.
+- **Sweep:** one parameter from `sweepParams`, from/to/steps for numbers (or the choices),
+  and reps per point. The values are shown before running.
+- **Estimate** (shown before running): `runs × time per run`, with the wall-clock time on W
+  workers.
+  - **Time per run:** a probe simulates min(120 s, duration) of the scenario in a worker, then
+    `timePerRun = probeMs × duration / probeS`. It is labelled as an estimate.
+- **During a run:** progress "k / n", an ETA from the completed runs' wall times, and a
+  "Cancel" button that stops the workers (partial results are discarded).
+- **Results:**
+  - a plain-English summary;
+  - per scenario or point, mean ± 95% Student-t intervals for the selected metrics;
+  - differences against the baseline (Compare), paired or Welch as above, with the method
+    stated per row;
+  - the stability flags "k / n" per scenario or point.
+  - **Compare chart:** interval bars per metric, one bar per scenario.
+  - **Sweep chart:** the metric against the parameter, with a 95% band. Points where any run
+    was gridlocked or still growing (queue or network) are marked and listed.
+  - **Breakdowns:** by approach, by movement and by OD (when present), for a chosen scenario or
+    point, as mean ± CI over reps.
+- **History:**
+  - every finished experiment is saved under a name (editable) in memory and in
+    `localStorage` (all access wrapped in try/catch; it works with storage unavailable);
+  - each entry can be reopened (results shown again), deleted, or compared with another
+    saved experiment (a side-by-side summary of their primary metrics, with Welch
+    differences).
+- **Export and import:**
+  - **Export:** the experiment as JSON (definition plus results, `ExperimentFile`, zod schema
+    and JSON Schema in docs/schema) and as CSV (one row per run: scenario or point, seed,
+    every metric including the three flags).
+  - **Import:** an `ExperimentFile` reruns its definition. A run export (§6.4) loads its
+    scenario and reruns it to the same step count, reporting whether the final state hash
+    matches.
+- **URL:** the loaded scenario is kept in the URL hash (`#s=` + base64url of the
+  deflate-raw-compressed JSON). Opening such a link restores that scenario, paused at t = 0.
+  This takes precedence over `?preset`.
