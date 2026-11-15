@@ -82,6 +82,7 @@ test.describe('scenario panel (§6.3 item 7)', () => {
   test('the Time step select offers exactly 0.1, 0.2 and 0.25 s', async ({ page }) => {
     await page.goto('/');
     const ts = page.getByLabel(/^Time step/);
+    await expect(ts).toBeAttached(); // the form appears only after the worker is ready (evaluateAll does not wait)
     const values = await ts.locator('option').evaluateAll((os) => os.map((o) => Number((o as HTMLOptionElement).value)));
     expect(values).toEqual([0.1, 0.2, 0.25]);
   });
