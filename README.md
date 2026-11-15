@@ -1,188 +1,244 @@
-# Weave
+# Weave: agent-based simulation of mixed traffic on road networks
 
-**Agent-based simulation of mixed, non-lane-disciplined traffic** on road networks with
-junctions, flyovers and roads of different widths. Vehicles are calibrated on Chennai
-trajectory data. Everything runs in your browser: a deterministic TypeScript engine in Web
-Workers, a React UI, and a static deployment with no server.
+*Submission for the Full Stack AI Pre-doctoral position, QUEST Lab, Department of Computational
+and Data Sciences, IISc Bangalore*
 
-**Live app:** https://weave-simulator.vercel.app
+**Assignment:** build and run an agent-based model of traffic on a road network with junctions,
+flyovers and roads of different widths and capacities. The end goal is a deployed application where
+users can set up scenarios and see their results, built end to end from data to the deployed
+application.
 
-## What you can do
-- **Pick a scenario:**
-  - **Theory and simple roads:** a ring road (car-following check) and a road narrowing.
-  - **Junctions:** a 4-arm signalised junction, with or without a flyover, and an on-ramp
-    merge.
-  - **A real network:** **Silk Board, Bengaluru**, imported from OpenStreetMap with its
-    flyovers and the double-decker.
-  - **Descriptions:** each scenario has a one-line description of what it shows.
-- **Edit it without drawing geometry:**
+- **Live app:** <https://weave-simulator.vercel.app>
+- **Repository:** <https://github.com/vedantd03/weave>
+
+Weave simulates mixed, non-lane-disciplined traffic.
+- **Calibration:** vehicle classes come from the Chennai trajectory data (Kanagaraj et al., 2015).
+- **Runtime:** the engine is deterministic TypeScript running in Web Workers in the browser, with
+  a React interface.
+- **Hosting:** a static site with no server, account or database.
+
+## What the application does
+- **Scenarios:** six presets, each with a one-line description in the app.
+  - **Ring road (car-following check)**
+  - **Road narrowing:** vehicles enter pre-sorted into the continuing lanes, so merging at the
+    drop is not simulated.
+  - **4-arm signalised junction**
+  - **4-arm junction with flyover**
+  - **On-ramp merge**
+  - **Silk Board, Bengaluru:** imported from OpenStreetMap with its flyovers and the
+    double-decker; 117 links and 154 movements.
+- **Editing without drawing geometry:**
   - **Network:** arm count, angles and widths; flyover on or off, with deck, ramp and landing
-    widths; corridor width changes and lane drops.
+    widths; road width changes and lane drops.
   - **Demand:** the origin–destination table and the vehicle mix.
-  - **Signals:** the plan (phase greens, amber, all-red, offset).
-  - **Behaviour:** strip mode (mixed traffic) or lane mode (theory check), and box compliance.
-  - **Run settings:** duration, warm-up, time step and seed.
-- **Watch it live:** the app opens on the 4-arm junction with flyover, paused at t = 0 with
-  the network drawn. Press Play to start.
-  - **Colour:** colour vehicles by class or by speed (red when stopped, green at free flow),
-    with a legend.
-  - **Map:** signal heads, flyovers drawn above the box, live charts, the collision-guard rate
-    and gridlock notices.
-  - **Inspect:** hover over or tap any vehicle or road for its details, in 2D or 3D. 3D picks
-    with CPU raycasting and never reads pixels back from the GPU.
-- **3D view (optional):** roads follow their real elevation, and decks and ramps stand on
-  pillars. Traffic lights on poles at every signalised stop line show the same signal states as
-  the 2D map. You can orbit, pan and zoom with a mouse or by touch. three.js loads only when you
-  open 3D.
-- **Export a run:** pause and download one JSON file (validated against
-  `docs/schema/run-export.schema.json`), plus trips and series as CSV.
-  - **Contents:** the scenario and seed, the final state hash, metrics, the 1-minute series,
-    per-link statistics, trip records (including unfinished trips' delay so far) and
-    diagnostics.
-  - **Replay:** the Node CLI replays it and checks the hash.
-- **Run experiments on any scenario,** in parallel workers:
-  - **Replicate:** run the scenario over N seeds and get means with 95% Student-t intervals.
-  - **Compare:** two or more named scenarios. Save a baseline, edit anything and add variants;
-    flyover variants are one click. The differences are written in plain words ("Demand 3,000
-    → 3,600 veh/h; Arm 2 green 25 → 35 s").
-    - **Pairing:** seeds are paired only when zones and OD pairs match, so arrivals line up.
-      Otherwise the app uses Welch intervals and says why.
-  - **Sweep:** one parameter that applies to the scenario, such as demand scale, motorcycle
-    share, a phase's green, a width, ramp length, flyover on/off or strips vs lanes. Up to 10
-    points, with the same seeds at every point.
+  - **Signals:** phase greens, amber, all-red and offset.
+  - **Behaviour:** strips (mixed traffic) or lanes (theory check), and box compliance.
+  - **Run settings:** duration, warm-up, time step (0.1, 0.2 or 0.25 s) and seed.
+- **Live view:**
+  - **On open:** the app opens on the 4-arm junction with flyover, paused at t = 0, and Play
+    starts it.
+  - **Map:** vehicles are coloured by class or by speed, with a legend.
+  - **Display:** signal heads, flyovers drawn above the junction, live charts, the
+    collision-guard rate and gridlock notices.
+  - **Inspection:** hovering over or tapping a vehicle, road or traffic light shows its
+    details.
+- **Optional 3D view:**
+  - **Roads:** roads follow their elevation, and decks and ramps stand on pillars.
+  - **Traffic lights:** signalised stop lines have lights on poles, in the same states as the
+    2D map.
+  - **Controls:** orbit, pan and zoom by mouse or touch.
+  - **Loading:** three.js loads only when 3D is opened.
+- **Run export:** a paused run exports as one JSON file (schema in
+  `docs/schema/run-export.schema.json`), plus trips and the 1-minute series as CSV.
+  - **Contents:** the scenario, seed, final state hash, metrics, per-link statistics, trip
+    records (including the delay so far of unfinished trips) and diagnostics.
+  - **Replay:** the Node CLI replays an export to the same state hash.
+- **Experiments**, on any scenario, in parallel workers:
+  - **Replicate:** the scenario over N seeds, with means and 95% Student-t intervals.
+  - **Compare:** two or more named scenarios, such as a baseline and variants edited in the form.
+    - **One-click variants:** the flyover variants.
+    - **Differences:** listed in plain words, e.g. "Demand 3,000 → 3,600 veh/h; Arm 2 green 25 →
+      35 s".
+    - **Pairing:** seeds are paired only when zones and OD pairs match. Otherwise the app uses
+      Welch intervals and states the reason.
+  - **Sweep:** one applicable parameter over up to 10 points, with the same seeds at every point.
+    The parameters are demand scale, motorcycle share, a phase's green, a width, ramp or
+    acceleration-lane length, flyover on/off, and strips vs lanes.
 - **Experiment results:**
-  - **During a run:** a time estimate before it starts, then progress, an ETA and Cancel.
-  - **Summary and charts:** a plain-English summary, interval bars for Compare, and for Sweep
-    a line with a 95% band and problem points marked.
-  - **Breakdowns:** by approach, by movement and, for small networks, by OD pair.
-  - **Stability flags everywhere,** including in the CSV: gridlocked, entry queue still
+  - **While running:** a time estimate before the run, then progress, ETA and Cancel.
+  - **Summary:** a plain-English summary, with means and 95% intervals and paired or Welch
+    differences.
+  - **Charts:** interval bars for Compare. Sweep shows a line with a 95% band, with problem points
+    marked.
+  - **Breakdowns:** by approach, by junction movement and, for networks with up to 40 OD pairs,
+    by OD pair.
+  - **Stability flags:** shown in every table, summary and CSV: gridlocked, entry queue still
     growing, and vehicles inside the network still growing.
-- **Keep and share:**
-  - **History:** named experiments are kept in the browser. You can reopen, compare two
-    side by side, or delete them.
-  - **Export and import:** export as JSON or CSV. Import an experiment (it reruns) or a run
-    export (it replays and checks the state hash).
+- **History and sharing:**
+  - **History:** experiments are saved in the browser; they can be reopened, compared two at a
+    time and deleted.
+  - **Export and import:** experiments export as JSON or CSV. Importing an experiment reruns it;
+    importing a run export replays it and checks its state hash.
   - **Links:** the URL carries the scenario, so a link restores the setup.
 
-**Example result** (4-arm preset, 10 paired seeds, 1 h): the flyover cuts mean delay by
-**15.9 s** [−17.8, −13.9]. Webster retiming, which moves green away from the flyover arms,
-saves another **3.1 s** [−4.4, −1.8]. Mean delay counts every generated vehicle, including
-trips still under way or waiting to enter at the end of the run. Each variant's table shows
-runs that ended gridlocked, runs whose entry queue was still growing, and diverted trips.
+**Example result** (4-arm junction with flyover, 10 paired seeds, 1 h each):
+- **Flyover:** it reduces mean delay by **15.9 s** (95% CI 13.9 to 17.8 s), from 55.2 to 39.3 s.
+- **Webster retiming:** retiming the at-grade signals reduces it by a further **3.1 s** (95% CI 1.8
+  to 4.4 s).
+- **Delay definition:** mean delay counts every generated vehicle, including trips still under
+  way or waiting to enter at the end of the run.
+- **Stability:** no run gridlocked.
 
-## The model in one paragraph
-Road width is divided into lateral **strips** of 0.25 m, anchored at the kerb. A vehicle
-occupies the strips covered by its width plus a calibrated lateral clearance. It follows the
-nearest **rear end** among the vehicles overlapping its strips, using **IDM** with a
-synchronous ballistic update (dt = 0.2 s).
-- **Lateral movement:** generalised **MOBIL** over strip offsets, with route bias, safety checks
-  for both the follower and the mover, and a deterministic commit order. Lane mode is the
-  special case where one strip equals one lane, and it reduces to classic MOBIL.
-- **Junctions:** movement-specific signals (protected and permissive, amber, all-red), gap
-  acceptance (critical gap and follow-up headway; reproduces Harders' capacity), commitment,
-  merging and diverging, conflict areas from intersecting swept paths, don't-block-the-box,
-  spillback and per-junction gridlock detection. Vehicles are never teleported.
+## The model
+- **Lateral strips:** road width is divided into 0.25 m strips anchored at the kerb. A vehicle
+  occupies the strips covered by its width plus a calibrated lateral clearance.
+- **Car-following:** IDM, with a synchronous ballistic update at dt = 0.2 s. A vehicle follows the
+  nearest **rear end** among the vehicles overlapping its strips.
+- **Lateral movement:** generalised MOBIL over strip offsets.
+  - **Route bias:** moves are biased towards the vehicle's route.
+  - **Safety:** checks cover both the new follower and the mover.
+  - **Order:** moves commit in a deterministic order.
+  - **Lane mode:** the special case of one strip per lane, which reduces to classic MOBIL.
+- **Junctions:**
+  - **Signals:** movement-specific, protected or permissive, with amber and all-red.
+  - **Yielding:** gap acceptance with critical gap and follow-up headway, which reproduces
+    Harders' capacity; an accepted gap is a commitment.
+  - **Paths and conflicts:** merging and diverging; conflict areas from intersecting swept paths.
+  - **Blocking:** don't-block-the-box and spillback.
+  - **Gridlock:** detected per junction.
+  - **No teleporting:** vehicles are never removed to clear a jam.
 - **Flyovers:** separate layers that meet the ground only through ramps.
-- **Randomness:** every draw comes from a per-entity substream. The same seed gives
-  bit-identical results in Node, Chromium and WebKit (tested; Firefox is untested because
-  Playwright's Firefox would not launch on the development machine). Changing a signal plan or
-  adding a flyover never changes who arrives when.
+- **Deadlocks:** a vehicle stuck for 20 s in front of a lane band it cannot reach takes the branch
+  it fits and is rerouted. Trips that end at a different exit are counted as diverted.
+- **Randomness:** every draw comes from a per-entity substream, giving common random numbers
+  between variants.
+  - **Cross-runtime check:** the same seed gives identical state hashes in Node, Chromium and
+    WebKit. Firefox was not tested; Playwright's Firefox did not launch on the development
+    machine.
 
-Full specification: [docs/MODEL.md](docs/MODEL.md). Decisions and their reasons:
-[docs/DECISIONS.md](docs/DECISIONS.md).
+Specification: [docs/MODEL.md](docs/MODEL.md). Decisions and their reasons:
+[docs/DECISIONS.md](docs/DECISIONS.md). Validation: [docs/VALIDATION.md](docs/VALIDATION.md).
 
-## Validation and honest limitations
-See [docs/VALIDATION.md](docs/VALIDATION.md). In short:
-- **Data checks:** line-count flow (6,095 veh/h) agrees with the paper's 6,010 veh/h. The
-  dataset's speed column is 1.92× lower than speeds computed from positions, so it isn't used.
-  The paper's own density figure is internally inconsistent, and the report says so.
-- **Provenance:** every vehicle parameter is labelled derived, proxy or assumption.
-  - s0 is assumed.
-  - v0 is a proxy.
-  - a and b depend on the smoothing window (a table shows by how much).
-  - T is conditional on s0 and v0 (a sensitivity table shows by how much).
-- **Fundamental diagram:** the Chennai points cover the free-flow branch only. They do not
-  validate capacity or the effects of road width.
-- **Simulated vs observed:** a simulated 11.2 m road at 6,000 veh/h runs at 47 km/h and
-  129 veh/km, against 41 km/h and 148 veh/km observed. This is documented, not tuned.
-  - **Likely reasons:** v0 is a p85 proxy, T depends on the assumed s0 and v0, and there is
-    no roadside friction.
-  - **Sensitivity:** cutting v0 by 10% gives 42.1 km/h, which explains 84% of the gap.
-- **Vehicle widths:** measured widths are capped at 2.6 m as a data correction. 44 of 95 buses
-  measured up to 3.27 m wide, likely from the video measurement or from mirrors.
-- **Lateral speeds:** taken from deliberate moves, as p85 of the peak lateral speed of moves of
-  at least 1 m. Motorcycle 0.86, car 0.78, auto 0.63, bus 0.61 m/s (from 18 moves, a small
-  sample). Trucks borrow the bus value and LCVs the car value, both labelled assumptions.
-- **On-ramp merging:** saturates at about 2,850 veh/h. The preset (2,000 + 500 veh/h) runs 10
-  seeds with no gridlock. At 2,400 + 600 veh/h, one seed in 10 jams; this is not yet traced.
-- **Not modelled:** merging at lane drops. Vehicles enter already sorted into the continuing
-  lanes.
-- **Silk Board:** demand is plausible, not observed.
-  - **Old preset (about 2,950 veh/h):** 10 seeds locked 10.9 ± 3.2 junctions each (5–18).
-    960 trips completed and 1,746 did not. Entry queues were around 590, and speed was around
-    6 km/h.
-  - **Causes found and fixed:**
-    - a swap deadlock at a diverge, now broken by rerouting;
-    - wide buses that could never enter, or never reach, a narrow lane band, because the
-      0.25 m grid had no position that fitted. These buses also had over-wide measured widths.
-    - The rest is spillback from oversaturated signals.
-  - **New preset:** 1,770 veh/h (60% of the old demand). In all 10 seeds, entry queues stay
-    bounded, the number of vehicles in the network stays flat and no junction locks. Mean delay
-    is 49.3 ± 5.2 s.
-  - **Thresholds:** locks and growth inside the network start at 70%. Entry queues keep
-    growing only at 100%.
-  - **Diversions:** about 6% of trips are diverted to another exit by the deadlock breaker.
-- **Collision guard:** 65 activations per 1,000 vehicle-km on the Silk Board preset, 23 on the
-  4-arm junction and 0 on corridors. At the old Silk Board demand, the rate per vehicle-km is
-  about 1.8 times the previous engine's. This is documented, not hidden.
-- **Lighthouse:** median of 3 runs on https://weave-simulator.vercel.app (Lighthouse 12.8.2,
-  default mobile settings, `pnpm lighthouse`): Performance 99, Accessibility 100, Best Practices
-  100.
+## Validation and limitations
+- **Data checks:**
+  - **Flow:** counting vehicles across lines gives 6,095 veh/h, against the paper's 6,010 veh/h.
+  - **Speed column:** the dataset's speed column is 1.92 times lower than speeds computed from
+    positions, so it is not used.
+  - **Density:** the paper's density figure is inconsistent with its flow and speeds.
+    VALIDATION.md records this.
+- **Parameter provenance:** every vehicle parameter is labelled derived, proxy or assumption.
+  - **s0:** assumed.
+  - **v0:** a proxy, the 85th-percentile speed.
+  - **a and b:** depend on the smoothing window.
+  - **T:** conditional on s0 and v0.
+
+  VALIDATION.md has the sensitivity tables.
+- **Vehicle widths:** measured widths are capped at 2.6 m as a data correction (44 of 95 buses and
+  1 of 40 LCVs were wider).
+- **Lateral speeds:** taken from deliberate moves of at least 1 m, as the 85th percentile of each
+  move's peak lateral speed.
+
+  | Class | Speed (m/s) | Basis |
+  |---|---|---|
+  | Motorcycle | 0.86 | derived |
+  | Car | 0.78 | derived |
+  | Auto-rickshaw | 0.63 | derived |
+  | Bus | 0.61 | derived, from 18 moves |
+  | Truck | 0.61 | assumption: the bus value |
+  | LCV | 0.78 | assumption: the car value |
+- **Fundamental diagram:** the Chennai data covers the free-flow branch only. It does not
+  validate capacity or the effect of road width.
+- **Simulated vs observed:** the parameters were not tuned to close the gap.
+
+  | 11.2 m road at about 6,000 veh/h | Speed | Density |
+  |---|---|---|
+  | Simulated | 47.1 km/h | 129 veh/km |
+  | Observed in Chennai | 41.1 km/h | 148 veh/km |
+  | Simulated, v0 reduced by 10% | 42.1 km/h | 145 veh/km |
+
+  Reducing v0 by 10% accounts for 84% of the speed gap.
+- **On-ramp merge:** the merge section carries up to about 2,850 veh/h.
+  - **Preset (2,000 + 500 veh/h):** no gridlock in 10 of 10 seeds.
+  - **At 2,400 + 600 veh/h:** one seed in 10 jams; the cause has not been traced.
+- **Not modelled:** merging at lane drops.
+- **Silk Board:**
+  - **Demand:** plausible, not observed. The preset is 60% of an initial 125 veh/h per entry
+    lane, giving 1,770 veh/h.
+  - **Preset over seeds 42–51:** no locked junction, no growing entry queue and no growing
+    network count.
+    - **Throughput:** 1,770 ± 37 veh/h.
+    - **Mean delay:** 49.3 ± 5.2 s.
+    - **Diverted trips:** about 101 per run (6% of trips).
+  - **Other seeds:** some are not stable at this demand. In seeds 57 and 58, vehicles inside the
+    network keep growing.
+  - **Higher demand:** junctions lock from 70% of the initial demand (3 of 10 seeds), and at 100%
+    in 10 of 10 seeds.
+- **Collision guard:** a kinematic guard caps a vehicle's movement if a leader brakes harder
+  than IDM assumes. It fired at these rates, per 1,000 vehicle-km:
+
+  | Scenario | Rate |
+  |---|---|
+  | Corridors and ring | 0 |
+  | On-ramp merge | 3–7 |
+  | 4-arm junction | 23 |
+  | Flyover junction | 42–52 |
+  | Silk Board preset | 65 |
+- **Lighthouse:** run on https://weave-simulator.vercel.app with `pnpm lighthouse` (Lighthouse
+  12.8.2, default mobile settings). The median of 3 runs is Performance 98, Accessibility 100
+  and Best Practices 100.
 
 ## Repository
 | Path | Contents |
 |---|---|
-| `packages/engine` | Simulation engine, pure TypeScript with no DOM or React. zod schemas form the shared contract. |
-| `apps/web` | Vite + React + Tailwind app: Canvas2D renderer, simulation worker, experiment worker pool, uPlot charts. |
+| `packages/engine` | Simulation engine and statistics, pure TypeScript with no DOM or React; zod schemas form the shared contract; `bin/weave.mjs` is the Node CLI. |
+| `apps/web` | Vite + React + Tailwind app: Canvas2D renderer, lazy three.js 3D view, simulation worker, experiment worker pool, uPlot charts. |
 | `data-pipeline` | Python 3.12 (uv): Chennai calibration and the OSM → SUMO netconvert → network JSON conversion. |
 | `data` | Raw inputs. The Chennai `.xlsx` files are not committed; `osm/silkboard.osm` is. |
-| `docs` | Model spec, decisions, testing, validation, emitted JSON Schemas and shared test fixtures. |
+| `docs` | Model specification, decisions, testing, validation, emitted JSON Schemas and shared test fixtures. |
 
-## Run it locally
+## Running it locally
 ```bash
 pnpm install
-pnpm --filter @weave/web dev          # app at http://localhost:5173
-pnpm typecheck && pnpm test           # engine: theory, unit and property tests
-pnpm --filter @weave/web e2e          # UI checks on the production build (desktop + mobile)
-node packages/engine/bin/weave.mjs --scenario weave-run-….json   # replay an exported run: same final state hash
+pnpm --filter @weave/web dev           # app at http://localhost:5173
+pnpm typecheck && pnpm test            # engine: theory, unit and property tests
+pnpm --filter @weave/web e2e           # end-to-end tests on the production build
+pnpm --filter @weave/web e2e:live      # the same tests against the deployed site
+pnpm lighthouse                        # Lighthouse, 3 runs, default mobile settings
+node packages/engine/bin/weave.mjs --scenario weave-run-….json   # replay an exported run
 cd data-pipeline && uv sync && uv run pytest
-uv run python build.py                # rebuild the network and calibration (needs data/chennai/*.xlsx)
+uv run python build.py                 # rebuild network and calibration (needs data/chennai/*.xlsx)
 pnpm --filter @weave/engine sync-classes
 ```
 
 ## How it was built and tested
-- **Specification first:** every milestone started with the spec in `docs/MODEL.md`.
-- **Independent tests, committed failing:** a separate test-author agent wrote the tests from
-  the spec without reading the implementation, and they were committed failing (`test:`
-  commits) before the code. Expected values come from theory, computed inside the tests, or
-  from cited papers.
+- **Specification first:** each milestone started with the specification in `docs/MODEL.md`.
+- **Separate test author:** tests were written by a separate test-author agent from the
+  specification, and expected values come from theory computed inside the tests or from cited
+  papers.
+  - **Test-first record:** most tests were committed failing (`test:` commits) before the code
+    they test.
+  - **Exceptions:** some tests passed on arrival, because the code was written alongside them.
+    For the experiments revision, the test author also read the implementation. Each exception
+    is stated in its commit message.
 - **Theory checks include:** IDM equilibrium and string stability, the fundamental diagram,
-  Harders' gap-acceptance capacity, Webster's effective green, LWR shockwave speed, Little's
-  law, conservation at every step, a no-collision property, t-interval coverage and common
-  random numbers.
-- **Test counts:** engine 322, data 106, end-to-end 103 (desktop and mobile, plus the hash
-  checks in WebKit). One end-to-end test exports a run from the browser and replays it with the
-  Node CLI to the same state hash. The end-to-end tests include checks that the browser and Node produce
-  identical state hashes.
-- **When tests disagreed with the model:** the spec was fixed and the reasons recorded. Tests
-  were never weakened; each disagreement went to a human decision. See TESTING.md and ADR-014
-  to ADR-022.
+  Harders' gap-acceptance capacity, Webster's effective green, the LWR shockwave speed, Little's
+  law, conservation at every step, a no-collision property, t-interval coverage, Welch-interval
+  coverage and common random numbers.
+- **Test counts:**
+  - **Engine:** 344 tests.
+  - **Data pipeline:** 106 tests.
+  - **End-to-end:** 115 tests on desktop and mobile, plus the hash checks in WebKit.
+  - **Browser vs Node:** some end-to-end tests check identical state hashes. One exports a run
+    from the browser and replays it with the Node CLI.
+- **Disagreements:** when a test disagreed with the model, the specification was changed and the
+  reason recorded, and the test was not weakened. See `docs/TESTING.md` and ADR-014 to ADR-025.
 
 ## Data sources and citations
 - **Trajectories:** Kanagaraj V., Asaithambi G., Toledo T., Lee T.-C. (2015). *Trajectory data
-  and flow characteristics of mixed traffic.* Transportation Research Record 2491, 1–11. Data
-  distributed by T. Toledo (Technion): https://toledo.net.technion.ac.il/?p=387. Raw files are
-  not redistributed here.
+  and flow characteristics of mixed traffic.* Transportation Research Record 2491, 1–11.
+  - **Distribution:** the data is distributed by T. Toledo (Technion):
+    https://toledo.net.technion.ac.il/?p=387.
+  - **Not redistributed:** the raw files are not included here.
 - **Road network:** © OpenStreetMap contributors, ODbL 1.0 (https://www.openstreetmap.org/copyright).
   One Overpass extract; see `data/osm/README.md`.
 - **Network conversion:** Eclipse SUMO `netconvert` (EPL 2.0), used offline only. Nothing from
