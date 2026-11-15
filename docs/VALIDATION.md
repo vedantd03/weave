@@ -33,6 +33,7 @@ Every value in `classes.json` carries one of three labels:
 | Parameter | Provenance | How |
 |---|---|---|
 | Length, width: car, bus, truck, LCV | derived | 21 quantiles of measured sizes |
+| Width cap 2.6 m | **data correction** (user decision) | 44 of 95 buses (up to 3.27 m) and 1 of 40 LCVs (2.64 m) measured wider than 2.6 m, the usual legal maximum; likely video measurement and mirrors. Capped at 2.6 m before the quantiles. Bus width quantiles 0/5/50/95/100% are now 2.04/2.33/2.59/2.60/2.60 m. |
 | Length, width: motorcycle (1.8 × 0.6 m), auto (2.6 × 1.4 m) | **assumption** | constant in the dataset (not measured per vehicle) |
 | Class shares | derived | vehicle counts |
 | v0 | **proxy** | 85th-percentile spot speed. Traffic is near capacity, so free-flow vehicles are rare. |
@@ -41,7 +42,7 @@ Every value in `classes.json` carries one of three labels:
 | a, b | **assumption informed by data** | percentiles of position-derived acceleration. The value is set by the smoothing window (§3). |
 | Clearance c0 | derived | p10 of accepted lateral gaps, halved per side |
 | Clearance c1 | derived for auto only; otherwise assumption (0) | §5 |
-| Lateral speed (max) | derived for motorcycle, car, auto; **assumption** (pooled) for bus, truck, LCV | p85 of per-episode peak lateral speed of deliberate moves (§5) |
+| Lateral speed (max) | derived for motorcycle, car, auto, bus (bus: n = 18, small sample); **assumption** for truck (bus value) and LCV (car value) | p85 of per-episode peak lateral speed of deliberate moves (§5) |
 | Critical gap, follow-up | assumption | HCM 2016 (4.1/2.2 s; heavy vehicles 5.1/3.1 s) |
 | MOBIL politeness, threshold | assumption | 0.2, 0.1 m/s² |
 | Truck T | assumption | only 3 usable steady-following samples, so the car value is borrowed |
@@ -145,15 +146,29 @@ twice too slow.
 | Motorcycle | 552 | 0.74 / **0.856** / 1.12 | 4.1 s | 0.57 |
 | Car | 145 | 0.71 / **0.775** / 0.99 | 4.5 s | 0.46 |
 | Auto | 81 | 0.57 / **0.634** / 0.86 | 5.5 s | 0.37 |
-| Bus, truck, LCV | 18, 1, 6 | pooled p85 over all 803 episodes: **0.817** (assumption) | 4.3 s | 0.36–0.45 |
+| Bus | 18 | **0.613** (derived, small sample) | 5.7 s | 0.36 |
+| Truck | 1 | **0.613**, the bus value (assumption) | 5.7 s | 0.41 |
+| LCV | 6 | **0.775**, the car value (assumption) | 4.5 s | 0.45 |
 
-**Open points:**
-- **Heavy vehicles:** they have too few episodes (fewer than 30 per class), so they take the
-  pooled value, labelled assumption. Buses' own 18 episodes give 0.613 m/s, so the pooled value
-  probably overstates heavy vehicles. The alternatives are the bus value or the car value; the
-  choice is open.
-- **Partly observed moves:** 1,690 partially observed episodes are excluded. Including them
-  would raise p85 by 13–20%.
+**Heavy vehicles** (user decision). The bus uses its own value from 18 moves, flagged as a small
+sample. Trucks (1 move) borrow the bus value; their own would be 0.599 m/s. LCVs (6 moves) borrow
+the car value; their own p85 would be 0.702 m/s. Both borrowed values are labelled assumption.
+Before this, the three classes used a pooled 0.817 m/s, which overstated heavy vehicles.
+
+**Partly observed moves are excluded.** 1,690 moves are cut off by the start or end of a
+trajectory, or by a flagged stretch, so only part of each move is seen.
+- **Expected effect:** a partly observed move's measured peak can only be at or below its true
+  peak, so including these moves should *lower* p85.
+- **Observed effect:** including them *raises* p85 by 13–20%. That points to smoothing
+  artefacts at the ends of a stretch. There, the speed comes from a one-sided fit, and it is
+  inflated.
+- **Check:** 26.2% of these moves have their peak within 2 samples of the end of a stretch, and
+  21.4% have it on the very last or first sample.
+- **Effect of dropping edge peaks:** dropping peaks within 2 samples of an end lowers their p85
+  (car 0.92 → 0.84 m/s, bus 0.82 → 0.71). It still stays above the fully observed p85, so edge
+  artefacts explain part of the rise, not all of it.
+- **Decision:** these moves stay excluded. Details are in `build/report.json`, under
+  `lateral_episodes.partial_episode_edge_check`.
 
 ## 6. Simulated road vs Chennai: free-flow branch only
 
@@ -169,7 +184,7 @@ warm-up, over 5 seeds:
 | | Space-mean speed | Density | Flow |
 |---|---|---|---|
 | Chennai (observed) | 41.1 km/h | 148.4 veh/km | 6,095 veh/h |
-| Simulation | 46.8–47.4 km/h (mean 47.0) | 124.5–133.1 veh/km (mean 129.1) | 5,899–6,263 veh/h |
+| Simulation | 46.8–47.4 km/h (mean 47.1) | 124.5–133.1 veh/km (mean 129.0) | 5,899–6,263 veh/h |
 
 The simulated road carries the observed flow at about 6 km/h more speed and 15–24 veh/km less
 density than observed. In other words, the calibrated vehicles are somewhat less "dense" than
@@ -194,9 +209,9 @@ with every class's v0 multiplied by 0.9:
 
 | | Space-mean speed | Density | Gap to observed speed explained |
 |---|---|---|---|
-| Baseline (calibrated) | 47.0 km/h | 129.1 veh/km | — |
-| v0 × 0.9, all else unchanged | **42.1 km/h** (41.9–42.3) | 144.6 veh/km | **4.96 of 5.9 km/h (84%)** |
-| v0 × 0.9 with T re-inverted at that v0 (§4, s0 = 2 m row) | 42.2 km/h (42.0–42.5) | 144.1 veh/km | 4.84 of 5.9 km/h (82%) |
+| Baseline (calibrated) | 47.1 km/h | 129.0 veh/km | — |
+| v0 × 0.9, all else unchanged | **42.1 km/h** (41.9–42.3) | 144.5 veh/km | **5.0 of 6.0 km/h (84%)** |
+| v0 × 0.9 with T re-inverted at that v0 (§4, s0 = 2 m row) | 42.2 km/h (42.0–42.5) | 144.2 veh/km | 4.9 of 6.0 km/h (82%) |
 | Chennai (observed) | 41.1 km/h | 148.4 veh/km | — |
 
 **Reading:** at this flow the simulated speed scales almost one-for-one with v0. A 10% lower v0
@@ -212,21 +227,56 @@ labels lane mode as a **theory check**, not a calibrated alternative.
 
 IDM is collision-free only while every leader brakes within its limits. After integration, a
 kinematic guard stops a front from passing its leader's new rear. The engine counts every
-activation, and the app shows the count with a per-10k-vehicle-steps rate in the results panel.
+activation, by segment.
+- **Unit:** the rate is reported **per 1,000 vehicle-km**: the app's live panel and the
+  experiment metric `guardPer1000VehKm`.
+- **Why not per vehicle-step:** the old unit divided by vehicle-steps. In gridlocked runs most
+  vehicle-steps are spent standing still, where the guard cannot act, so that unit diluted the
+  rate.
 
-| Scenario | Activations | Per 10k vehicle-steps |
+| Scenario (1 h, 3 seeds unless noted) | Per 1,000 vehicle-km | Per 10k vehicle-steps |
 |---|---|---|
-| Corridors (1 km, 30 min, 2,000 and 4,000 veh/h), strip and lane mode; lane-drop preset | 0 | 0 |
-| 4-arm signalised junction preset, 1 h, 3 seeds | — | 0.22–0.30 |
-| 4-arm junction with flyover, 1 h, 3 seeds | — | 0.56–0.72 |
-| On-ramp merge preset, 1 h, 3 seeds | — | 0.21–0.27 |
-| Silk Board preset (1,790 veh/h), 1 h, 10 seeds | — | 1.0 ± 0.1 |
+| Corridors (2,000 and 4,000 veh/h, strip and lane mode); lane-drop preset | 0 | 0 |
+| On-ramp merge preset | 3.1–6.9 | 0.08–0.18 |
+| 4-arm signalised junction preset | 23.0–23.4 | 0.25–0.26 |
+| 4-arm junction with flyover | 41.7–51.7 | 0.57–0.69 |
+| Silk Board preset (1,770 veh/h), 10 seeds | 64.9 ± 5.6 (50.5–79.1) | 0.86–1.32 |
 
-**Change in this revision.** The rates rose for junctions and Silk Board (Silk Board was
-0.07–0.27 per 10k before). Three things changed at once: the faster calibrated lateral speeds
-(§5), the deadlock breaker (MODEL.md §2.2) and the unchanged-follower rule (§2.4). Turning the
-unchanged-follower rule off alone leaves the rates within seed noise. The rise has not been
-attributed further. The guard still acts in about 1 vehicle-step in 10,000 or fewer.
+**Old vs new on Silk Board, per vehicle-km.** Before this revision, Silk Board showed 0.07–0.27
+per 10k vehicle-steps; the new engine shows about 1.0. Both were rerun over 10 seeds, 1 h, at
+the old preset demand (about 2,950 veh/h):
+
+| Engine | Locked junctions per seed | Per 10k vehicle-steps | **Per 1,000 vehicle-km** |
+|---|---|---|---|
+| Old (commit a9b56d6) | 5–18 | 0.06–0.30 | **45–99 (mean 68.6)** |
+| New (this revision) | 1–19 | 0.19–1.27 | **72–181 (mean 122.8)** |
+| New, at the new preset (60%) | 0 | 0.86–1.32 | 51–79 (mean 64.9) |
+
+- **What normalisation explains:** most of the jump in the per-step rate. The old runs spent
+  about 10 million vehicle-steps to drive about 2,000 vehicle-km, because most vehicles were
+  standing.
+- **What it does not explain:** at the same demand, the new engine still has about 1.8 times
+  the activations per vehicle-km. The rate is highest in the seeds that keep flowing (165–181
+  in the 4 seeds with 1–5 locked junctions; 72–106 in the heavily locked ones). So the guard
+  acts in moving, dense, cutting-in traffic, which this revision lets through instead of
+  locking.
+- **Not attributed further:** this revision changed lateral speeds, the deadlock breaker, the
+  unchanged-follower rule, the band rules and vehicle widths, all at once.
+
+**Where the guard acts** (top 5 segments, summed over 10 seeds):
+
+| Silk Board preset (1,770 veh/h) | Activations | Share |
+|---|---|---|
+| link 245809758 (7 m) | 148 | 9.5% |
+| link 160556513#0 (6 m) | 133 | 8.6% |
+| link 464465165#0 (10.5 m) | 124 | 8.0% |
+| link 1553783842#0 (6 m, the minor approach of §9) | 110 | 7.1% |
+| link 160331539#1 (3.5 m) | 100 | 6.5% |
+
+At the old demand, one 3.5 m link, **1317811589#1**, takes 30.6% of all activations (1,194).
+The others are 160556513#0 (9.9%), 1553783842#0 (5.5%), 256259311#1 (5.4%) and 229976708, a
+3.25 m link (4.5%). All of the top locations are links where queues form, none of them
+junction movements.
 
 **Correction.** Earlier reports of 80–740 activations on corridors came from a counting artifact:
 a stopped vehicle whose allowed displacement was slightly negative was counted although nothing
@@ -258,12 +308,15 @@ changed. The counter now counts only real reductions. The guard's behaviour itse
   | Main + ramp demand (veh/h) | Throughput (veh/h) | Mean max entry queue | Mean delay | Gridlocked runs |
   |---|---|---|---|---|
   | 1,600 + 400 | 1,992 ± 38 | 1.1 | 3.2 ± 0.2 s | 0 / 10 |
-  | **2,000 + 500 (preset)** | **2,499 ± 48** | 1.0 | **4.8 ± 0.4 s** | **0 / 10** |
-  | 2,400 + 600 | 3,000 ± 57 | 2.0 | 8.4 ± 1.6 s | 0 / 10 |
-  | 2,800 + 800 | 2,968 ± 107 | 418 | 320 ± 74 s | 0 / 10 |
+  | **2,000 + 500 (preset)** | **2,479 ± 80** | 1.0 | **6.4 ± 3.1 s** | **0 / 10** |
+  | 2,400 + 600 | 2,710 ± 620 | 221 | 161 ± 328 s | 1 / 10 |
+  | 2,800 + 800 | 2,854 ± 87 | 532 | 371 ± 69 s | 0 / 10 |
 
-  So the merge section saturates at about **3,000 veh/h**; above that the excess queues at the
-  entries. Before the fix the preset gridlocked in 5 of 10 seeds. The capacity is a model
+  So the merge section saturates at about **2,850 veh/h**; above that the excess queues at the
+  entries. The table was rerun after the width cap and the band-centred move.
+  - **Open:** at 2,400 + 600, one seed jams, with an entry queue of 2,174. Before those two
+    changes all 10 seeds flowed at that demand, with throughput 3,000 ± 57 veh/h. That jam has
+    not been traced. The preset runs below it, with no gridlock in any of the 10 seeds. Before the fix the preset gridlocked in 5 of 10 seeds. The capacity is a model
   result. It is not validated, because the Chennai data has no merge.
 
 ## 9. Silk Board (imported network)
@@ -301,41 +354,68 @@ about 2,950 veh/h), run over 10 seeds for 1 hour, gave:
 3. **Acceleration-lane deadlock (a rule defect, fixed).** This was found on the on-ramp (§8).
    The unchanged-follower rule applies everywhere.
 
-**Where the locks start**, after both fixes. 10 seeds, 1 h, demand as a share of the old
-preset:
+4. **Wide buses at entries and narrow bands (rule defects plus a data error, fixed in
+   revision 2).** With gridlock gone at 60%, seeds 46 and 47 still had entry queues of 156–211
+   and exited only 1,355–1,567 of 1,790 veh/h. Those entry queues grew even at 40% demand, so
+   lowering demand would not have fixed them. Traced:
+   - **The entry stops.** Two entry links (256259311#0 and 290639911) stopped admitting
+     vehicles for good once a wide bus reached the head of the queue. Every insertion position
+     keeps edge clearance, so none of them put the 2.89 m bus inside a 3 m band. A 3.09 m bus
+     can never lie inside a 3 m band at all.
+   - **The pile-up.** In seed 47, a 2.98 m bus stood in front of a 3.0 m band at y = 1.61. The
+     only centres that fit (1.49–1.51) were off its 0.25 m grid, and it waited for over 1,300 s.
+     82 vehicles on the minor approach 1553783842#0, which yields to its movement, piled up
+     behind it. The vehicle count in the network grew, while the entry queue did not.
+   - **Fixes:**
+     - **Band-centred insertion candidate and lateral move** (MODEL.md §2.3, §2.4, strip mode).
+     - **Width cap:** measured widths are capped at 2.6 m as a data correction (§2).
+     - **Overhang rejected:** a "cover the band" rule for vehicles wider than their band was
+       tried and rejected (user decision). Every Silk Board link and band is at least 3.0 m
+       wide, so a 2.6 m bus always has 0.4 m of room.
 
-| Demand | Total (veh/h) | Seeds with locked junctions at the end | Locked per seed | First lock |
-|---|---|---|---|---|
-| 100% | ≈ 2,950 | 8 / 10 | 0–21 (mean 8.9) | 730–2,940 s; node 10282769907 first in 2 seeds |
-| 80% | ≈ 2,390 | 2 / 10 | 2 and 14 | 2,120 and 2,610 s (nodes 10282769905, 10282769907) |
-| 70% | ≈ 2,090 | 1 / 10 | 3 | 3,150 s (10282769907) |
-| **60% (preset)** | **1,790** | **0 / 10** | 0 | none |
+**Where queues stop staying bounded and where locks start** (final engine, 10 seeds, 1 h,
+demand as a share of the original OD; "queue still growing" as defined in MODEL.md §5.2):
 
-Locks start at the junction pair **10282769907 / 10282769905**. At full demand, nodes 306611189,
-1723790725 and 10097182475 are the most frequently locked (6 of 10 seeds each).
+| Demand | Total (veh/h) | Entry queue still growing | Vehicles in network, mid → end | Locked at end | First lock |
+|---|---|---|---|---|---|
+| 50% | 1,475 | 0 / 10 | flat (54–72) | 0 / 10 | none |
+| **60% (preset)** | **1,770** | **0 / 10** | **flat (67–103)** | **0 / 10** | none |
+| 70% | 2,065 | 0 / 10 | grows in 4 seeds (up to 134 → 454) | 3 / 10 | 2,400–3,300 s |
+| 80% | 2,360 | 0 / 10 | grows (up to 336 → 1,199) | 5 / 10 | 1,560–2,760 s |
+| 90% | 2,655 | 0 / 10 | grows | 8 / 10 | 1,140–3,060 s |
+| 100% | 2,950 | 3 / 10 | grows | 10 / 10 | 1,140–2,760 s |
 
-**New preset.** The default is now 60% of the old demand (1,790 veh/h), the highest level
-tested that runs 10 seeds without a locked junction. 10 seeds, 1 h:
+- **Locks start at 70%,** and that is also where the vehicle count in the network starts
+  growing.
+- **Entry queues stop staying bounded only at 100%.** Between 70% and 90% the internal links
+  absorb the excess, so the entry-queue flag alone understates the instability there. The
+  network count shows it.
+- **Preset:** 60% of the original OD, **1,770 veh/h** (every row × 0.6, rounded to 1 veh/h;
+  `packages/engine/scripts/silkboard-od.mjs`). It is the highest tested level at which all 10
+  seeds keep entry queues bounded, keep the network count flat and lock no junction. 50% also
+  passes.
+
+**Preset results** (10 seeds, 1 h):
 
 | Metric | Mean ± 95% CI |
 |---|---|
-| Throughput | 1,703 ± 102 veh/h |
-| Completed / incomplete trips | 1,485 ± 97 / 160 ± 71 |
-| Mean delay, all trips (incl. unfinished, §10) | 104.9 ± 59.1 s |
-| Mean delay, completed trips only | 45.2 ± 3.4 s |
-| Mean speed | 29.0 ± 2.1 km/h |
-| Max entry queue | 61 ± 51 veh |
-| Gridlocked runs | 0 / 10 |
-| Collision guard | 1.0 ± 0.1 per 10k vehicle-steps |
+| Throughput | 1,770 ± 37 veh/h |
+| Completed / incomplete trips | 1,548 ± 37 / 84 ± 8 |
+| Mean delay, all trips (incl. unfinished, §10) | 49.3 ± 5.2 s |
+| Mean delay, completed trips only | 49.3 ± 4.7 s |
+| Mean speed | 30.0 ± 0.8 km/h |
+| Max entry queue | 0.2 ± 0.3 veh |
+| Diverted trips (in the window) | 101 ± 7 |
+| Gridlocked runs / queue still growing | 0 / 10, 0 / 10 |
+| Collision guard | 64.9 ± 5.6 per 1,000 vehicle-km |
 
-The gap between the two delay figures comes from seeds 46 and 47. Entry queues of 156–211
-vehicles build up there, and all-trips delay reaches 241–272 s against about 45 s for completed
-trips. Those queued vehicles had been dropped from the old completed-only mean.
+The all-trips and completed-only delays now agree, because no run builds a queue that never
+clears. The earlier 105 ± 59 s came from the stalled entries in seeds 46 and 47.
 
-**Limitation: diversions.** The deadlock breaker reroutes 82–128 vehicles per run. Of these,
-**75–114 (about 6% of trips) are diverted** to an exit other than their destination, because
-the new path cannot reach it. Real drivers do this too, but the share is a model output, not
-validated. Diversions are counted (`diagnostics().diversions`).
+**Limitation: diversions.** The deadlock breaker diverts about **101 trips per run, about 6%
+of the trips generated in the window**, to an exit other than their destination. Real drivers
+do this too, but the share is a model output and is not validated. Each run's count is in the
+Experiments view and the CSV (`divertedTrips`).
 
 **Engine defects that Silk Board exposed earlier, now fixed** (ADR-022):
 1. Box space measured only on 7 m exit links.
@@ -370,19 +450,28 @@ shows "Gridlocked runs k / n" for each variant and warns when k > 0.
 
 | Variant | Mean delay, all trips | Completed only | Throughput | Gridlocked |
 |---|---|---|---|---|
-| Flyover off | 55.2 [53.6, 56.7] s | 55.8 s | 3,021 veh/h | 0 / 10 |
-| Flyover on, same timings | 39.1 [37.7, 40.4] s | 39.3 s | 3,024 veh/h | 0 / 10 |
+| Flyover off | 55.2 [53.2, 57.1] s | 55.8 s | 3,021 veh/h | 0 / 10 |
+| Flyover on, same timings | 39.3 [37.8, 40.8] s | 39.6 s | 3,024 veh/h | 0 / 10 |
 | Flyover on, retimed (Webster) | 36.2 [35.2, 37.2] s | 36.5 s | 3,022 veh/h | 0 / 10 |
 
 | Paired difference | Mean delay, all trips |
 |---|---|
-| Same timings − off | **−16.1 s** [−17.5, −14.7] |
-| Retimed − same timings | **−2.9 s** [−4.2, −1.5] |
-| Retimed − off | −19.0 s [−20.8, −17.1] |
+| Same timings − off | **−15.9 s** [−17.8, −13.9] |
+| Retimed − same timings | **−3.1 s** [−4.4, −1.8] |
+| Retimed − off | −19.0 s [−21.2, −16.8] |
 
 These replace the earlier figures (−14.5 s and −2.4 s, 5 seeds, completed trips only, before the
 lateral-speed and rule changes). Nearly every trip finishes here, so the two delay definitions
-agree to within 0.6 s. On Silk Board they do not (§9).
+agree to within 0.6 s. The same holds for the Silk Board preset now (§9).
+
+**Run flags.** Two per-run flags are shown in the Experiments view and written to the CSV:
+- **Gridlocked:** at least one junction is locked at the end of the run.
+- **Queue still growing:** over the second half of the window, the entry queue grew by more than
+  one minute of total demand and by at least 10 vehicles. The threshold is an assumption
+  (MODEL.md §5.2).
+
+Each flag appears as a "k / n" row per variant, with a warning when k > 0. Diverted trips have
+their own row, with a mean, CI and paired difference.
 
 ## 11. Other checks
 

@@ -25,10 +25,10 @@ Workers, a React UI, and a static deployment with no server.
   using **paired** intervals over common random numbers, then export to CSV.
 
 **Example result** (4-arm preset, 10 paired seeds, 1 h): the flyover cuts mean delay by
-**16.1 s** [−17.5, −14.7]. Webster retiming, which moves green away from the flyover arms,
-saves another **2.9 s** [−4.2, −1.5]. Mean delay counts every generated vehicle, including
-trips still under way or waiting to enter at the end of the run. Runs with a locked junction
-are counted as gridlocked.
+**15.9 s** [−17.8, −13.9]. Webster retiming, which moves green away from the flyover arms,
+saves another **3.1 s** [−4.4, −1.8]. Mean delay counts every generated vehicle, including
+trips still under way or waiting to enter at the end of the run. Each variant's table shows
+runs that ended gridlocked, runs whose entry queue was still growing, and diverted trips.
 
 ## The model in one paragraph
 Road width is divided into lateral **strips** of 0.25 m, anchored at the kerb. A vehicle
@@ -68,22 +68,33 @@ See [docs/VALIDATION.md](docs/VALIDATION.md). In short:
   - **Likely reasons:** v0 is a p85 proxy, T depends on the assumed s0 and v0, and there is
     no roadside friction.
   - **Sensitivity:** cutting v0 by 10% gives 42.1 km/h, which explains 84% of the gap.
+- **Vehicle widths:** measured widths are capped at 2.6 m as a data correction. 44 of 95 buses
+  measured up to 3.27 m wide, likely from the video measurement or from mirrors.
 - **Lateral speeds:** taken from deliberate moves, as p85 of the peak lateral speed of moves of
-  at least 1 m. Motorcycle 0.86, car 0.78, auto 0.63 m/s. Heavy vehicles have too few moves and
-  use the pooled value, labelled an assumption.
-- **On-ramp merging:** saturates at about 3,000 veh/h. The preset (2,000 + 500 veh/h) runs 10
-  seeds with no gridlock.
+  at least 1 m. Motorcycle 0.86, car 0.78, auto 0.63, bus 0.61 m/s (from 18 moves, a small
+  sample). Trucks borrow the bus value and LCVs the car value, both labelled assumptions.
+- **On-ramp merging:** saturates at about 2,850 veh/h. The preset (2,000 + 500 veh/h) runs 10
+  seeds with no gridlock. At 2,400 + 600 veh/h, one seed in 10 jams; this is not yet traced.
 - **Not modelled:** merging at lane drops. Vehicles enter already sorted into the continuing
   lanes.
 - **Silk Board:** demand is plausible, not observed.
   - **Old preset (about 2,950 veh/h):** 10 seeds locked 10.9 ± 3.2 junctions each (5–18).
     960 trips completed and 1,746 did not. Entry queues were around 590, and speed was around
     6 km/h.
-  - **Cause:** a swap deadlock at a diverge (now broken by rerouting), then spillback from
-    oversaturated signals.
-  - **New preset:** 1,790 veh/h, the highest tested level with no locks over 10 seeds. Locks
-    start above it, at junctions 10282769907 / 10282769905.
+  - **Causes found and fixed:**
+    - a swap deadlock at a diverge, now broken by rerouting;
+    - wide buses that could never enter, or never reach, a narrow lane band, because the
+      0.25 m grid had no position that fitted. These buses also had over-wide measured widths.
+    - The rest is spillback from oversaturated signals.
+  - **New preset:** 1,770 veh/h (60% of the old demand). In all 10 seeds, entry queues stay
+    bounded, the number of vehicles in the network stays flat and no junction locks. Mean delay
+    is 49.3 ± 5.2 s.
+  - **Thresholds:** locks and growth inside the network start at 70%. Entry queues keep
+    growing only at 100%.
   - **Diversions:** about 6% of trips are diverted to another exit by the deadlock breaker.
+- **Collision guard:** 65 activations per 1,000 vehicle-km on the Silk Board preset, 23 on the
+  4-arm junction and 0 on corridors. At the old Silk Board demand, the rate per vehicle-km is
+  about 1.8 times the previous engine's. This is documented, not hidden.
 - **Lighthouse** (deployed, mobile): Performance 95, Accessibility 100, Best Practices 100.
 
 ## Repository
@@ -116,7 +127,7 @@ pnpm --filter @weave/engine sync-classes
   Harders' gap-acceptance capacity, Webster's effective green, LWR shockwave speed, Little's
   law, conservation at every step, a no-collision property, t-interval coverage and common
   random numbers.
-- **Test counts:** engine 292, data 102, end-to-end 60 (desktop and mobile, plus the hash
+- **Test counts:** engine 306, data 106, end-to-end 66 (desktop and mobile, plus the hash
   checks in WebKit). The end-to-end tests include checks that the browser and Node produce
   identical state hashes.
 - **When tests disagreed with the model:** the spec was fixed and the reasons recorded. Tests

@@ -291,3 +291,30 @@ half the vehicles never left could look good.
 
 **Rejected:** subtracting the whole route's free-flow time from unfinished trips. That
 undercounts their delay, and it could even make it negative.
+
+## ADR-025 Run stability flags, band-centred positions, width cap (revision 2)
+**Context:** the Silk Board preset was free of gridlock but not stable. In two seeds the entry
+queues grew without limit, and one seed piled up vehicles inside the network. That happened at
+any demand level.
+
+**Decisions:**
+1. **Queue still growing** (MODEL.md §5.2): a per-run flag, shown like gridlocked runs.
+   - **Rule:** the entry queue grew by more than max(10 veh, one minute of total demand) over
+     the second half of the window. The threshold is an assumption.
+   - **Diverted trips:** also a metric. The guard rate is reported per 1,000 vehicle-km, with
+     activations recorded per segment.
+2. **Band-centred insertion candidate and lateral move** (strip mode, §2.3 and §2.4): when no
+   0.25 m grid position fits the next band, the band-centred position is tried.
+3. **Width cap at 2.6 m** (data correction, user decision): 44 of 95 buses and 1 of 40 LCVs
+   measured wider.
+4. **Bodies must lie inside the band** (user decision): the "overhang" rule, under which a
+   vehicle wider than its band passes once its body covers the band, was implemented, then
+   reverted. Its tests were replaced by checks that a 2.6 m bus enters a 3 m link and band.
+   lane-band.test.ts is unchanged.
+5. **Silk Board preset at 60% of the original OD** (1,770 veh/h): the highest tested level
+   with bounded queues, a flat network count and no locks in all 10 seeds.
+
+**Consequences:**
+- Silk Board's mean delay over all trips fell from 105 ± 59 s to 49 ± 5 s.
+- At the old demand, the guard rate per vehicle-km is about 1.8 times the old engine's. It is
+  reported, not attributed further.

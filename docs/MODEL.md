@@ -317,18 +317,15 @@ feeding a 3.0 m movement. A vehicle that ends up wider than its road anyway may 
 move that reduces its overflow beyond the road edges (§2.4 candidates).
 
 When the next route element after a link is a movement with band `fromLateral = [b0, b1]`
-(effective band, above), a vehicle may continue only if its body **fits** the band. The fit is
-measured by the **band miss** of a body `[lo, hi] = [y − width/2, y + width/2]`:
-- **No wider than the band** (`width ≤ b1 − b0`): `miss = max(0, b0 − lo) + max(0, hi − b1)`,
-  so the body must lie inside the band.
-- **Wider than the band** (revision 2): `miss = max(0, lo − b0) + max(0, b1 − hi)`, so the
-  body must **cover** the band. A body cannot fit inside a band narrower than itself, so
-  without this case a 3.09 m bus never got past a 3.0 m band on Silk Board.
-- **Fit:** the body fits when `miss ≤ ε`, with ε = `EPS` = 1e-9 m. Both cases give the same
-  miss when `width = b1 − b0`.
-- **Where it applies:** the same miss drives the leader search obstacle (here), band-seeking
-  and band keeping (§2.4), the deadlock-breaker trigger and choice (below), and insertion
-  (§2.3).
+(effective band, above), a vehicle may continue only if its body lies inside the band. The
+**band miss** of a body `[lo, hi] = [y − width/2, y + width/2]` is
+`miss = max(0, b0 − lo) + max(0, hi − b1)`, and the body fits when `miss ≤ ε` (ε = `EPS` =
+1e-9 m). The same miss drives the leader search obstacle (here), band seeking and band keeping
+(§2.4), the deadlock-breaker trigger and choice (below), and insertion (§2.3).
+- **No overhang (user decision, revision 2):** a body wider than its band never fits. A
+  "cover the band" rule for wide vehicles was tried and rejected. The wide vehicles that
+  needed it came from bus widths of up to 3.27 m in the data, which are now capped at 2.6 m as
+  a data correction (VALIDATION.md §2). Every Silk Board link and band is at least 3.0 m wide.
 
 Otherwise the end of the link counts as a **standing obstacle** in the leader search: a
 candidate with rear end at offset `L_link − s_i` and speed 0. Vehicles that couldn't move
