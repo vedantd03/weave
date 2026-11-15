@@ -47,11 +47,14 @@ export function runSummary(sim: Sim, warmupS: number): Record<MetricId, number> 
   // second half of the window (§5.2; threshold is an assumption).
   const lambda = sim.scenario.od.reduce((a, r) => a + r.rateVph, 0) / 3600;
   const growth = sim.counters().entryQueue - sim.queueAt(stepsM);
+  // Vehicles inside the network still growing (§7.1): same threshold, on onNetwork.
+  const netGrowth = sim.counters().onNetwork - sim.historyAt(stepsM).onNetwork;
   return {
     meanDelayS: mean(delays),
     meanDelayCompletedS: mean(trips.map((t) => t.tExit - t.tGen - t.freeFlowS)),
     gridlocked: locked > 0 ? 1 : 0,
     queueGrowing: growth > Math.max(10, 60 * lambda) ? 1 : 0,
+    networkGrowing: netGrowth > Math.max(10, 60 * lambda) ? 1 : 0,
     meanTravelTimeS: mean(trips.map((t) => t.tExit - t.tGen)),
     throughputVph: ((sim.counters().exited - atW.exited) * 3600) / (D - w),
     meanSpeedKmh: 3.6 * mean(rows.map((r) => r.meanSpeedMps)),

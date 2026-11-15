@@ -121,7 +121,7 @@ export interface Sim {
   /** Entry queue right after `step` (0 at step 0), §6.2. */
   queueAt(step: number): number;
   /** Entry queue, exits and diversions right after `step`, §6.2. */
-  historyAt(step: number): { entryQueue: number; exited: number; diversions: number };
+  historyAt(step: number): { entryQueue: number; exited: number; diversions: number; onNetwork: number };
   /** Front displacement per segment (index order: links, then movements), m, §6.2. */
   segmentDistanceM(): Float64Array;
   trips(): TripRecord[];
@@ -347,6 +347,7 @@ class SimImpl implements Sim {
   private histQueue: number[] = [0];
   private histExited: number[] = [0];
   private histDiverted: number[] = [0];
+  private histOnNet: number[] = [0];
   /** Why vehicles were held at junctions (counts of leader-search evaluations). */
   private holds = { red: 0, amber: 0, gap: 0, box: 0, occupied: 0 };
   /** Junction data per segment (movements only). */
@@ -391,6 +392,7 @@ class SimImpl implements Sim {
     this.linkKm = km;
     this.setupDemand();
     this.placeInitial();
+    this.histOnNet[0] = this.st.count;
     this.refreshStrips();
   }
 
@@ -1466,6 +1468,7 @@ class SimImpl implements Sim {
     this.histQueue.push(this.queueLength());
     this.histExited.push(this.exited);
     this.histDiverted.push(this.diversions);
+    this.histOnNet.push(this.st.count);
   }
 
   /**
@@ -1867,8 +1870,13 @@ class SimImpl implements Sim {
     return this.histQueue[step] ?? NaN;
   }
 
-  historyAt(step: number): { entryQueue: number; exited: number; diversions: number } {
-    return { entryQueue: this.histQueue[step] ?? NaN, exited: this.histExited[step] ?? NaN, diversions: this.histDiverted[step] ?? NaN };
+  historyAt(step: number): { entryQueue: number; exited: number; diversions: number; onNetwork: number } {
+    return {
+      entryQueue: this.histQueue[step] ?? NaN,
+      exited: this.histExited[step] ?? NaN,
+      diversions: this.histDiverted[step] ?? NaN,
+      onNetwork: this.histOnNet[step] ?? NaN,
+    };
   }
 
   segmentDistanceM(): Float64Array {

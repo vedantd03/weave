@@ -412,6 +412,19 @@ demand as a share of the original OD; "queue still growing" as defined in MODEL.
 The all-trips and completed-only delays now agree, because no run builds a queue that never
 clears. The earlier 105 ± 59 s came from the stalled entries in seeds 46 and 47.
 
+**A third stability flag: vehicles still filling the network** (revision 5, MODEL.md §7.1).
+Entry queues and locked junctions do not catch every unstable run. Silk Board seed 58 at the
+preset has 184 unfinished trips with no locked junction and no entry queue: the network holds
+89 vehicles at the window midpoint and 184 at the end. The flag `networkGrowing` uses the same
+threshold as the queue flag, max(10, one minute of demand) = 29.5 vehicles here, and it fires
+for seed 58 (growth 95). It also fires, narrowly, for seed 57 (growth 34).
+- **Seeds 42–51:** the preset stays clean for every one of these, the set it was chosen on.
+- **Seeds 56–60:** seeds 57 and 58 are not clean. The 60% preset is therefore clean in most
+  seeds, not all.
+
+Every experiment now reports the flag next to gridlock and queue growth, so such runs are
+visible.
+
 **Limitation: diversions.** The deadlock breaker diverts about **101 trips per run, about 6%
 of the trips generated in the window**, to an exit other than their destination. Real drivers
 do this too, but the share is a model output and is not validated. Each run's count is in the

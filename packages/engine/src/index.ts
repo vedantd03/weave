@@ -18,5 +18,7 @@ export { meanCI, pairedCI, type CI } from './stats/ci.ts';
 export { runReplicate, summarize, compare, METRICS, METRIC_LABELS, type MetricId, type ReplicateResult } from './stats/experiment.ts';
 export { runSummary, segmentStats, type SegmentStat } from './stats/summary.ts';
 export { tripRecords, exportBody } from './stats/export.ts';
+export { breakdown, type Breakdown, type ApproachRow, type MovementRow, type OdRow } from './stats/breakdown.ts';
+export { runCount, pairable, welchCI, compareRuns, sweepParams, sweepValues, applySweep, describeDiff, effectivePlans, type SweepParam, type WelchCI } from './stats/design.ts';
 export { replayExport } from './replay.ts';
 export { retimeWebster, criticalFlowRatios, retimedFlyoverScenario } from './junction/retime.ts';

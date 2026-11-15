@@ -14,6 +14,7 @@ import {
 import type { FromWorker } from '@weave/engine/protocol';
 import { Renderer, type FrameView, type Selection } from '../render/renderer.ts';
 import { SIGNAL_STATES } from '../render/select.ts';
+import { decodeScenario, hashToken, writeScenarioToUrl } from './urlScenario.ts';
 import { FRAME_STRIDE, F_CLASS, F_LENGTH, F_SEG, F_SPEED, F_WIDTH } from '@weave/engine/protocol';
 import type { ColourMode } from '../render/palette.ts';
 import { SimClient } from '../worker/client.ts';
@@ -135,6 +136,15 @@ export class SimController {
   private async openDefault(): Promise<void> {
     // Something (the user or a test hook) already asked for a scenario: don't replace it.
     if (this.initsSent > 0) return;
+    // A shared link (#s=…) restores its scenario, paused at t = 0 (§7.4).
+    const token = hashToken();
+    if (token) {
+      const shared = await decodeScenario(token);
+      if (shared && this.initsSent === 0) {
+        await this.loadScenario(shared, PRESETS[shared.id] ? shared.id : null);
+        return;
+      }
+    }
     const id = new URLSearchParams(window.location.search).get('preset') ?? DEFAULT_PRESET;
     await this.load(PRESETS[id] ? id : DEFAULT_PRESET);
   }
@@ -358,6 +368,7 @@ export class SimController {
     });
     const ready = this.waitForStep(0);
     this.pendingLoad = ready;
+    void writeScenarioToUrl(scenario);
     this.initsSent++;
     this.client.send({ type: 'init', scenario, classes: this.state.classes, ...(network ? { network } : {}) });
     this.client.send({ type: 'setSpeed', factor: this.state.speed });

@@ -40,9 +40,29 @@ Workers, a React UI, and a static deployment with no server.
     per-link statistics, trip records (including unfinished trips' delay so far) and
     diagnostics.
   - **Replay:** the Node CLI replays it and checks the hash.
-- **Run experiments:** *N* seeds in parallel workers, with means and 95% Student-t intervals.
-  You can compare "flyover off", "flyover on with the same timings" and "flyover on, retimed"
-  using **paired** intervals over common random numbers, then export to CSV.
+- **Run experiments on any scenario,** in parallel workers:
+  - **Replicate:** run the scenario over N seeds and get means with 95% Student-t intervals.
+  - **Compare:** two or more named scenarios. Save a baseline, edit anything and add variants;
+    flyover variants are one click. The differences are written in plain words ("Demand 3,000
+    → 3,600 veh/h; Arm 2 green 25 → 35 s").
+    - **Pairing:** seeds are paired only when zones and OD pairs match, so arrivals line up.
+      Otherwise the app uses Welch intervals and says why.
+  - **Sweep:** one parameter that applies to the scenario, such as demand scale, motorcycle
+    share, a phase's green, a width, ramp length, flyover on/off or strips vs lanes. Up to 10
+    points, with the same seeds at every point.
+- **Experiment results:**
+  - **During a run:** a time estimate before it starts, then progress, an ETA and Cancel.
+  - **Summary and charts:** a plain-English summary, interval bars for Compare, and for Sweep
+    a line with a 95% band and problem points marked.
+  - **Breakdowns:** by approach, by movement and, for small networks, by OD pair.
+  - **Stability flags everywhere,** including in the CSV: gridlocked, entry queue still
+    growing, and vehicles inside the network still growing.
+- **Keep and share:**
+  - **History:** named experiments are kept in the browser. You can reopen, compare two
+    side by side, or delete them.
+  - **Export and import:** export as JSON or CSV. Import an experiment (it reruns) or a run
+    export (it replays and checks the state hash).
+  - **Links:** the URL carries the scenario, so a link restores the setup.
 
 **Example result** (4-arm preset, 10 paired seeds, 1 h): the flyover cuts mean delay by
 **15.9 s** [−17.8, −13.9]. Webster retiming, which moves green away from the flyover arms,

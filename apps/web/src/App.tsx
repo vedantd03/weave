@@ -282,7 +282,7 @@ export default function App() {
           {tab === 'experiments' && (
             <Panel title="Experiments">
               {st.scenario ? (
-                <ExperimentPanel scenario={st.scenario} network={st.network} />
+                <ExperimentPanel ctrl={ctrl} scenario={st.scenario} network={st.network} />
               ) : (
                 <p className="text-sm text-muted">Choose a scenario first.</p>
               )}

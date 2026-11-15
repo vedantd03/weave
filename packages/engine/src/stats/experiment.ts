@@ -1,6 +1,7 @@
 import { createSim, type SimInput } from '../sim/sim.ts';
 import { meanCI, pairedCI, type CI } from './ci.ts';
 import { runSummary } from './summary.ts';
+import { breakdown, type Breakdown } from './breakdown.ts';
 
 /** Replicate metrics and multi-seed summaries (docs/MODEL.md §5.2). */
 
@@ -9,6 +10,7 @@ export type MetricId =
   | 'meanDelayCompletedS'
   | 'gridlocked'
   | 'queueGrowing'
+  | 'networkGrowing'
   | 'meanTravelTimeS'
   | 'throughputVph'
   | 'meanSpeedKmh'
@@ -25,6 +27,7 @@ export const METRICS: readonly MetricId[] = [
   'meanDelayCompletedS',
   'gridlocked',
   'queueGrowing',
+  'networkGrowing',
   'meanTravelTimeS',
   'throughputVph',
   'meanSpeedKmh',
@@ -42,6 +45,7 @@ export const METRIC_LABELS: Record<MetricId, { label: string; unit: string }> = 
   meanDelayCompletedS: { label: 'Mean delay, completed trips only', unit: 's' },
   gridlocked: { label: 'Gridlocked (1 = locked junction at end)', unit: '' },
   queueGrowing: { label: 'Entry queue still growing (1 = yes)', unit: '' },
+  networkGrowing: { label: 'Vehicles in network still growing (1 = yes)', unit: '' },
   meanTravelTimeS: { label: 'Mean travel time', unit: 's' },
   throughputVph: { label: 'Throughput', unit: 'veh/h' },
   meanSpeedKmh: { label: 'Mean speed', unit: 'km/h' },
@@ -57,12 +61,15 @@ export const METRIC_LABELS: Record<MetricId, { label: string; unit: string }> = 
 export interface ReplicateResult {
   seed: number;
   metrics: Record<MetricId, number>;
+  /** By approach, movement and OD (§7.2). */
+  breakdown?: Breakdown;
 }
 
 export function runReplicate(input: SimInput, seed: number): ReplicateResult {
   const sim = createSim({ ...input, scenario: { ...input.scenario, seed } });
   sim.advance(Math.round(input.scenario.durationS / sim.dt));
-  return { seed, metrics: runSummary(sim, input.scenario.warmupS ?? 300) };
+  const w = input.scenario.warmupS ?? 300;
+  return { seed, metrics: runSummary(sim, w), breakdown: breakdown(sim, w) };
 }
 
 export function summarize(results: ReplicateResult[], level = 0.95): Record<MetricId, CI> {
