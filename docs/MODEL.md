@@ -1016,6 +1016,15 @@ interface SegmentStat {
    - **No warm-up at page load:** nothing is simulated until the user plays or steps.
    - **Other presets:** `?preset=<id>` opens another preset the same way. `?autoplay` no
      longer exists, because nothing autoplays.
+   - **Loads and Play (bug fix):** a scenario load counts from the moment it is requested,
+     before any network download.
+     - **Play:** from that moment until the latest requested load is ready, Play (and the
+       prompt) is disabled.
+     - **Start-up:** the start-up default never replaces a load that was already requested.
+     - **Stale messages:** output from the previous scenario received during the download is
+       ignored.
+     - **Bug this fixes:** selecting Silk Board and pressing Play while `silkboard.json` was
+       still downloading started the previous scenario. The new one then replaced it, paused.
 2. **Colour by.** A two-option control "Colour by" (Class / Speed), shown over the map, sets the
    vehicle colour in both 2D and 3D.
    - **Class:** the existing class palette.
