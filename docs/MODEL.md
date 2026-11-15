@@ -1077,6 +1077,27 @@ interface SegmentStat {
    - **No GPU readback:** inspection never reads pixels from the GPU (no `readPixels`).
    - **Test hook:** `weaveTest.worldToScreen3d(x, y, z)` returns page coordinates in the 3D
      view.
+9. **3D traffic lights (render only).** The 3D view draws the same signal heads as 2D.
+   - **Which heads:** one per movement with `control = 'signal'` at a node that has a signal
+     plan. Yield, priority and free movements get none.
+   - **Light position:** the light sits above the movement's stop line at the same plan
+     position as the 2D head (`path[0]`), 5 m above the stop line's z (the fromLink's
+     `zToM`).
+   - **Poles:** each signalised stop line (one per fromLink) gets one pole at its kerb-side
+     edge, with an arm reaching over its heads.
+   - **Colour:** each light shows the movement's current signal code from the frame
+     (`signals`), with the 2D colours: red `#ef4444`, amber `#f59e0b`, green `#22c55e` and
+     permissive green `#38bdf8`. Colours are updated on every frame.
+   - **Rendering:** lights are self-lit (unlit material), so they are visible from any angle
+     and in both themes. Poles, arms and lights are instanced meshes built once per network;
+     a frame only rewrites instance colours.
+   - **Inspection:** hovering or tapping a light shows the inspection card with the movement
+     id, its from → to links and its current state (Red / Amber / Green / Permissive), and the
+     card follows the state as it changes.
+   - **Test hook:** `weaveTest.signalLights3d()` returns
+     `[{ movement: string, colour: string /* '#rrggbb' */ }]` for every 3D light (empty when
+     3D is closed), and `weaveTest.signalLightPos3d(i)` returns the page coordinates of light
+     i.
 6. **Export run.** An "Export run" button is enabled only when the run is paused and t > 0.
    It downloads one JSON file, `weave-run-<presetId|scenario.id>-seed<seed>-t<t>.json`, that
    validates against the zod schema `RunExport` (§6.4; JSON Schema in
