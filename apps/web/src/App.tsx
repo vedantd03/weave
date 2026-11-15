@@ -249,8 +249,8 @@ export default function App() {
             {st.metrics && (
               <p className="mt-2 text-xs text-muted" data-testid="guard-rate" title="How often the kinematic collision guard had to cap a vehicle's movement (ADR-015). It is a rare safety net; see VALIDATION.md.">
                 Collision guard: {st.metrics.guardActivations} activations
-                {st.metrics.vehicleSteps > 0 &&
-                  ` (${((1e4 * st.metrics.guardActivations) / st.metrics.vehicleSteps).toFixed(2)} per 10k vehicle-steps)`}
+                {st.metrics.vehicleKm > 0 &&
+                  ` (${((1000 * st.metrics.guardActivations) / st.metrics.vehicleKm).toFixed(1)} per 1,000 vehicle-km)`}
               </p>
             )}
           </Panel>

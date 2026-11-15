@@ -64,6 +64,8 @@ export const MetricsDelta = z.object({
   /** Collision-guard activations and vehicle-steps so far (ADR-015). */
   guardActivations: z.number().int().min(0).default(0),
   vehicleSteps: z.number().int().min(0).default(0),
+  /** Distance driven by all vehicles so far (vehicle-km, MODEL.md §5.2). */
+  vehicleKm: z.number().min(0).default(0),
   /** Why vehicles were held at junctions (counts), MODEL.md §3.4. */
   holds: z.record(z.string(), z.number()).default({}),
   /** Gridlock report (§3.4 item 6) or null. */

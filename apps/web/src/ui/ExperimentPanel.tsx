@@ -4,6 +4,17 @@ import { compareOptions, runExperiment, toCsv, type CompareId, type ExperimentOu
 
 const field = 'h-8 w-full rounded-md border border-border bg-surface-2 px-2 text-sm text-text tabular-nums';
 
+/** Per-run 0/1 flags, shown as "k / n" rows rather than means (docs/MODEL.md §5.3b). */
+const FLAGS = [
+  { metric: 'gridlocked', testId: 'gridlocked-runs', label: 'Gridlocked runs', title: 'Runs with at least one locked junction at the end' },
+  {
+    metric: 'queueGrowing',
+    testId: 'queue-growing-runs',
+    label: 'Queue still growing',
+    title: 'Runs whose entry queue grew by more than one minute of demand (and 10 vehicles) over the second half of the window',
+  },
+] as const;
+
 function fmt(ci: CI | undefined, digits = 1): string {
   if (!ci || !Number.isFinite(ci.mean)) return '—';
   const h = Number.isFinite(ci.half) ? ` ± ${ci.half.toFixed(digits)}` : '';
@@ -100,19 +111,23 @@ export function ExperimentPanel({ scenario, network }: { scenario: ScenarioInput
                 </tr>
               </thead>
               <tbody>
-                <tr data-testid="gridlocked-runs" className="border-t border-border">
-                  <td className="py-1 pr-2 text-text">Gridlocked runs</td>
-                  <td className="py-1 pr-2 font-mono">
-                    {outcome.base.filter((r) => r.metrics.gridlocked > 0).length} / {outcome.base.length}
-                  </td>
-                  {outcome.variant && (
-                    <td className="py-1 pr-2 font-mono">
-                      {outcome.variant.filter((r) => r.metrics.gridlocked > 0).length} / {outcome.variant.length}
+                {FLAGS.map((f) => (
+                  <tr key={f.metric} data-testid={f.testId} className="border-t border-border">
+                    <td className="py-1 pr-2 text-text" title={f.title}>
+                      {f.label}
                     </td>
-                  )}
-                  {outcome.variant && <td className="py-1" />}
-                </tr>
-                {METRICS.filter((m) => m !== 'gridlocked').map((m) => {
+                    <td className="py-1 pr-2 font-mono">
+                      {outcome.base.filter((r) => r.metrics[f.metric] > 0).length} / {outcome.base.length}
+                    </td>
+                    {outcome.variant && (
+                      <td className="py-1 pr-2 font-mono">
+                        {outcome.variant.filter((r) => r.metrics[f.metric] > 0).length} / {outcome.variant.length}
+                      </td>
+                    )}
+                    {outcome.variant && <td className="py-1" />}
+                  </tr>
+                ))}
+                {METRICS.filter((m) => !FLAGS.some((f) => f.metric === m)).map((m) => {
                   const d = outcome.diff?.[m];
                   const sig = d && Number.isFinite(d.lo) && (d.lo > 0 || d.hi < 0);
                   return (
@@ -133,12 +148,23 @@ export function ExperimentPanel({ scenario, network }: { scenario: ScenarioInput
           {(() => {
             const all = [...outcome.base, ...(outcome.variant ?? [])];
             const k = all.filter((r) => r.metrics.gridlocked > 0).length;
-            return k > 0 ? (
-              <div role="status" className="rounded-md border border-danger/40 bg-danger/10 p-2 text-xs text-danger">
-                {k} of {all.length} runs ended in gridlock (at least one junction locked). Mean delay includes the delay
-                accumulated so far by trips that never finished.
-              </div>
-            ) : null;
+            const q = all.filter((r) => r.metrics.queueGrowing > 0).length;
+            return (
+              <>
+                {k > 0 && (
+                  <div role="status" className="rounded-md border border-danger/40 bg-danger/10 p-2 text-xs text-danger">
+                    {k} of {all.length} runs ended in gridlock (at least one junction locked). Mean delay includes the delay
+                    accumulated so far by trips that never finished.
+                  </div>
+                )}
+                {q > 0 && (
+                  <div role="status" className="rounded-md border border-danger/40 bg-danger/10 p-2 text-xs text-danger">
+                    In {q} of {all.length} runs the entry queue was still growing at the end: demand exceeds what the network
+                    admits, so these runs did not reach a steady state.
+                  </div>
+                )}
+              </>
+            );
           })()}
           {outcome.variant && (
             <p className="text-xs text-muted">

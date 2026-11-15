@@ -115,7 +115,7 @@ export interface Sim {
   series(): SeriesRow[];
   addVehicle(spec: AddVehicleSpec): number;
   writeFrame(out: Float32Array): number;
-  diagnostics(): { guardActivations: number; vehicleSteps: number; holds: Record<string, number>; reroutes: number; diversions: number };
+  diagnostics(): { guardActivations: number; vehicleSteps: number; holds: Record<string, number>; reroutes: number; diversions: number; vehicleKm: number; guardBySegment: Record<string, number> };
   /** Gridlock report (MODEL.md §3.4 item 6), or null when nothing is locked. */
   gridlock(): GridlockReport | null;
   /** Signal colour per network movement (index order), SIG codes; 255 = uncontrolled. */
@@ -322,6 +322,7 @@ class SimImpl implements Sim {
   private reroutes = 0;
   private diversions = 0;
   private guardBySeg: Record<number, number> = {};
+  private distM = 0; // front displacement summed over vehicles and steps (§5.2 vehicleKm)
   /** Why vehicles were held at junctions (counts of leader-search evaluations). */
   private holds = { red: 0, amber: 0, gap: 0, box: 0, occupied: 0 };
   /** Junction data per segment (movements only). */
@@ -1377,6 +1378,7 @@ class SimImpl implements Sim {
       st.s[k] = st.s[k]! + st.ds[k]!;
       const lim = this.segs[st.seg[k]!]!.speedLimitMps;
       st.ffTrav[k] = st.ffTrav[k]! + st.ds[k]! / Math.min(st.v0[k]!, lim);
+      this.distM += st.ds[k]!;
       if (st.dy[k] !== 0) {
         const ny = st.y[k]! + st.dy[k]!;
         st.y[k] = Math.abs(st.ty[k]! - ny) <= EPS ? st.ty[k]! : ny;
@@ -1471,8 +1473,18 @@ class SimImpl implements Sim {
   }
 
   /** Engine diagnostics: how often the collision guard had to bind, out of all vehicle-steps. */
-  diagnostics(): { guardActivations: number; vehicleSteps: number; holds: Record<string, number>; reroutes: number; diversions: number } {
-    return { guardActivations: this.guardHits, vehicleSteps: this.vehicleSteps, holds: { ...this.holds }, reroutes: this.reroutes, diversions: this.diversions };
+  diagnostics(): { guardActivations: number; vehicleSteps: number; holds: Record<string, number>; reroutes: number; diversions: number; vehicleKm: number; guardBySegment: Record<string, number> } {
+    const guardBySegment: Record<string, number> = {};
+    for (const [g, n] of Object.entries(this.guardBySeg)) if (n > 0) guardBySegment[this.segs[Number(g)]!.id] = n;
+    return {
+      guardActivations: this.guardHits,
+      vehicleSteps: this.vehicleSteps,
+      holds: { ...this.holds },
+      reroutes: this.reroutes,
+      diversions: this.diversions,
+      vehicleKm: this.distM / 1000,
+      guardBySegment,
+    };
   }
 
   /** Update stall clocks (§3.4 item 6): per junction region and for the whole network. */
