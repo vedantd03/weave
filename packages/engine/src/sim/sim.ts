@@ -156,15 +156,9 @@ const BOX_QUEUE_SPEED = 2;
 const REGION_M = 50;
 
 /** A movement's band cannot be wider than the movement itself (§2.2). */
-/**
- * Band miss (§2.2): 0 when a body of `width` centred at `y` fits band `b`. A body no wider than the
- * band must lie inside it; a wider body must cover it.
- */
+/** Band miss (§2.2): how far a body of `width` centred at `y` sticks out of band `b` (0 = inside). */
 function bandMiss(y: number, width: number, b: readonly [number, number]): number {
-  const lo = y - width / 2;
-  const hi = y + width / 2;
-  if (width <= b[1] - b[0] + EPS) return Math.max(0, b[0] - lo) + Math.max(0, hi - b[1]);
-  return Math.max(0, lo - b[0]) + Math.max(0, b[1] - hi);
+  return Math.max(0, b[0] - (y - width / 2)) + Math.max(0, y + width / 2 - b[1]);
 }
 
 function effBand(m: Segment): [number, number] {
@@ -1169,6 +1163,11 @@ class SimImpl implements Sim {
         const fits = yc - h >= -EPS && yc + h <= W + EPS;
         const seeksBand = dNow > 0 && bandDist(yc) < dNow - EPS && yc - width / 2 >= -EPS && yc + width / 2 <= W + EPS;
         if (fits || seeksBand || over(yc) < overNow - EPS) cands.push(yc);
+      }
+      // Band-centred move (§2.4): no grid candidate within reach fits the band.
+      if (nb && dNow > EPS && !cands.some((yc) => bandDist(yc) <= EPS)) {
+        const yb = width <= W ? Math.min(Math.max((nb[0] + nb[1]) / 2, width / 2), W - width / 2) : W / 2;
+        if (Math.abs(yb - y) <= J * w + EPS && Math.abs(yb - y) > EPS && bandDist(yb) < dNow - EPS) cands.push(yb);
       }
     }
     if (cands.length === 0) return null;
