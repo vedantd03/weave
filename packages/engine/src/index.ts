@@ -16,4 +16,5 @@ export { PRESETS } from './scenarios/presets.ts';
 export { tQuantile, tCdf } from './stats/tdist.ts';
 export { meanCI, pairedCI, type CI } from './stats/ci.ts';
 export { runReplicate, summarize, compare, METRICS, METRIC_LABELS, type MetricId, type ReplicateResult } from './stats/experiment.ts';
+export { runSummary, segmentStats, type SegmentStat } from './stats/summary.ts';
 export { retimeWebster, criticalFlowRatios, retimedFlyoverScenario } from './junction/retime.ts';

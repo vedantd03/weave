@@ -11,6 +11,7 @@ import {
 } from '@weave/engine';
 import type { FromWorker } from '@weave/engine/protocol';
 import { Renderer } from '../render/renderer.ts';
+import type { ColourMode } from '../render/palette.ts';
 import { SimClient } from '../worker/client.ts';
 
 /** The preset the app opens on (§6.3 item 1). */
@@ -35,6 +36,8 @@ export interface SimState {
   /** The scenario currently loaded in the worker (null before the first load). */
   scenario: ScenarioInput | null;
   series: SeriesRow[];
+  /** Vehicle colouring on the map (§6.3 item 2). */
+  colourMode: ColourMode;
 }
 
 type Listener = () => void;
@@ -74,6 +77,7 @@ export class SimController {
       workerPingMs: null,
       scenario: null,
       series: [],
+      colourMode: 'class',
     };
     this.client.on((m) => this.onMessage(m));
     this.client
@@ -127,9 +131,15 @@ export class SimController {
   attachCanvas(canvas: HTMLCanvasElement | null): void {
     this.renderer?.destroy();
     this.renderer = canvas ? new Renderer(canvas) : null;
+    this.renderer?.setColourMode(this.state.colourMode);
     if (this.renderer && this.state.network) {
       this.renderer.setNetwork(this.state.network, this.state.classes.classes.map((c) => c.id));
     }
+  }
+
+  setColourMode(mode: ColourMode): void {
+    this.renderer?.setColourMode(mode);
+    this.set({ colourMode: mode });
   }
 
   fitView(): void {

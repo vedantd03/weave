@@ -25,6 +25,9 @@ export interface Segment {
   toLateral: [number, number];
   /** For movements: index of the movement in network.movements; for links −1. */
   movementIndex: number;
+  /** Elevation at s = 0 and s = length, linear in between (rendering only, MODEL.md §6.1). */
+  z0: number;
+  z1: number;
 }
 
 export interface BuiltNetwork {
@@ -71,6 +74,8 @@ export function buildNetwork(net: Network, mode: 'strip' | 'lane', stripWidthM: 
       fromLateral: [0, l.widthM],
       toLateral: [0, l.widthM],
       movementIndex: -1,
+      z0: l.zFromM,
+      z1: l.zToM,
     });
   }
   const nLinks = segments.length;
@@ -101,6 +106,8 @@ export function buildNetwork(net: Network, mode: 'strip' | 'lane', stripWidthM: 
       fromLateral: [m.fromLateral[0], m.fromLateral[1]],
       toLateral: [m.toLateral[0], m.toLateral[1]],
       movementIndex: mi,
+      z0: net.links[from.index]!.zToM,
+      z1: net.links[to.index]!.zFromM,
     });
     from.next.push(idx);
   });

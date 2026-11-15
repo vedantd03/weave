@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { PRESETS } from '@weave/engine';
 import { SimController } from './state/controller.ts';
-import { CLASS_COLORS } from './render/palette.ts';
+import { Legend, Segmented } from './ui/MapOverlay.tsx';
 import { ScenarioForm } from './ui/ScenarioForm.tsx';
 import { LiveCharts } from './charts/LiveCharts.tsx';
 import { ExperimentPanel } from './ui/ExperimentPanel.tsx';
@@ -52,6 +52,12 @@ function IconButton(props: React.ButtonHTMLAttributes<HTMLButtonElement> & { pri
   );
 }
 
+function subscribeScheme(cb: () => void): () => void {
+  const mq = window.matchMedia('(prefers-color-scheme: light)');
+  mq.addEventListener('change', cb);
+  return () => mq.removeEventListener('change', cb);
+}
+
 function formatTime(t: number): string {
   const m = Math.floor(t / 60);
   const s = t - m * 60;
@@ -69,6 +75,7 @@ export default function App() {
   const meanKmh = st.metrics ? (st.metrics.meanSpeedMps * 3.6).toFixed(1) : '—';
   const network = st.network;
   const [tab, setTab] = useState<'live' | 'experiments'>('live');
+  const darkScheme = useSyncExternalStore(subscribeScheme, () => !window.matchMedia('(prefers-color-scheme: light)').matches);
 
   return (
     <div className="flex h-full flex-col">
@@ -154,16 +161,6 @@ export default function App() {
               <p className="text-sm text-muted">Loading scenario…</p>
             )}
           </Panel>
-          <Panel title="Vehicle classes">
-            <ul className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
-              {st.classes.classes.map((c) => (
-                <li key={c.id} className="flex items-center gap-2">
-                  <span className="h-2.5 w-4 rounded-sm" style={{ background: CLASS_COLORS[c.id].dark }} />
-                  <span className="text-muted">{CLASS_COLORS[c.id].label}</span>
-                </li>
-              ))}
-            </ul>
-          </Panel>
         </aside>
 
         <main className="relative order-1 min-h-[55vh] flex-1 bg-ground md:order-2 md:min-h-0" aria-label="Simulation view">
@@ -179,6 +176,26 @@ export default function App() {
                 <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
                 Starting simulation…
               </p>
+            </div>
+          )}
+          {loaded && (
+            <div className="pointer-events-none absolute inset-x-3 top-3 flex flex-wrap items-start gap-2">
+              <div className="pointer-events-auto">
+                <Segmented
+                  label="Colour by"
+                  value={st.colourMode}
+                  options={[
+                    { value: 'class', label: 'Class' },
+                    { value: 'speed', label: 'Speed' },
+                  ]}
+                  onChange={(m) => ctrl.setColourMode(m)}
+                />
+              </div>
+            </div>
+          )}
+          {loaded && (
+            <div className="pointer-events-none absolute bottom-3 left-3 max-w-[calc(100%-6.5rem)]">
+              <Legend mode={st.colourMode} classes={st.classes.classes} dark={darkScheme} />
             </div>
           )}
           {loaded && (

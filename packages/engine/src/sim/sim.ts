@@ -3,7 +3,7 @@ import { idmAccel, type IdmParams } from '../models/idm.ts';
 import { ballistic } from '../models/integrate.ts';
 import { buildNetwork, mapLateral, pointAt, type BuiltNetwork, type Segment } from '../network/build.ts';
 import { laneStrip, occupiedStrips, sweptStrips } from '../network/strips.ts';
-import { FRAME_STRIDE, F_CLASS, F_HEADING, F_LAYER, F_LENGTH, F_WIDTH, F_X, F_Y } from '../protocol.ts';
+import { FRAME_STRIDE, F_CLASS, F_HEADING, F_LAYER, F_LENGTH, F_SEG, F_SPEED, F_SPEED_RATIO, F_WIDTH, F_X, F_Y, F_Z } from '../protocol.ts';
 import type { ClassSet, VehicleClass, VehicleClassId } from '../schema/classes.ts';
 import type { Dist } from '../schema/common.ts';
 import type { Network } from '../schema/network.ts';
@@ -104,12 +104,20 @@ export interface Sim {
   readonly step: number;
   readonly dt: number;
   readonly network: Network;
+  /** The scenario as run (parsed, defaults applied). */
+  readonly scenario: Scenario;
   advance(steps?: number): void;
   vehicles(): VehicleView[];
   vehicleCount(): number;
   stateHash(): string;
   counters(): SimCounters;
   linkStats(): Record<string, LinkStats>;
+  /** Entry queue right after `step` (0 at step 0), §6.2. */
+  queueAt(step: number): number;
+  /** Entry queue, exits and diversions right after `step`, §6.2. */
+  historyAt(step: number): { entryQueue: number; exited: number; diversions: number };
+  /** Front displacement per segment (index order: links, then movements), m, §6.2. */
+  segmentDistanceM(): Float64Array;
   trips(): TripRecord[];
   generatedLog(): GeneratedRecord[];
   series(): SeriesRow[];
@@ -328,6 +336,11 @@ class SimImpl implements Sim {
   private diversions = 0;
   private guardBySeg: Record<number, number> = {};
   private distM = 0; // front displacement summed over vehicles and steps (§5.2 vehicleKm)
+  private segDist: Float64Array = new Float64Array(0); // the same, per segment (§6.2)
+  /** After each step: entry queue, exits and diversions so far (index = step; §6.2). */
+  private histQueue: number[] = [0];
+  private histExited: number[] = [0];
+  private histDiverted: number[] = [0];
   /** Why vehicles were held at junctions (counts of leader-search evaluations). */
   private holds = { red: 0, amber: 0, gap: 0, box: 0, occupied: 0 };
   /** Junction data per segment (movements only). */
@@ -362,6 +375,7 @@ class SimImpl implements Sim {
     this.net = buildNetwork(network, this.sc.mode, this.sc.stripWidthM);
     this.segs = this.net.segments;
     this.occ = this.segs.map(() => []);
+    this.segDist = new Float64Array(this.segs.length);
     this.setupJunctions();
     this.preds = this.segs.map(() => []);
     for (const seg of this.segs) for (const nx of seg.next) this.preds[nx]!.push(seg.index);
@@ -1383,6 +1397,7 @@ class SimImpl implements Sim {
       const lim = this.segs[st.seg[k]!]!.speedLimitMps;
       st.ffTrav[k] = st.ffTrav[k]! + st.ds[k]! / Math.min(st.v0[k]!, lim);
       this.distM += st.ds[k]!;
+      this.segDist[st.seg[k]!] = this.segDist[st.seg[k]!]! + st.ds[k]!;
       if (st.dy[k] !== 0) {
         const ny = st.y[k]! + st.dy[k]!;
         st.y[k] = Math.abs(st.ty[k]! - ny) <= EPS ? st.ty[k]! : ny;
@@ -1442,6 +1457,9 @@ class SimImpl implements Sim {
     this.trackGridlock(tNew);
     this.vehicleSteps += st.count; // vehicles on the network after the step (§5.2)
     this.sampleSeries();
+    this.histQueue.push(this.queueLength());
+    this.histExited.push(this.exited);
+    this.histDiverted.push(this.diversions);
   }
 
   /**
@@ -1832,6 +1850,22 @@ class SimImpl implements Sim {
     return { generated: this.generated, exited: this.exited, onNetwork: this.st.count, entryQueue: this.queueLength() };
   }
 
+  get scenario(): Scenario {
+    return this.sc;
+  }
+
+  queueAt(step: number): number {
+    return this.histQueue[step] ?? NaN;
+  }
+
+  historyAt(step: number): { entryQueue: number; exited: number; diversions: number } {
+    return { entryQueue: this.histQueue[step] ?? NaN, exited: this.histExited[step] ?? NaN, diversions: this.histDiverted[step] ?? NaN };
+  }
+
+  segmentDistanceM(): Float64Array {
+    return this.segDist.slice();
+  }
+
   linkStats(): Record<string, LinkStats> {
     const out: Record<string, LinkStats> = {};
     this.segs.forEach((seg, i) => (out[seg.id] = { ...this.stats[i]! }));
@@ -1875,8 +1909,8 @@ class SimImpl implements Sim {
   writeFrame(out: Float32Array): number {
     const st = this.st;
     let n = 0;
-    for (let k = 0; k < st.cap; k++) {
-      if (!st.alive[k]) continue;
+    for (const k of this.sortedSlots()) {
+      // Records in vehicle-id order, like vehicles() (§6.1).
       if ((n + 1) * FRAME_STRIDE > out.length) break;
       const seg = this.segs[st.seg[k]!]!;
       const pt = pointAt(seg, st.s[k]! - st.len[k]! / 2);
@@ -1891,6 +1925,16 @@ class SimImpl implements Sim {
       // Drawing layer: links count as elevated only if they actually rise (z > 0.5 m).
       const link = seg.kind === 'link' ? this.network.links[seg.index]! : null;
       out[o + F_LAYER] = link && !(link.zFromM > 0.5 || link.zToM > 0.5) ? 0 : link ? Math.max(1, seg.layer) : seg.layer;
+      const v = st.v[k]!;
+      const vFree = Math.min(st.v0[k]!, seg.speedLimitMps);
+      const r = vFree > 0 ? v / vFree : 0;
+      out[o + F_SPEED] = v;
+      out[o + F_SPEED_RATIO] = r < 0 ? 0 : r > 1 ? 1 : r;
+      // Elevation at the centre point, linear along the segment (rendering only, §6.1).
+      const sc = st.s[k]! - st.len[k]! / 2;
+      const u = seg.length > 0 ? (sc <= 0 ? 0 : sc >= seg.length ? 1 : sc / seg.length) : 0;
+      out[o + F_Z] = seg.z0 + (seg.z1 - seg.z0) * u;
+      out[o + F_SEG] = seg.index;
       n++;
     }
     return n;

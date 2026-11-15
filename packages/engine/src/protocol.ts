@@ -12,7 +12,7 @@ import { Scenario } from './schema/scenario.ts';
  * Per-vehicle record layout in a frame buffer. (x, y) is the body CENTRE in world metres;
  * heading is radians counter-clockwise from +x; class is the index into the ClassSet.
  */
-export const FRAME_STRIDE = 7;
+export const FRAME_STRIDE = 11;
 export const F_X = 0;
 export const F_Y = 1;
 export const F_HEADING = 2;
@@ -21,6 +21,13 @@ export const F_CLASS = 3;
 export const F_LENGTH = 4;
 export const F_WIDTH = 5;
 export const F_LAYER = 6;
+/** Speed (m/s) and speed ÷ min(v0, segment speed limit), clamped to [0, 1] (MODEL.md §6.1). */
+export const F_SPEED = 7;
+export const F_SPEED_RATIO = 8;
+/** Elevation of the body centre from the segment's z-profile: rendering only, never physics. */
+export const F_Z = 9;
+/** Segment of the front: i < links.length → network.links[i], else movements[i − links.length]. */
+export const F_SEG = 10;
 
 /* ---------- main → worker ---------- */
 

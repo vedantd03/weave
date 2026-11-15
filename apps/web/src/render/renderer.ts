@@ -1,7 +1,9 @@
 import type { Network, VehicleClassId } from '@weave/engine';
-import { FRAME_STRIDE, F_CLASS, F_HEADING, F_LAYER, F_LENGTH, F_WIDTH, F_X, F_Y } from '@weave/engine/protocol';
+import { FRAME_STRIDE, F_CLASS, F_HEADING, F_LAYER, F_LENGTH, F_SPEED_RATIO, F_WIDTH, F_X, F_Y } from '@weave/engine/protocol';
 import { networkBounds, offsetPolyline, ribbon, type Bounds, type Pt } from './geometry.ts';
-import { CLASS_COLORS, readMapTheme, type MapTheme } from './palette.ts';
+import { classCss, readMapTheme, speedCss, type ColourMode, type MapTheme } from './palette.ts';
+
+const SPEED_BINS = 20;
 
 interface RoadShape {
   layer: number;
@@ -48,6 +50,7 @@ export class Renderer {
   private theme: MapTheme;
   private classIds: VehicleClassId[] = [];
   private frame: FrameView | null = null;
+  private colourMode: ColourMode = 'class';
   private dirty = true;
   private raf = 0;
   private cssW = 0;
@@ -118,6 +121,11 @@ export class Renderer {
     this.userMoved = false;
     this.fit();
     this.frame = null;
+    this.dirty = true;
+  }
+
+  setColourMode(mode: ColourMode): void {
+    this.colourMode = mode;
     this.dirty = true;
   }
 
@@ -250,8 +258,11 @@ export class Renderer {
     if (!f || f.count === 0) return;
     const { ctx } = this;
     const d = f.data;
+    // One path per colour bucket: classes, or 21 speed bins (ratio 0, 0.05, …, 1).
+    const bySpeed = this.colourMode === 'speed';
     const nClasses = Math.max(this.classIds.length, 1);
-    const paths: Path2D[] = Array.from({ length: nClasses }, () => new Path2D());
+    const nBuckets = bySpeed ? SPEED_BINS + 1 : nClasses;
+    const paths: Path2D[] = Array.from({ length: nBuckets }, () => new Path2D());
     // Below ~1.2 px/m vehicles become sub-pixel: enforce a minimum visible footprint.
     const minLen = 2.2 * px;
     const minWid = 1.6 * px;
@@ -265,17 +276,16 @@ export class Renderer {
       const hw = Math.max(d[o + F_WIDTH]!, minWid) / 2;
       const c = Math.cos(h);
       const s = Math.sin(h);
-      const p = paths[Math.min(d[o + F_CLASS]! | 0, nClasses - 1)]!;
+      const bucket = bySpeed ? Math.round(d[o + F_SPEED_RATIO]! * SPEED_BINS) : Math.min(d[o + F_CLASS]! | 0, nClasses - 1);
+      const p = paths[bucket]!;
       p.moveTo(x + c * hl - s * hw, y + s * hl + c * hw);
       p.lineTo(x - c * hl - s * hw, y - s * hl + c * hw);
       p.lineTo(x - c * hl + s * hw, y - s * hl - c * hw);
       p.lineTo(x + c * hl + s * hw, y + s * hl - c * hw);
       p.closePath();
     }
-    for (let k = 0; k < nClasses; k++) {
-      const id = this.classIds[k];
-      const col = id ? CLASS_COLORS[id] : undefined;
-      ctx.fillStyle = col ? (this.theme.dark ? col.dark : col.light) : '#e6edf3';
+    for (let k = 0; k < nBuckets; k++) {
+      ctx.fillStyle = bySpeed ? speedCss(k / SPEED_BINS) : classCss(this.classIds[k], this.theme.dark);
       ctx.fill(paths[k]!);
     }
   }
