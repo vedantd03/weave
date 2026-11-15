@@ -87,6 +87,10 @@ export class SimController {
   /** Inits sent and 'ready' replies seen: the worker answers in order, so while
    * readies < inits, messages belong to a superseded load and are ignored. */
   private initsSent = 0;
+  /** Loads requested so far, counted before any download (§6.3 item 1). */
+  private loadsRequested = 0;
+  /** The load whose init was sent last; while it lags loadsRequested, worker output is stale. */
+  private loadSent = 0;
   /** Resolves once the start-up open (default preset, warm-up) has finished or been skipped. */
   private markOpened: () => void = () => {};
   private opened: Promise<void> = new Promise((r) => (this.markOpened = r));
@@ -134,13 +138,14 @@ export class SimController {
    * `?preset=<id>`, loaded and paused at t = 0. Nothing is simulated until Play or Step.
    */
   private async openDefault(): Promise<void> {
-    // Something (the user or a test hook) already asked for a scenario: don't replace it.
-    if (this.initsSent > 0) return;
+    // Something (the user or a test hook) already asked for a scenario: don't replace it. Loads
+    // count from the moment they are requested, before any network download (§6.3 item 1).
+    if (this.loadsRequested > 0) return;
     // A shared link (#s=…) restores its scenario, paused at t = 0 (§7.4).
     const token = hashToken();
     if (token) {
       const shared = await decodeScenario(token);
-      if (shared && this.initsSent === 0) {
+      if (shared && this.loadsRequested === 0) {
         await this.loadScenario(shared, PRESETS[shared.id] ? shared.id : null);
         return;
       }
@@ -353,8 +358,23 @@ export class SimController {
 
   /** Load any scenario (sim is paused afterwards). */
   async loadScenario(scenario: ScenarioInput, presetId: string | null = this.state.presetId): Promise<void> {
-    const network = scenario.network.kind === 'file' ? await this.fileNetwork(scenario.network.id) : undefined;
+    // Register the load before any download: Play is disabled from now until this latest load is
+    // ready, and the start-up default can no longer replace it. A running scenario is paused.
+    const mine = ++this.loadsRequested;
+    if (this.state.status === 'playing') this.client.send({ type: 'pause' });
     this.frameWaiters = [];
+    const ready = this.waitForStep(0);
+    this.pendingLoad = ready;
+    this.set({ status: 'loading', presetId, scenario, error: null });
+    let network: Network | undefined;
+    try {
+      network = scenario.network.kind === 'file' ? await this.fileNetwork(scenario.network.id) : undefined;
+    } catch (e) {
+      if (mine === this.loadsRequested) this.set({ status: 'error', error: e instanceof Error ? e.message : String(e) });
+      throw e;
+    }
+    // A newer load was requested while this one downloaded: it wins.
+    if (mine !== this.loadsRequested) return this.pendingLoad;
     this.set({
       status: 'loading',
       presetId,
@@ -366,9 +386,8 @@ export class SimController {
       t: 0,
       step: 0,
     });
-    const ready = this.waitForStep(0);
-    this.pendingLoad = ready;
     void writeScenarioToUrl(scenario);
+    this.loadSent = mine;
     this.initsSent++;
     this.client.send({ type: 'init', scenario, classes: this.state.classes, ...(network ? { network } : {}) });
     this.client.send({ type: 'setSpeed', factor: this.state.speed });
@@ -427,7 +446,9 @@ export class SimController {
 
   private onMessage(m: FromWorker): void {
     if (m.type === 'ready') this.readies++;
-    const stale = this.readies < this.initsSent;
+    // Stale: from a superseded init, or from the previous scenario while the latest requested
+    // load is still downloading (it must not re-enable Play or satisfy the new load's wait).
+    const stale = this.readies < this.initsSent || this.loadSent !== this.loadsRequested;
     if (stale && (m.type === 'ready' || m.type === 'frame' || m.type === 'series')) return;
     switch (m.type) {
       case 'ready':
