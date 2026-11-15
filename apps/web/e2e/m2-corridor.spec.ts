@@ -111,14 +111,14 @@ async function setNumber(page: Page, label: string, value: number): Promise<void
 test('corridor preset: Play brings vehicles onto the road', async ({ page }) => {
   const errors = watchErrors(page);
   await openCorridor(page);
-  await page.getByRole('button', { name: 'Play' }).click();
-  await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Pause', exact: true })).toBeVisible();
   await expect
     .poll(async () => Number(/\d+/.exec((await page.getByTestId('stat-vehicles').textContent()) ?? '')?.[0] ?? 0), {
       timeout: 30_000,
     })
     .toBeGreaterThan(0);
-  await page.getByRole('button', { name: 'Pause' }).click();
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
   for (const id of ['stat-vehicles', 'stat-mean-speed', 'stat-entry-queue', 'stat-throughput']) {
     await expect(page.getByTestId(id)).toBeVisible();
   }
@@ -154,7 +154,7 @@ test('Apply with a different demand: paused, and counters/hash equal Node create
     await setNumber(page, 'Demand (veh/h)', rate);
     await setNumber(page, 'Seed', 7);
     await page.getByRole('button', { name: 'Apply' }).click();
-    await expect(page.getByRole('button', { name: 'Play' })).toBeVisible(); // paused after Apply
+    await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible(); // paused after Apply
     const r = await hookAdvance(page, N);
     const c = await hookCounters(page);
     const node = nodeSim({ seed: 7, rateVph: rate });
@@ -186,7 +186,7 @@ test('switching the lateral model to lane changes the state and matches Node', a
 
   await page.getByLabel('Lateral model', { exact: true }).selectOption('lane');
   await page.getByRole('button', { name: 'Apply' }).click();
-  await expect(page.getByRole('button', { name: 'Play' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
   expect((await hookAdvance(page, N)).hash).toBe(lane.stateHash());
   expect(errors).toEqual([]);
 });

@@ -137,6 +137,8 @@ export const Scenario = z.object({
   version: z.literal(1),
   id: Id,
   name: z.string(),
+  /** One line on what the scenario shows (revision 4, shown in the app). */
+  description: z.string().optional(),
   network: NetworkSource,
   /** Origin–destination demand over zone IDs. Destination and route are fixed at generation. */
   od: z.array(OdEntry).default([]),
@@ -151,7 +153,8 @@ export const Scenario = z.object({
   signalOverrides: z.array(SignalPlan).default([]),
   mode: z.enum(['strip', 'lane']).default('strip'),
   stripWidthM: z.number().min(0.1).max(1).default(0.25),
-  dtS: z.number().min(0.05).max(0.5).default(0.2),
+  /** Time step: 0.1, 0.2 or 0.25 s (MODEL.md §5.2 revision 4; 0.5 s broke the dt-error bounds). */
+  dtS: z.union([z.literal(0.1), z.literal(0.2), z.literal(0.25)]).default(0.2),
   durationS: z.number().positive().max(4 * 3600),
   warmupS: z.number().min(0).default(300),
   /** Probability a driver respects "don't block the box" (1 = always). */

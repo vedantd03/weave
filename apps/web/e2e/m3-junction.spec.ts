@@ -94,11 +94,11 @@ for (const id of ['junction4-signal', 'junction4-flyover', 'merge-onramp', 'silk
   test(`preset ${id} loads and plays`, async ({ page }) => {
     const errors = watchErrors(page);
     await open(page, id);
-    await page.getByRole('button', { name: 'Play' }).click();
+    await page.getByRole('button', { name: 'Play', exact: true }).click();
     await expect
       .poll(async () => Number(/\d+/.exec((await page.getByTestId('stat-vehicles').textContent()) ?? '')?.[0] ?? 0), { timeout: 45_000 })
       .toBeGreaterThan(0);
-    await page.getByRole('button', { name: 'Pause' }).click();
+    await page.getByRole('button', { name: 'Pause', exact: true }).click();
     expect(errors).toEqual([]);
   });
 }
@@ -178,7 +178,9 @@ test('editing an OD row changes generation deterministically (matches Node)', as
   expect(od.length).toBeGreaterThan(0);
   const row = od[0]!;
   const rate = row.rateVph * 2 + 100;
-  await page.getByLabel(`${row.origin} → ${row.destination} (veh/h)`, { exact: true }).fill(String(rate));
+  // §6.3 item 7: junction zones read "Arm k" (k = arm index + 1); other zone ids as they are
+  const zoneLabel = (z: string) => z.replace(/^arm(\d+)_(in|out)$/, (_m, k: string) => `Arm ${Number(k) + 1}`);
+  await page.getByLabel(`${zoneLabel(row.origin)} → ${zoneLabel(row.destination)} (veh/h)`, { exact: true }).fill(String(rate));
   await page.getByRole('button', { name: 'Apply' }).click();
   const r = await hAdvance(page, 1500);
   const c = await hCounters(page);

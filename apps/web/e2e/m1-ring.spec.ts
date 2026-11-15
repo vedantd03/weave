@@ -111,13 +111,13 @@ test('ring demo: Play advances simulated time and draws moving vehicles', async 
   const t0 = (await simTime(page)).value;
   const before = await canvasPng(canvas);
 
-  await page.getByRole('button', { name: 'Play' }).click();
-  await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Pause', exact: true })).toBeVisible();
   // Time must advance while playing (by more than a few steps).
   await expect.poll(async () => (await simTime(page)).value, { timeout: 15_000 }).toBeGreaterThan(t0 + 10 * DT);
   const after = await canvasPng(canvas);
-  await page.getByRole('button', { name: 'Pause' }).click();
-  await expect(page.getByRole('button', { name: 'Play' })).toBeVisible();
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
 
   const r = await comparePngs(page, before, after);
   expect(r.sameSize).toBe(true);
@@ -134,7 +134,7 @@ test('ring demo: Play advances simulated time and draws moving vehicles', async 
 test('ring demo: Step advances exactly one dt', async ({ page }) => {
   const errors = watchErrors(page);
   await openRing(page);
-  await expect(page.getByRole('button', { name: 'Play' })).toBeVisible(); // paused after load
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible(); // paused after load
   const hash0 = (await page.getByTestId('state-hash').textContent())?.trim() ?? '';
   expect(hash0).toMatch(/^[0-9a-f]+$/i);
 

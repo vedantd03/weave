@@ -899,6 +899,8 @@ export function compare(base: ReplicateResult[], variant: ReplicateResult[]): Re
   - **Why this unit:** `guardPer10k` divides by vehicle-steps, and in a gridlocked run most
     vehicle-steps are spent standing still, where the guard cannot act. That dilutes the rate.
     Distance driven measures the exposure the guard acts on.
+- **Time step:** `dtS` is one of 0.1, 0.2 or 0.25 s (default 0.2), enforced by the scenario
+  schema. 0.5 s was removed because it breaks the tests' dt-error assumptions (revision 4).
 - **Windows:** "in the window" is inclusive. Series rows count when `t0 ≥ warmupS` and
   `t1 ≤ durationS`. `SimInput` is `{ scenario, classes, network? }`, the same as for
   `createSim`.
@@ -1006,12 +1008,14 @@ interface SegmentStat {
 - **`vehicleHours`:** `linkStats().vehicleSeconds / 3600`.
 
 ### 6.3 App behaviour
-1. **Opens running.** The app opens on the **4-arm junction with flyover** preset
-   (`junction4-flyover`), loaded and playing, with no empty state. On this default open, the
-   preset's warm-up (`warmupS`) is run first, so the network is already busy when it appears:
-   the app opens at t = warmupS and plays from there. `?preset=<id>` opens another preset the
-   same way. `?autoplay=0` loads the preset but leaves it paused (used by tests that need a fixed
-   start).
+1. **Opens ready (revision 4, user decision).** The app opens on the **4-arm junction with
+   flyover** preset (`junction4-flyover`), loaded and **paused at t = 0**, with the network
+   drawn and a clear prompt over the map (`data-testid="play-prompt"`, text containing
+   "Press Play").
+   - **Prompt:** the prompt disappears once the run is played or stepped.
+   - **No warm-up at page load:** nothing is simulated until the user plays or steps.
+   - **Other presets:** `?preset=<id>` opens another preset the same way. `?autoplay` no
+     longer exists, because nothing autoplays.
 2. **Colour by.** A two-option control "Colour by" (Class / Speed), shown over the map, sets the
    vehicle colour in both 2D and 3D.
    - **Class:** the existing class palette.
@@ -1048,6 +1052,31 @@ interface SegmentStat {
    - **Road card:** link or movement id, width, lanes (links), speed limit, and the vehicles
      on it now, with their mean speed.
    - **Dismissing:** Escape or a tap on empty ground clears it.
+7. **Scenario panel (revision 4).**
+   - **Description:** every preset has a one-line `description` (an optional scenario field)
+     saying what it shows. It is displayed under the scenario name
+     (`data-testid="scenario-description"`).
+   - **Demand first:** "Demand (veh/h)" (the total over the OD table) is the first field of
+     the run form.
+   - **Silk Board demand note:** for Silk Board, a note beside the demand field
+     (`data-testid="demand-note"`) says that 60% of the original OD is the tested clean preset
+     and that locks start around 70%.
+   - **OD table:** collapsed by default for file networks (Silk Board).
+   - **OD labels:** junction zones read "Arm k" (k = arm index + 1), so a row is labelled
+     "Arm 1 → Arm 2 (veh/h)", matching the arm fields of the form. Other zone ids are shown
+     as they are.
+   - **Box compliance:** the field is shown only for networks with a junction node (a node
+     with ≥ 2 movements, the box rule's definition, §3.4).
+   - **Presets:** `ring-busy` is removed. `ring-demo` is renamed "Ring road (car-following
+     check)" and `corridor-lanedrop` "Road narrowing", and its description states that
+     vehicles enter pre-sorted, so merging at the drop is not simulated.
+8. **3D inspection.** In 3D, hovering (mouse) or tapping (touch) a vehicle or road shows the
+   same card as 2D (`inspect-card`).
+   - **Picking:** CPU raycasting with three.js `Raycaster` against the instanced vehicle mesh
+     and the road meshes. Each road triangle maps back to its segment.
+   - **No GPU readback:** inspection never reads pixels from the GPU (no `readPixels`).
+   - **Test hook:** `weaveTest.worldToScreen3d(x, y, z)` returns page coordinates in the 3D
+     view.
 6. **Export run.** An "Export run" button is enabled only when the run is paused and t > 0.
    It downloads one JSON file, `weave-run-<presetId|scenario.id>-seed<seed>-t<t>.json`, that
    validates against the zod schema `RunExport` (§6.4; JSON Schema in

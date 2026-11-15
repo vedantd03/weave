@@ -43,6 +43,33 @@ async function canvasPng(canvas: Locator): Promise<string> {
   const buf = await canvas.screenshot();
   return (buf as unknown as { toString(enc: 'base64'): string }).toString('base64');
 }
+async function nonBackground(page: Page, png: string): Promise<number> {
+  return page.evaluate(async (p) => {
+    const img = new Image();
+    img.src = `data:image/png;base64,${p}`;
+    await img.decode();
+    const c = document.createElement('canvas');
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    const ctx = c.getContext('2d')!;
+    ctx.drawImage(img, 0, 0);
+    const A = new Uint32Array(ctx.getImageData(0, 0, c.width, c.height).data.buffer.slice(0));
+    const counts = new Map<number, number>();
+    let bg = 0;
+    let best = -1;
+    for (const x of A) {
+      const k = (counts.get(x) ?? 0) + 1;
+      counts.set(x, k);
+      if (k > best) {
+        best = k;
+        bg = x;
+      }
+    }
+    let n = 0;
+    for (const x of A) if (x !== bg) n++;
+    return n;
+  }, png);
+}
 async function changedPixels(page: Page, a: string, b: string): Promise<number> {
   return page.evaluate(async ([pa, pb]) => {
     const decode = async (s: string) => {
@@ -65,16 +92,25 @@ async function changedPixels(page: Page, a: string, b: string): Promise<number> 
   }, [a, b] as const);
 }
 
-test('opens running on the flyover junction: vehicles appear and time advances without a click', async ({ page }) => {
+test('opens ready: flyover junction paused at t = 0, network drawn, "Press Play" prompt; Play starts it', async ({ page }) => {
   const errors = watchErrors(page);
   await page.goto('/');
   await expect(page.getByRole('combobox', { name: 'Scenario' })).toHaveValue('junction4-flyover');
   await expect(page.getByText('No scenario loaded')).toHaveCount(0);
-  await expect
-    .poll(async () => Number(/\d+/.exec((await page.getByTestId('stat-vehicles').textContent()) ?? '')?.[0] ?? 0), { timeout: 20_000 })
-    .toBeGreaterThan(0);
-  const t1 = await simTime(page);
-  await expect.poll(async () => simTime(page), { timeout: 10_000 }).toBeGreaterThan(t1);
+  const prompt = page.getByTestId('play-prompt');
+  await expect(prompt).toBeVisible({ timeout: 15_000 });
+  await expect(prompt).toContainText('Press Play');
+  expect(await simTime(page)).toBe(0);
+  // the network is drawn: the canvas is not one flat colour (≥ 100 pixels differ from the
+  // most common colour, a deliberately low bar for road outlines at any zoom)
+  const png = await canvasPng(page.getByTestId('sim-canvas'));
+  expect(await nonBackground(page, png)).toBeGreaterThanOrEqual(100);
+  // nothing runs by itself
+  await page.waitForTimeout(3000);
+  expect(await simTime(page)).toBe(0);
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await expect(prompt).toBeHidden();
+  await expect.poll(async () => simTime(page), { timeout: 15_000 }).toBeGreaterThan(0);
   expect(errors).toEqual([]);
 });
 
@@ -188,8 +224,9 @@ test('Export run: enablement, RunExport schema, hashes, trips, metrics vs Node, 
   test.setTimeout(180_000);
   const errors = watchErrors(page);
   const exportBtn = page.getByRole('button', { name: 'Export run' });
-  // playing (default start): disabled
+  // playing: disabled (revision 4: the app opens paused, so press Play first)
   await page.goto('/');
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect.poll(async () => simTime(page), { timeout: 15_000 }).toBeGreaterThan(0);
   await expect(exportBtn).toBeDisabled();
   // paused at t = 0: disabled
@@ -242,9 +279,9 @@ test('run a preset briefly, stop, export, rerun in Node: the CLI reproduces the 
   const errors = watchErrors(page);
   await page.goto('/?autoplay=0&preset=junction4-signal');
   await expect(page.getByRole('combobox', { name: 'Scenario' })).toHaveValue('junction4-signal');
-  await page.getByRole('button', { name: 'Play' }).click();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect.poll(async () => simTime(page), { timeout: 120_000 }).toBeGreaterThan(30);
-  await page.getByRole('button', { name: 'Pause' }).click();
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Export run' })).toBeEnabled();
   const json = await readDownload(page, 'Export run');
   const raw = JSON.parse(json.text);

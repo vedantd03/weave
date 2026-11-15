@@ -204,7 +204,7 @@ export interface CorridorOpts {
   composition?: Partial<Record<VehicleClassId, number>>;
   initialDensityPerKm?: number;
   stripWidthM?: number;
-  dtS?: number;
+  dtS?: 0.1 | 0.2 | 0.25; // §5.2 time step: one of 0.1, 0.2, 0.25 s
 }
 
 /**

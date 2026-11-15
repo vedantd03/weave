@@ -45,7 +45,7 @@ export interface RingOpts {
   densityPerKm: number;
   jitterM: number;
   seed: number;
-  dtS?: number;
+  dtS?: 0.1 | 0.2 | 0.25; // §5.2 time step: one of 0.1, 0.2, 0.25 s
 }
 
 /**
