@@ -1,14 +1,12 @@
 import type { Network, VehicleClassId } from '@weave/engine';
 import { FRAME_STRIDE, F_CLASS, F_HEADING, F_LAYER, F_LENGTH, F_SEG, F_SPEED, F_SPEED_RATIO, F_WIDTH, F_X, F_Y } from '@weave/engine/protocol';
 import { networkBounds, offsetPolyline, ribbon, type Bounds, type Pt } from './geometry.ts';
+import { roadNow, track, vehicleAt, type Selection } from './select.ts';
 import { classCss, readMapTheme, speedCss, type ColourMode, type MapTheme } from './palette.ts';
 
 const SPEED_BINS = 20;
 
-/** What the user is inspecting (§6.3 item 5). Vehicle records are a copy of the frame record. */
-export type Selection =
-  | { kind: 'vehicle'; rec: Float32Array }
-  | { kind: 'road'; seg: number; onNow: number; meanSpeedMps: number };
+export type { Selection } from './select.ts';
 
 interface RoadShape {
   /** Network segment index: links first, then movements (§6.1 F_SEG). */
@@ -142,7 +140,7 @@ export class Renderer {
   setFrame(frame: FrameView): void {
     this.frame = frame;
     this.dirty = true;
-    if (this.selection) this.select(this.track(this.selection));
+    if (this.selection) this.select(track(this.selection, this.frame));
   }
 
   /** Called with the current selection after every change and every frame while one is active. */
@@ -172,23 +170,6 @@ export class Renderer {
     return [this.cam.cx + (cx - r.left - this.cssW / 2) / this.cam.scale, this.cam.cy - (cy - r.top - this.cssH / 2) / this.cam.scale];
   }
 
-  /** Road statistics now: vehicles whose front is on segment `seg` and their mean speed. */
-  private roadNow(seg: number): Selection {
-    let n = 0;
-    let sum = 0;
-    const f = this.frame;
-    if (f) {
-      for (let i = 0; i < f.count; i++) {
-        const o = i * FRAME_STRIDE;
-        if (f.data[o + F_SEG] === seg) {
-          n++;
-          sum += f.data[o + F_SPEED]!;
-        }
-      }
-    }
-    return { kind: 'road', seg, onNow: n, meanSpeedMps: n ? sum / n : NaN };
-  }
-
   /** Hit-test a page point: the topmost vehicle under it, else the topmost road, else null. */
   pick(clientX: number, clientY: number): Selection | null {
     const [wx, wy] = this.clientToWorld(clientX, clientY);
@@ -215,7 +196,7 @@ export class Renderer {
         }
       }
     }
-    if (best >= 0) return { kind: 'vehicle', rec: f!.data.slice(best * FRAME_STRIDE, (best + 1) * FRAME_STRIDE) };
+    if (best >= 0) return vehicleAt(f!, best);
     const r = this.canvas.getBoundingClientRect();
     const px = (clientX - r.left) * this.dpr;
     const py = (clientY - r.top) * this.dpr;
@@ -224,32 +205,10 @@ export class Renderer {
       // Movements were added after links, so search in reverse: junction paths win on top.
       for (let k = this.roads.length - 1; k >= 0; k--) {
         const road = this.roads[k]!;
-        if (road.layer === layer && this.ctx.isPointInPath(road.surface, px, py)) return this.roadNow(road.seg);
+        if (road.layer === layer && this.ctx.isPointInPath(road.surface, px, py)) return roadNow(this.frame, road.seg);
       }
     }
     return null;
-  }
-
-  /** Follow a selected vehicle into the new frame: same class and size, nearest to where it was. */
-  private track(s: Selection): Selection | null {
-    if (s.kind === 'road') return this.roadNow(s.seg);
-    const f = this.frame;
-    if (!f) return null;
-    const r = s.rec;
-    let best = -1;
-    let bestD = 30 * 30; // a vehicle moves < 30 m between displayed frames even at 60×
-    for (let i = 0; i < f.count; i++) {
-      const o = i * FRAME_STRIDE;
-      if (f.data[o + F_CLASS] !== r[F_CLASS] || f.data[o + F_LENGTH] !== r[F_LENGTH] || f.data[o + F_WIDTH] !== r[F_WIDTH]) continue;
-      const dx = f.data[o + F_X]! - r[F_X]!;
-      const dy = f.data[o + F_Y]! - r[F_Y]!;
-      const d = dx * dx + dy * dy;
-      if (d < bestD) {
-        bestD = d;
-        best = i;
-      }
-    }
-    return best >= 0 ? { kind: 'vehicle', rec: f.data.slice(best * FRAME_STRIDE, (best + 1) * FRAME_STRIDE) } : null;
   }
 
   private drawSelection(px: number): void {

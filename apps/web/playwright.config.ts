@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * UI checks. By default they run against the local production build (vite preview).
- * Set BASE_URL to run the same suite against a deployed URL.
+ * Set BASE_URL to run the same suite against a deployed URL (pnpm e2e:live uses https://weave-simulator.vercel.app).
  */
 // Typed without @types/node (not an approved dependency); Playwright runs this file in Node.
 const env = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {};

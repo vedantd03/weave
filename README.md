@@ -5,12 +5,16 @@ junctions, flyovers and roads of different widths. Vehicles are calibrated on Ch
 trajectory data. Everything runs in your browser: a deterministic TypeScript engine in Web
 Workers, a React UI, and a static deployment with no server.
 
-**Live app:** https://weave-4uz6.vercel.app
+**Live app:** https://weave-simulator.vercel.app
 
 ## What you can do
-- **Pick a scenario:** a ring road, a corridor narrowing, a 4-arm signalised junction (with or
-  without a flyover), an on-ramp merge, or **Silk Board, Bengaluru**, imported from
-  OpenStreetMap with its flyovers and the double-decker.
+- **Pick a scenario:**
+  - **Theory and simple roads:** a ring road (car-following check) and a road narrowing.
+  - **Junctions:** a 4-arm signalised junction, with or without a flyover, and an on-ramp
+    merge.
+  - **A real network:** **Silk Board, Bengaluru**, imported from OpenStreetMap with its
+    flyovers and the double-decker.
+  - **Descriptions:** each scenario has a one-line description of what it shows.
 - **Edit it without drawing geometry:**
   - **Network:** arm count, angles and widths; flyover on or off, with deck, ramp and landing
     widths; corridor width changes and lane drops.
@@ -18,12 +22,14 @@ Workers, a React UI, and a static deployment with no server.
   - **Signals:** the plan (phase greens, amber, all-red, offset).
   - **Behaviour:** strip mode (mixed traffic) or lane mode (theory check), and box compliance.
   - **Run settings:** duration, warm-up, time step and seed.
-- **Watch it live:** the app opens on the 4-arm junction with flyover, already running.
+- **Watch it live:** the app opens on the 4-arm junction with flyover, paused at t = 0 with
+  the network drawn. Press Play to start.
   - **Colour:** colour vehicles by class or by speed (red when stopped, green at free flow),
     with a legend.
   - **Map:** signal heads, flyovers drawn above the box, live charts, the collision-guard rate
     and gridlock notices.
-  - **Inspect:** hover over or tap any vehicle or road for its details.
+  - **Inspect:** hover over or tap any vehicle or road for its details, in 2D or 3D. 3D picks
+    with CPU raycasting and never reads pixels back from the GPU.
 - **3D view (optional):** roads follow their real elevation, and decks and ramps stand on
   pillars. You can orbit, pan and zoom with a mouse or by touch. three.js loads only when you
   open 3D.
@@ -141,7 +147,7 @@ pnpm --filter @weave/engine sync-classes
   Harders' gap-acceptance capacity, Webster's effective green, LWR shockwave speed, Little's
   law, conservation at every step, a no-collision property, t-interval coverage and common
   random numbers.
-- **Test counts:** engine 319, data 106, end-to-end 81 (desktop and mobile, plus the hash
+- **Test counts:** engine 322, data 106, end-to-end 95 (desktop and mobile, plus the hash
   checks in WebKit). One end-to-end test exports a run from the browser and replays it with the
   Node CLI to the same state hash. The end-to-end tests include checks that the browser and Node produce
   identical state hashes.

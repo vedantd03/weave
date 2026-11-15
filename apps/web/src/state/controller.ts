@@ -62,7 +62,15 @@ type Listener = () => void;
 export class SimController {
   private client = new SimClient();
   private renderer: Renderer | null = null;
-  private scene3d: { setNetwork(n: Network, ids: string[]): void; setFrame(f: FrameView): void; setColourMode(m: ColourMode): void; destroy(): void } | null = null;
+  private scene3d: {
+    setNetwork(n: Network, ids: string[]): void;
+    setFrame(f: FrameView): void;
+    setColourMode(m: ColourMode): void;
+    setSelectionListener(cb: ((s: Selection | null) => void) | null): void;
+    clearSelection(): void;
+    worldToClient(x: number, y: number, z: number): { x: number; y: number };
+    destroy(): void;
+  } | null = null;
   private scene3dToken = 0;
   private lastFrame: FrameView | null = null;
   private listeners = new Set<Listener>();
@@ -114,21 +122,14 @@ export class SimController {
   }
 
   /**
-   * Open straight into a running scenario (MODEL.md §6.3 item 1): the 4-arm flyover preset, or
-   * `?preset=<id>`; `?autoplay=0` leaves it paused at t = 0.
+   * Open on a ready scenario (MODEL.md §6.3 item 1, revision 4): the 4-arm flyover preset, or
+   * `?preset=<id>`, loaded and paused at t = 0. Nothing is simulated until Play or Step.
    */
   private async openDefault(): Promise<void> {
     // Something (the user or a test hook) already asked for a scenario: don't replace it.
     if (this.initsSent > 0) return;
-    const q = new URLSearchParams(window.location.search);
-    const id = q.get('preset') ?? DEFAULT_PRESET;
-    const preset = PRESETS[id] ? id : DEFAULT_PRESET;
-    await this.load(preset);
-    if (q.get('autoplay') === '0' || this.state.status !== 'ready') return;
-    // Run the warm-up first so the network opens busy, then play from there.
-    const warm = Math.round((PRESETS[preset]!.warmupS ?? 0) / (this.state.scenario?.dtS ?? 0.2));
-    if (warm > 0) await this.step(warm);
-    if (this.state.status === 'ready') this.play();
+    const id = new URLSearchParams(window.location.search).get('preset') ?? DEFAULT_PRESET;
+    await this.load(PRESETS[id] ? id : DEFAULT_PRESET);
   }
 
   subscribe = (l: Listener): (() => void) => {
@@ -205,6 +206,7 @@ export class SimController {
 
   clearInspect(): void {
     this.renderer?.clearSelection();
+    this.scene3d?.clearSelection();
   }
 
   /**
@@ -251,6 +253,9 @@ export class SimController {
   }
 
   setView(view: '2d' | '3d'): void {
+    // The card belongs to the view it was picked in.
+    this.renderer?.clearSelection();
+    this.scene3d?.clearSelection();
     this.set({ view, ...(view === '3d' ? { view3dError: null } : {}) });
   }
 
@@ -269,6 +274,7 @@ export class SimController {
         if (token !== this.scene3dToken) return;
         const scene = new Scene3D(canvas);
         this.scene3d = scene;
+        scene.setSelectionListener((sel) => this.onSelection(sel));
         scene.setColourMode(this.state.colourMode);
         if (this.state.network) scene.setNetwork(this.state.network, this.state.classes.classes.map((c) => c.id));
         if (this.lastFrame) scene.setFrame(this.lastFrame);
@@ -461,6 +467,7 @@ export class SimController {
         return f ? { data: Array.from(f.data.subarray(0, f.count * FRAME_STRIDE)), count: f.count } : { data: [], count: 0 };
       },
       worldToScreen: async (x: number, y: number) => this.renderer?.worldToClient(x, y) ?? { x: NaN, y: NaN },
+      worldToScreen3d: async (x: number, y: number, z: number) => this.scene3d?.worldToClient(x, y, z) ?? { x: NaN, y: NaN },
       signals: async () => Array.from(this.lastSignals),
       runExperiment: async (o: { replications: number; compare: string }) => {
         const { runExperiment } = await import('./experiment.ts');

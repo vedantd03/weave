@@ -163,17 +163,23 @@ export function MergeFields({ p, set }: { p: MergeParams; set: (patch: Partial<M
   );
 }
 
-export function OdEditor({ od, onChange }: { od: OdEntry[]; onChange: (od: OdEntry[]) => void }) {
+/** Zone label: junction arms read "Arm k" (index + 1) like the arm fields; other zones as they are. */
+export function zoneLabel(zone: string): string {
+  const m = /^arm(\d+)_(in|out)$/.exec(zone);
+  return m ? `Arm ${Number(m[1]) + 1}` : zone;
+}
+
+export function OdEditor({ od, onChange, open = true }: { od: OdEntry[]; onChange: (od: OdEntry[]) => void; open?: boolean }) {
   const total = od.reduce((a, r) => a + r.rateVph, 0);
   return (
-    <details open={od.length <= 20} className="rounded-md border border-border">
+    <details open={open && od.length <= 20} className="rounded-md border border-border">
       <summary className="cursor-pointer px-2 py-1.5 text-xs text-muted">
-        Origin–destination demand · {od.length} pairs · {Math.round(total)} veh/h
+        Origin–destination (OD) demand · {od.length} pairs · {Math.round(total)} veh/h
       </summary>
       <div className="max-h-64 space-y-1 overflow-y-auto px-2 pb-2">
         {od.map((r, i) => {
           const id = `f-od-${i}`;
-          const label = `${r.origin} → ${r.destination} (veh/h)`;
+          const label = `${zoneLabel(r.origin)} → ${zoneLabel(r.destination)} (veh/h)`;
           return (
             <div key={`${r.origin}>${r.destination}`} className="grid grid-cols-[1fr_5.5rem] items-center gap-2">
               <label htmlFor={id} className="truncate text-xs text-muted" title={label}>

@@ -83,6 +83,13 @@ export function ScenarioForm({ ctrl, scenario, network }: { ctrl: SimController;
   }, [scenario]);
 
   const params: Params | null = draft.network.kind === 'generator' ? draft.network.params : null;
+  // Box compliance only matters at junction nodes: nodes with ≥ 2 movements (MODEL.md §3.4).
+  const hasJunction = (() => {
+    if (!network) return params ? params.generator === 'junction' || params.generator === 'merge' : true;
+    const perNode = new Map<string, number>();
+    for (const m of network.movements) perNode.set(m.node, (perNode.get(m.node) ?? 0) + 1);
+    return [...perNode.values()].some((n) => n >= 2);
+  })();
 
   const setParams = (patch: Record<string, unknown>, extra: Partial<Draft> = {}) => {
     if (!params) return;
@@ -236,6 +243,16 @@ export function ScenarioForm({ ctrl, scenario, network }: { ctrl: SimController;
       )}
 
       <div className="grid grid-cols-2 gap-2">
+        {od.length > 0 && (
+          <NumberField id="f-demand" label="Demand (veh/h)" value={Math.round(demand)} step={100} min={0} onChange={setDemand} />
+        )}
+        <NumberField id="f-seed" label="Seed" value={draft.seed} min={0} onChange={(v) => setDraft({ ...draft, seed: Math.max(0, Math.floor(v)) })} />
+        {draft.network.kind === 'file' && draft.network.id === 'silkboard' && (
+          <p data-testid="demand-note" className="col-span-2 text-xs text-muted">
+            Total over all origin–destination pairs. The preset is 60% of the original plausible demand: the highest tested level
+            that stays clean over 10 seeds (bounded queues, no locked junction). Locks start at about 70% (VALIDATION.md §9).
+          </p>
+        )}
         <div className="col-span-2">
         <SelectField
           id="f-mode"
@@ -254,10 +271,6 @@ export function ScenarioForm({ ctrl, scenario, network }: { ctrl: SimController;
           </p>
         )}
         </div>
-        {od.length > 0 && (
-          <NumberField id="f-demand" label="Demand (veh/h)" value={Math.round(demand)} step={100} min={0} onChange={setDemand} />
-        )}
-        <NumberField id="f-seed" label="Seed" value={draft.seed} min={0} onChange={(v) => setDraft({ ...draft, seed: Math.max(0, Math.floor(v)) })} />
       </div>
 
       {issues.length > 0 && (
@@ -297,34 +310,35 @@ export function ScenarioForm({ ctrl, scenario, network }: { ctrl: SimController;
             <SelectField
               id="f-dt"
               label="Time step (s)"
-              value={String(draft.dtS ?? 0.2) as '0.1' | '0.2' | '0.25' | '0.5'}
+              value={String(draft.dtS ?? 0.2) as '0.1' | '0.2' | '0.25'}
               options={[
                 { value: '0.1', label: '0.1' },
                 { value: '0.2', label: '0.2' },
                 { value: '0.25', label: '0.25' },
-                { value: '0.5', label: '0.5' },
               ]}
-              onChange={(v) => setDraft({ ...draft, dtS: Number(v) })}
+              onChange={(v) => setDraft({ ...draft, dtS: Number(v) as 0.1 | 0.2 | 0.25 })}
             />
           </div>
         </div>
       </details>
 
-      {od.length > 1 && <OdEditor od={od} onChange={(next) => setDraft({ ...draft, od: next })} />}
+      {od.length > 1 && <OdEditor od={od} open={draft.network.kind !== 'file'} onChange={(next) => setDraft({ ...draft, od: next })} />}
 
       {plan && (
         <SignalEditor plan={plan} onChange={(p) => setDraft({ ...draft, signalOverrides: [p] })} />
       )}
 
-      <div title="Probability that a driver respects 'don't block the box'. No source exists for Indian junctions: an assumption.">
-        <Num
-          id="f-box"
-          label="Box compliance (assumption, 0–1)"
-          value={draft.boxCompliance ?? 1}
-          min={0}
-          onChange={(v) => setDraft({ ...draft, boxCompliance: Math.min(1, Math.max(0, v)) })}
-        />
-      </div>
+      {hasJunction && (
+        <div title="Probability that a driver respects 'don't block the box'. No source exists for Indian junctions: an assumption.">
+          <Num
+            id="f-box"
+            label="Box compliance (assumption, 0–1)"
+            value={draft.boxCompliance ?? 1}
+            min={0}
+            onChange={(v) => setDraft({ ...draft, boxCompliance: Math.min(1, Math.max(0, v)) })}
+          />
+        </div>
+      )}
 
       {error && (
         <p role="alert" className="text-xs text-danger">

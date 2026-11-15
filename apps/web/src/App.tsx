@@ -151,6 +151,11 @@ export default function App() {
               <div className="space-y-3">
                 <div className="text-sm">
                   <p className="font-medium text-text">{st.scenario.name}</p>
+                  {st.scenario.description && (
+                    <p data-testid="scenario-description" className="mt-0.5 text-xs leading-relaxed text-muted">
+                      {st.scenario.description}
+                    </p>
+                  )}
                   {network && (
                     <p className="text-muted">
                       {network.links.length} link{network.links.length === 1 ? '' : 's'} · {network.movements.length} movement
@@ -230,7 +235,20 @@ export default function App() {
               <Legend mode={st.colourMode} classes={st.classes.classes} dark={darkScheme} />
             </div>
           )}
-          {loaded && st.view === '2d' && st.inspect && (
+          {st.status === 'ready' && st.t === 0 && (
+            <div className="pointer-events-none absolute inset-x-0 top-16 flex justify-center px-4">
+              <button
+                type="button"
+                data-testid="play-prompt"
+                onClick={() => ctrl.play()}
+                className="pointer-events-auto flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-ink shadow-lg hover:brightness-110"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden><path d="M3 1.8v10.4a.6.6 0 0 0 .9.5l8.4-5.2a.6.6 0 0 0 0-1L3.9 1.3a.6.6 0 0 0-.9.5Z" fill="currentColor" /></svg>
+                Press Play to start the simulation
+              </button>
+            </div>
+          )}
+          {loaded && st.inspect && (
             <div className="pointer-events-none absolute top-14 right-3">
               <InspectCard info={st.inspect} onClose={() => ctrl.clearInspect()} />
             </div>

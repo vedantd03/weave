@@ -4,6 +4,7 @@ import type { Network, VehicleClassId } from '@weave/engine';
 import { FRAME_STRIDE, F_CLASS, F_HEADING, F_LENGTH, F_SPEED_RATIO, F_WIDTH, F_X, F_Y, F_Z } from '@weave/engine/protocol';
 import { classCss, readMapTheme, speedRgb, type ColourMode } from './palette.ts';
 import type { FrameView } from './renderer.ts';
+import { roadNow, track, vehicleAt, type Selection } from './select.ts';
 
 /**
  * Optional 3D view (MODEL.md §6.3 item 4). Loaded with a dynamic import only when first opened,
@@ -67,6 +68,13 @@ export class Scene3D {
   private ro: ResizeObserver;
   private dark = true;
   private tmp = new THREE.Object3D();
+  /** Pickable road meshes and, per triangle, the network segment it belongs to. */
+  private pickables: { mesh: THREE.Mesh; triSeg: number[] }[] = [];
+  private raycaster = new THREE.Raycaster();
+  private selection: Selection | null = null;
+  private onSelect: ((s: Selection | null) => void) | null = null;
+  private outline: THREE.LineSegments | null = null;
+  private detach: Array<() => void> = [];
   private colour = new THREE.Color();
 
   private canvas: HTMLCanvasElement;
@@ -92,6 +100,7 @@ export class Scene3D {
     const sun = new THREE.DirectionalLight(0xffffff, 1.4);
     sun.position.set(-0.4, -0.6, 1);
     this.scene.add(sun);
+    this.attachInteraction();
     this.ro = new ResizeObserver(() => this.resize());
     this.ro.observe(canvas);
     this.resize();
@@ -106,6 +115,7 @@ export class Scene3D {
 
   destroy(): void {
     cancelAnimationFrame(this.raf);
+    for (const d of this.detach) d();
     this.ro.disconnect();
     this.controls.dispose();
     this.clearWorld();
@@ -120,6 +130,7 @@ export class Scene3D {
   setFrame(frame: FrameView): void {
     this.frame = frame;
     this.updateVehicles();
+    if (this.selection) this.select(track(this.selection, frame));
   }
 
   private clearWorld(): void {
@@ -132,6 +143,7 @@ export class Scene3D {
     });
     this.world.clear();
     this.vehicles = null;
+    this.outline = null;
     this.capacity = 0;
   }
 
@@ -151,7 +163,9 @@ export class Scene3D {
     const deckPos: number[] = [];
     const wallPos: number[] = [];
     const pillars: [number, number, number][] = [];
-    const ribbon = (poly: Poly, width: number, z0: number, z1: number, lift: number, elevated: boolean) => {
+    const triSeg: number[] = [];
+    const deckTriSeg: number[] = [];
+    const ribbon = (poly: Poly, width: number, z0: number, z1: number, lift: number, elevated: boolean, seg: number) => {
       if (poly.length < 2) return;
       const cum = polyLength(poly);
       const L = cum[cum.length - 1]! || 1;
@@ -162,6 +176,7 @@ export class Scene3D {
         const [a, b, c, d] = [l[i]!, r[i]!, l[i + 1]!, r[i + 1]!];
         out.push(a[0], a[1], z(i), b[0], b[1], z(i), c[0], c[1], z(i + 1));
         out.push(b[0], b[1], z(i), d[0], d[1], z(i + 1), c[0], c[1], z(i + 1));
+        (elevated ? deckTriSeg : triSeg).push(seg, seg);
         if (elevated) {
           for (const [p, q] of [[a, c], [b, d]] as const) {
             const zp = z(i);
@@ -183,23 +198,32 @@ export class Scene3D {
       }
     };
     const linkById = new Map(net.links.map((l) => [l.id, l]));
-    for (const l of net.links) {
+    net.links.forEach((l, i) => {
       const elevated = l.zFromM > 0.5 || l.zToM > 0.5;
-      ribbon(l.polyline, l.widthM, l.zFromM, l.zToM, LINK_LIFT, elevated);
-    }
-    for (const m of net.movements) {
+      ribbon(l.polyline, l.widthM, l.zFromM, l.zToM, LINK_LIFT, elevated, i);
+    });
+    net.movements.forEach((m, i) => {
       const z0 = linkById.get(m.fromLink)?.zToM ?? 0;
       const z1 = linkById.get(m.toLink)?.zFromM ?? 0;
-      ribbon(m.path, m.widthM, z0, z1, MOVE_LIFT, z0 > 0.5 || z1 > 0.5);
-    }
+      ribbon(m.path, m.widthM, z0, z1, MOVE_LIFT, z0 > 0.5 || z1 > 0.5, net.links.length + i);
+    });
     const mesh = (arr: number[], mat: THREE.Material) => {
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
       g.computeVertexNormals();
       return new THREE.Mesh(g, mat);
     };
-    if (pos.length) this.world.add(mesh(pos, roadMat));
-    if (deckPos.length) this.world.add(mesh(deckPos, deckMat));
+    this.pickables = [];
+    if (pos.length) {
+      const m = mesh(pos, roadMat);
+      this.world.add(m);
+      this.pickables.push({ mesh: m, triSeg });
+    }
+    if (deckPos.length) {
+      const m = mesh(deckPos, deckMat);
+      this.world.add(m);
+      this.pickables.push({ mesh: m, triSeg: deckTriSeg });
+    }
     if (wallPos.length) this.world.add(mesh(wallPos, wallMat));
     if (pillars.length) {
       const geo = new THREE.CylinderGeometry(0.45, 0.55, 1, 10);
@@ -230,7 +254,96 @@ export class Scene3D {
       this.fit(eb.getCenter(new THREE.Vector3()), Math.min(Math.max(es.x, es.y) * 0.9, Math.max(size.x, size.y)), true);
     } else this.fit(centre, Math.max(size.x, size.y, 60));
     this.ensureCapacity(256);
+    const outlineGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1).translate(0, 0, 0.5));
+    this.outline = new THREE.LineSegments(outlineGeo, new THREE.LineBasicMaterial({ color: theme.dark ? 0xfbbf24 : 0xb45309 }));
+    this.outline.visible = false;
+    this.world.add(this.outline);
+    this.select(null);
     this.updateVehicles();
+  }
+
+  setSelectionListener(cb: ((s: Selection | null) => void) | null): void {
+    this.onSelect = cb;
+  }
+
+  clearSelection(): void {
+    this.select(null);
+  }
+
+  private select(s: Selection | null): void {
+    const had = this.selection !== null;
+    this.selection = s;
+    this.updateOutline();
+    if (s || had) this.onSelect?.(s);
+  }
+
+  private updateOutline(): void {
+    const o = this.outline;
+    if (!o) return;
+    const s = this.selection;
+    if (!s || s.kind !== 'vehicle') {
+      o.visible = false;
+    } else {
+      const r = s.rec;
+      const cls = this.classIds[r[F_CLASS]! | 0];
+      o.position.set(r[F_X]!, r[F_Y]!, r[F_Z]! + MOVE_LIFT + 0.01);
+      o.rotation.set(0, 0, r[F_HEADING]!);
+      o.scale.set(r[F_LENGTH]! + 0.6, r[F_WIDTH]! + 0.6, (CLASS_HEIGHT[cls ?? ''] ?? 1.6) + 0.3);
+      o.visible = true;
+    }
+    this.dirty = true;
+  }
+
+  /**
+   * CPU raycast (three.js Raycaster against the instance matrices and road triangles): no GPU
+   * readback. Returns the vehicle or road under a page point, or null.
+   */
+  pick(clientX: number, clientY: number): Selection | null {
+    const r = this.canvas.getBoundingClientRect();
+    const ndc = new THREE.Vector2(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
+    this.raycaster.setFromCamera(ndc, this.camera);
+    const targets: THREE.Object3D[] = this.pickables.map((p) => p.mesh);
+    if (this.vehicles && this.vehicles.count > 0) targets.unshift(this.vehicles);
+    const hit = this.raycaster.intersectObjects(targets, false)[0];
+    if (!hit) return null;
+    if (hit.object === this.vehicles && hit.instanceId !== undefined && this.frame) return vehicleAt(this.frame, hit.instanceId);
+    const p = this.pickables.find((q) => q.mesh === hit.object);
+    const seg = p && hit.faceIndex !== undefined && hit.faceIndex !== null ? p.triSeg[hit.faceIndex] : undefined;
+    return seg === undefined ? null : roadNow(this.frame, seg);
+  }
+
+  /** World (m) → page coordinates (CSS px) in the 3D view, for tests. */
+  worldToClient(x: number, y: number, z: number): { x: number; y: number } {
+    const v = new THREE.Vector3(x, y, z).project(this.camera);
+    const r = this.canvas.getBoundingClientRect();
+    return { x: r.left + ((v.x + 1) / 2) * r.width, y: r.top + ((1 - v.y) / 2) * r.height };
+  }
+
+  private attachInteraction(): void {
+    const el = this.canvas;
+    let down: { x: number; y: number; id: number } | null = null;
+    const onDown = (e: PointerEvent) => (down = { x: e.clientX, y: e.clientY, id: e.pointerId });
+    const onUp = (e: PointerEvent) => {
+      // A tap or click (no drag) picks; a drag is OrbitControls' business.
+      if (down && down.id === e.pointerId && Math.hypot(e.clientX - down.x, e.clientY - down.y) < 6) this.select(this.pick(e.clientX, e.clientY));
+      down = null;
+    };
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType === 'mouse' && e.buttons === 0) this.select(this.pick(e.clientX, e.clientY));
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') this.select(null);
+    };
+    el.addEventListener('pointerdown', onDown);
+    el.addEventListener('pointerup', onUp);
+    el.addEventListener('pointermove', onMove);
+    window.addEventListener('keydown', onKey);
+    this.detach.push(() => {
+      el.removeEventListener('pointerdown', onDown);
+      el.removeEventListener('pointerup', onUp);
+      el.removeEventListener('pointermove', onMove);
+      window.removeEventListener('keydown', onKey);
+    });
   }
 
   /** Oblique view of the whole network from the south-west. */

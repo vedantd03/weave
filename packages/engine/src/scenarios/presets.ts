@@ -18,7 +18,8 @@ export const PRESETS: Record<string, ScenarioInput> = {
   'ring-demo': {
     version: 1,
     id: 'ring-demo',
-    name: 'Ring road (demo)',
+    name: 'Ring road (car-following check)',
+    description: 'Mixed traffic circling an 800 m two-lane ring with no entries or exits: car-following, filtering and stop-and-go waves.',
     network: {
       kind: 'generator',
       params: { generator: 'ring', circumferenceM: 800, widthM: 7, lanes: 2, speedLimitMps: 16.7 },
@@ -30,27 +31,12 @@ export const PRESETS: Record<string, ScenarioInput> = {
     warmupS: 0,
     seed: 42,
   },
-  'ring-busy': {
-    version: 1,
-    id: 'ring-busy',
-    name: 'Busy ring, 3 lanes (540 vehicles)',
-    network: {
-      kind: 'generator',
-      params: { generator: 'ring', circumferenceM: 2000, widthM: 10.5, lanes: 3, speedLimitMps: 16.7 },
-    },
-    composition: { motorcycle: 0.5, car: 0.3, auto: 0.1, bus: 0.04, truck: 0.02, lcv: 0.04 },
-    initialDensityPerKm: 270,
-    initialJitterM: 0.5,
-    durationS: 3600,
-    warmupS: 0,
-    seed: 42,
-  },
   'corridor-lanedrop': {
     version: 1,
     id: 'corridor-lanedrop',
-    // Vehicles enter already sorted into the continuing lanes (band rule, MODEL.md §2.3):
-    // merging at the drop is not modelled, so this shows a narrowing, not a merge.
-    name: 'Corridor narrowing (vehicles pre-sorted)',
+    name: 'Road narrowing',
+    // Band rule, MODEL.md §2.3: vehicles enter already sorted, so merging at the drop is not modelled.
+    description: 'A 3-lane road loses a lane at 600 m. Vehicles enter pre-sorted into the continuing lanes, so merging at the drop is not simulated.',
     network: {
       kind: 'generator',
       params: {
@@ -74,6 +60,7 @@ export const PRESETS: Record<string, ScenarioInput> = {
     version: 1,
     id: 'junction4-signal',
     name: '4-arm signalised junction',
+    description: 'A signalised 4-arm junction with Chennai mixed traffic: queues, discharge and gap acceptance at the stop lines.',
     network: { kind: 'generator', params: JUNCTION4 },
     od: JUNCTION_OD,
     composition: CHENNAI_MIX,
@@ -86,6 +73,7 @@ export const PRESETS: Record<string, ScenarioInput> = {
     version: 1,
     id: 'junction4-flyover',
     name: '4-arm junction with flyover',
+    description: 'The same junction with arm 1–3 through traffic on a flyover; compare it with the flyover off or retimed under Experiments.',
     network: {
       kind: 'generator',
       params: {
@@ -104,6 +92,7 @@ export const PRESETS: Record<string, ScenarioInput> = {
     version: 1,
     id: 'merge-onramp',
     name: 'On-ramp merge',
+    description: 'An on-ramp joins a 2-lane road over a 300 m acceleration lane: mixed traffic merging, saturating at about 2,850 veh/h.',
     network: {
       kind: 'generator',
       params: { generator: 'merge', mainWidthM: 7, mainLanes: 2, rampWidthM: 3.5, taperM: 300, mainLengthM: 800, rampLengthM: 250, angleDeg: 15, speedLimitMps: 16.7 },
@@ -123,6 +112,7 @@ export const PRESETS: Record<string, ScenarioInput> = {
     version: 1,
     id: 'silkboard',
     name: 'Silk Board, Bengaluru',
+    description: 'Silk Board junction, Bengaluru, from OpenStreetMap with its flyovers, at plausible (not observed) demand.',
     network: { kind: 'file', id: 'silkboard' },
     od: SILKBOARD_OD,
     composition: CHENNAI_MIX,

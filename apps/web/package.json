@@ -9,7 +9,9 @@
     "preview": "vite preview --port 4173 --strictPort",
     "typecheck": "tsc -p .",
     "test": "echo 'web: unit tests run in e2e (pnpm --filter @weave/web e2e)'",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "lighthouse": "node scripts/lighthouse.mjs",
+    "e2e:live": "BASE_URL=https://weave-simulator.vercel.app playwright test"
   },
   "dependencies": {
     "@weave/engine": "workspace:*",
